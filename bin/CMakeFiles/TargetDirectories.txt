@@ -1,3 +1,0 @@
-/home/ashley/hackerland/transbian-god-conquerer/bin/CMakeFiles/game.dir
-/home/ashley/hackerland/transbian-god-conquerer/bin/CMakeFiles/edit_cache.dir
-/home/ashley/hackerland/transbian-god-conquerer/bin/CMakeFiles/rebuild_cache.dir
