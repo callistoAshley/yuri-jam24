@@ -52,6 +52,7 @@ include_directories(
     ${FMOD_INCLUDE_DIR}
     ${FMOD_STUDIO_INCLUDE_DIR}
     lua/
+    stb/
 
     src/
 )
@@ -68,6 +69,8 @@ add_executable(game
 
     src/utility/list.c
 
+    stb/stb_impl.c
+
     src/main.c
 )
 
@@ -78,4 +81,5 @@ target_link_libraries(
     ${FMOD_LIBRARY}
     ${FMOD_STUDIO_LIBRARY}
     ${LUA_LIBRARY}
+    m # link against math library (looks really stupid lol)
 )
