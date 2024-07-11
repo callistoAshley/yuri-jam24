@@ -52,6 +52,8 @@ include_directories(
     ${FMOD_INCLUDE_DIR}
     ${FMOD_STUDIO_INCLUDE_DIR}
     lua/
+
+    src/
 )
 
 add_executable(game
@@ -59,6 +61,8 @@ add_executable(game
     src/events/command-list.c
     src/events/event.c
     src/events/interpreter.c
+
+    src/audio/audio.c
 
     src/utility/list.c
 
