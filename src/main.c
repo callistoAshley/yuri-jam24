@@ -15,7 +15,7 @@
 #include "input/input.h"
 #include "utility/macros.h"
 
-int main(int argc, char *argv[])
+int main(void)
 {
     SDL_Window *window;
 
@@ -29,11 +29,6 @@ int main(int argc, char *argv[])
     Input input;
     input_new(&input);
 
-    FMOD_STUDIO_EVENTDESCRIPTION *what_once_was;
-    FMOD_STUDIO_EVENTINSTANCE *what_once_was_instance;
-    int event_progression = 0;
-    FMOD_RESULT result = 0;
-
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
 
@@ -44,16 +39,6 @@ int main(int argc, char *argv[])
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
-
-    result = FMOD_Studio_System_GetEvent(
-        audio.system, "event:/bgm_what_once_was", &what_once_was);
-    FMOD_ERRCHK(result, "Getting event description");
-
-    result = FMOD_Studio_EventDescription_CreateInstance(
-        what_once_was, &what_once_was_instance);
-    FMOD_ERRCHK(result, "Creating event instance");
-    result = FMOD_Studio_EventInstance_Start(what_once_was_instance);
-    FMOD_ERRCHK(result, "Starting event instance");
 
     while (!input_is_down(&input, Button_Quit))
     {
