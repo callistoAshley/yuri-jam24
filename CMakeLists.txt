@@ -55,7 +55,13 @@ include_directories(
 )
 
 add_executable(game
+    src/events/command-funcs.c
+    src/events/command-list.c
+    src/events/event.c
+    src/events/interpreter.c
+
     src/utility/list.c
+
     src/main.c
 )
 
