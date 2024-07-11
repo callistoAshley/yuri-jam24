@@ -71,12 +71,16 @@ add_executable(game
 
     src/graphics/graphics.c
 
+    src/input/input.c
+
     src/utility/list.c
 
     stb/stb_impl.c
 
     src/main.c
 )
+
+target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic)
 
 target_link_libraries(
     game 

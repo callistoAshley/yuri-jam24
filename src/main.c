@@ -12,6 +12,7 @@
 
 #include "graphics/graphics.h"
 #include "audio/audio.h"
+#include "input/input.h"
 #include "utility/macros.h"
 
 int main(int argc, char *argv[])
@@ -24,6 +25,9 @@ int main(int argc, char *argv[])
     // audio things
     Audio audio;
     audio_init(&audio);
+
+    Input input;
+    input_new(&input);
 
     FMOD_STUDIO_EVENTDESCRIPTION *what_once_was;
     FMOD_STUDIO_EVENTINSTANCE *what_once_was_instance;
@@ -51,40 +55,14 @@ int main(int argc, char *argv[])
     result = FMOD_Studio_EventInstance_Start(what_once_was_instance);
     FMOD_ERRCHK(result, "Starting event instance");
 
-    while (true)
+    while (!input_is_down(&input, Button_Quit))
     {
         SDL_Event event;
 
+        input_start_frame(&input);
         while (SDL_PollEvent(&event))
         {
-            switch (event.type)
-            {
-            case SDL_EVENT_KEY_DOWN:
-                if (event.key.key == SDLK_ESCAPE)
-                    exit(EXIT_SUCCESS);
-                if (event.key.key == SDLK_LEFT)
-                {
-                    if (event_progression > 0)
-                        event_progression--;
-                    FMOD_Studio_EventInstance_SetParameterByName(
-                        what_once_was_instance, "Progression",
-                        (float)event_progression, false);
-                }
-                if (event.key.key == SDLK_RIGHT)
-                {
-                    if (event_progression < 5)
-                        event_progression++;
-                    FMOD_Studio_EventInstance_SetParameterByName(
-                        what_once_was_instance, "Progression",
-                        (float)event_progression, false);
-                }
-                break;
-            case SDL_EVENT_QUIT:
-                exit(EXIT_SUCCESS);
-                break;
-            default:
-                break;
-            }
+            input_process(&event, &input);
         }
 
         FMOD_Studio_System_Update(audio.system);
@@ -97,4 +75,6 @@ int main(int argc, char *argv[])
 
     audio_free(&audio);
     SDL_Quit();
+
+    return 0;
 }
