@@ -43,6 +43,7 @@ include_directories(
 )
 
 add_executable(game
+    src/utility/list.c
     src/main.c
 )
 
