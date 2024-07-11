@@ -35,11 +35,23 @@ find_path(
 
 add_subdirectory(glad)
 
+add_custom_target(lua ALL
+    command make
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/lua
+)
+find_library(
+    LUA_LIBRARY
+    NAMES lua
+    PATHS ${CMAKE_SOURCE_DIR}/lua
+    REQUIRED
+)
+
 include_directories(
     glad/include/
     include/
     ${FMOD_INCLUDE_DIR}
     ${FMOD_STUDIO_INCLUDE_DIR}
+    lua/
 )
 
 add_executable(game
@@ -53,4 +65,5 @@ target_link_libraries(
     glad
     ${FMOD_LIBRARY}
     ${FMOD_STUDIO_LIBRARY}
+    ${LUA_LIBRARY}
 )

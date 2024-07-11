@@ -4,3 +4,6 @@ build/
 .user/
 .cache/
 .unsaved/
+*.o
+lua/luac
+lua/lua
