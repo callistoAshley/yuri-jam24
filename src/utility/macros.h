@@ -1,4 +1,7 @@
+#pragma once
+
 #include <stdlib.h>
+#include <stdio.h>
 
 #define FATAL(...) fprintf(stderr, __VA_ARGS__), exit(1);
 

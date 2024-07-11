@@ -64,6 +64,8 @@ add_executable(game
 
     src/audio/audio.c
 
+    src/graphics/graphics.c
+
     src/utility/list.c
 
     src/main.c

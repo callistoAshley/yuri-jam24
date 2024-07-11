@@ -1,8 +1,6 @@
 #include "audio.h"
 #include "utility/macros.h"
 
-#include <stdio.h>
-
 void audio_init(Audio *audio)
 {
     unsigned int fmod_version;

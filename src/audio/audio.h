@@ -1,3 +1,5 @@
+#pragma once
+
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 

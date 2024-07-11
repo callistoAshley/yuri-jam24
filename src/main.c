@@ -10,13 +10,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include "graphics/graphics.h"
 #include "audio/audio.h"
 #include "utility/macros.h"
 
 int main(int argc, char *argv[])
 {
-    SDL_GLContext gl_context;
     SDL_Window *window;
+
+    // Graphics stuff
+    Graphics graphics;
 
     // audio things
     Audio audio;
@@ -36,18 +39,7 @@ int main(int argc, char *argv[])
     window = SDL_CreateWindow("i am the window", 640, 480, SDL_WINDOW_OPENGL);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
-    gl_context = SDL_GL_CreateContext(window);
-    SDL_PTR_ERRCHK(gl_context, "GL context creation failure")
-
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
-    {
-        FATAL("ERROR: GLAD initialization failure.\n");
-    }
-
-    SDL_ERRCHK(SDL_GL_MakeCurrent(window, gl_context),
-               "SDL_GL_MakeCurrent failure");
-
-    printf("GL Version: %s\n", glGetString(GL_VERSION));
+    graphics_init(&graphics, window);
 
     result = FMOD_Studio_System_GetEvent(
         audio.system, "event:/bgm_what_once_was", &what_once_was);
@@ -97,10 +89,7 @@ int main(int argc, char *argv[])
 
         FMOD_Studio_System_Update(audio.system);
 
-        glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-        glClearColor(0.2 * (float)event_progression, 0.0, 0.0,
-                     1.0); // progression ranges from 0 to 5
-        glClear(GL_COLOR_BUFFER_BIT);
+        graphics_render(&graphics);
 
         SDL_GL_SwapWindow(window);
         SDL_Delay(1 / 60);
