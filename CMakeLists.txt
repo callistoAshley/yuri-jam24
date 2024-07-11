@@ -35,6 +35,10 @@ find_path(
 
 add_subdirectory(glad)
 
+set(CGLM_SHARED OFF)
+set(CGLM_STATIC ON)
+add_subdirectory(cglm/)
+
 add_custom_target(lua ALL
     command make
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/lua
@@ -78,6 +82,7 @@ target_link_libraries(
     game 
     ${SDL3_LIBRARIES}
     glad
+    cglm
     ${FMOD_LIBRARY}
     ${FMOD_STUDIO_LIBRARY}
     ${LUA_LIBRARY}
