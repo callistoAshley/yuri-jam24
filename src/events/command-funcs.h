@@ -7,7 +7,7 @@
 
 #include "../player.h"
 
-typedef int (*CommandFn)(Player *player, lua_State *lua);
+typedef void (*CommandFn)(Player *player, lua_State *lua);
 
-int command_text(Player *player, lua_State *lua);
-int command_test(Player *player, lua_State *lua);
+void command_text(Player *player, lua_State *lua);
+void command_test(Player *player, lua_State *lua);
