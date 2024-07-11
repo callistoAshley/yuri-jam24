@@ -40,7 +40,6 @@ Audio audio_init() {
   Audio audio = {0};
   unsigned int fmod_version;
   FMOD_RESULT result = 0;
-
   // initialize FMOD
   result = FMOD_Studio_System_Create(&audio.system, FMOD_VERSION);
   FMOD_ERRCHK(result, "Creating system");
