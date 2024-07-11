@@ -1,3 +1,4 @@
 {
-  "licenser.disableAutoHeaderInsertion": true
+  "licenser.disableAutoHeaderInsertion": true,
+  "editor.formatOnSave": false
 }
