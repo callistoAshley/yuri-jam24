@@ -1,4 +1,4 @@
 {
   "licenser.disableAutoHeaderInsertion": true,
-  "editor.formatOnSave": false
+  "editor.detectIndentation": false,
 }

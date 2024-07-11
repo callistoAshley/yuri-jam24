@@ -5,7 +5,7 @@ static void realloc_list_data(List *list)
     void *temp_data = list->data;
 
     temp_data = realloc(temp_data, list->cap * sizeof(char *));
-    if (!temp_data) 
+    if (!temp_data)
     {
         list_free(list);
         return;
@@ -17,7 +17,7 @@ List *list_init(void)
 {
     List *list = calloc(1, sizeof(List));
 
-    if (!list) 
+    if (!list)
     {
         return NULL;
     }
@@ -32,16 +32,13 @@ List *list_init(void)
     return list;
 }
 
-char *list_at(List *list, int index)
-{
-    return list->data[index];
-}
+char *list_at(List *list, int index) { return list->data[index]; }
 
 void list_append(List *list, char *elem)
 {
     list->data[list->len++] = elem;
 
-    if (list->len >= list->cap) 
+    if (list->len >= list->cap)
     {
         list->cap += 8;
         realloc_list_data(list);
@@ -54,12 +51,14 @@ void list_remove(List *list, char *elem)
     {
         if (list_at(list, i) == elem)
         {
-            if (list->len - i > 1) memmove(list->data + i, list->data + i + 1, sizeof(char *) * (list->len - i));
+            if (list->len - i > 1)
+                memmove(list->data + i, list->data + i + 1,
+                        sizeof(char *) * (list->len - i));
             list->len--;
             if (list->cap - list->len > 8)
             {
                 list->cap -= 8;
-                realloc_list_data(list); 
+                realloc_list_data(list);
             }
             return;
         }
@@ -68,12 +67,14 @@ void list_remove(List *list, char *elem)
 
 void list_remove_at(List *list, int index)
 {
-    if (list->len - index > 1) memmove(list->data + index, list->data + index + 1, sizeof(char *) * (list->len - index));
+    if (list->len - index > 1)
+        memmove(list->data + index, list->data + index + 1,
+                sizeof(char *) * (list->len - index));
     list->len--;
     if (list->cap - list->len > 8)
     {
         list->cap -= 8;
-        realloc_list_data(list); 
+        realloc_list_data(list);
     }
 }
 
