@@ -1,3 +1,7 @@
+#include "fmod.h"
+#include <fmod_errors.h>
+#include <fmod_studio.h>
+
 #include <glad/glad.h>
 
 #include <SDL3/SDL.h>
@@ -8,10 +12,30 @@
 #include <stdlib.h>
 
 #define FATAL(...) return fprintf(stderr, __VA_ARGS__), EXIT_FAILURE;
+#define FMOD_ERRCHK(expr)                                                      \
+  {                                                                            \
+    FMOD_RESULT result = expr;                                                 \
+    if (result != FMOD_OK) {                                                   \
+      FATAL("FMOD error: %s\n", FMOD_ErrorString(result));                     \
+    }                                                                          \
+  }
 
 int main(int argc, char *argv[]) {
   SDL_GLContext gl_context;
   SDL_Window *window;
+
+  FMOD_STUDIO_SYSTEM *system;
+  FMOD_ERRCHK(FMOD_Studio_System_Create(&system, FMOD_VERSION));
+  FMOD_ERRCHK(FMOD_Studio_System_Initialize(
+      system, 1024, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, NULL));
+
+  FMOD_SYSTEM *coreSystem;
+  FMOD_Studio_System_GetCoreSystem(system, &coreSystem);
+
+  unsigned int version;
+  FMOD_System_GetVersion(coreSystem, &version, NULL);
+  printf("FMOD Version: %d.%d.%d\n", version >> 16, version >> 8 & 0xFF,
+         version & 0xFF);
 
   if (SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS)) {
     FATAL("ERROR: SDL initialization error: %s\n", SDL_GetError());
@@ -64,6 +88,8 @@ int main(int argc, char *argv[]) {
     SDL_GL_SwapWindow(window);
     SDL_Delay(1 / 60);
   }
+
+  FMOD_ERRCHK(FMOD_Studio_System_Release(system));
 
   SDL_Quit();
 }
