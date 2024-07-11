@@ -1,4 +1,5 @@
 #include "interpreter.h"
+#include "command-funcs.h"
 
 extern struct
 {

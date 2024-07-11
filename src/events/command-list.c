@@ -8,4 +8,4 @@ struct
     {"text", command_text},
     {"test_command", command_test},
     {NULL, NULL} // sentinel
-}
+};
