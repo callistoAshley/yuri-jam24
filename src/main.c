@@ -11,13 +11,6 @@
 #include <stdlib.h>
 
 #define FATAL(...) return fprintf(stderr, __VA_ARGS__), EXIT_FAILURE;
-#define FMOD_ERRCHK(expr)                                               \
-    {                                                                   \
-        FMOD_RESULT result = expr;                                      \
-        if (result != FMOD_OK)                                          \
-        {                                                               \
-            FATAL("FMOD error: %s\n", FMOD_ErrorString(result));        \
-        }                                                               
 #define SDL_ERRCHK(expr, msg)                                           \
     {                                                                   \
         if (expr)                                                       \
@@ -52,7 +45,7 @@ int main(int argc, char *argv[]) {
     printf("FMOD Version: %d.%d.%d\n", fmod_version >> 16, fmod_version >> 8 & 0xFF, 
         fmod_version & 0xFF);
 
-    SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS)), "SDL initialization failure");
+    SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS), "SDL initialization failure");
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
