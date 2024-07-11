@@ -29,6 +29,10 @@ Interpreter *interpreter_init(void)
     return interpreter;
 }
 
-void interpreter_run_event(Interpreter *interpreter, char *name) {}
+void interpreter_run_event(Interpreter *interpreter, char *name) 
+{
+    (void)interpreter;
+    (void)name;
+}
 
 void interpreter_free(Interpreter *interpreter) { free(interpreter); }
