@@ -70,6 +70,7 @@ add_executable(game
     src/audio/audio.c
 
     src/graphics/graphics.c
+    src/graphics/shaders.c
 
     src/input/input.c
 

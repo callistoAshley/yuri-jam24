@@ -1,7 +1,13 @@
 #include <glad/glad.h>
+#include <stdio.h>
 
 #include "graphics.h"
 #include "utility/macros.h"
+
+GLuint VBO;
+GLuint VAO;
+
+GLfloat vertices[] = {0.0f, 0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f};
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
@@ -15,10 +21,29 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     SDL_ERRCHK(SDL_GL_MakeCurrent(window, graphics->ctx),
                "SDL_GL_MakeCurrent failure");
+
+    // should expect 4.6.0 (or similar)
+    printf("OpenGL %s\n", glGetString(GL_VERSION));
+
+    shaders_init(&graphics->shaders);
+
+    glCreateVertexArrays(1, &VAO);
+    glCreateBuffers(1, &VBO);
+
+    glNamedBufferData(VBO, sizeof(vertices), vertices, GL_STATIC_DRAW);
+
+    glEnableVertexArrayAttrib(VAO, 0);
+    glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 3 * sizeof(GLfloat));
+    glVertexArrayAttribFormat(VAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(VAO, 0, 0);
 }
 
 void graphics_render(Graphics *graphics)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);
+
+    glUseProgram(graphics->shaders.basic);
+    glBindVertexArray(VAO);
+    glDrawArrays(GL_TRIANGLES, 0, 3);
 }
