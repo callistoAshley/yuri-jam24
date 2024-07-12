@@ -9,7 +9,7 @@ extern struct
     CommandFn func;
 } commands[];
 
-static int free_command(lua_State *lua);
+static int free_command_lua(lua_State *lua);
 
 // this function is to be used as a closure for each command
 // the first upvalue is the CommandFn associated with this command
@@ -20,6 +20,7 @@ static int init_command_closure(lua_State *lua)
 
     command = lua_newuserdatauv(lua, sizeof(Command), 0);
     if (!command) return luaL_error(lua, "init_command_closure: out of memory");
+    command->is_userdatum = true;
 
     command->func = (CommandFn)lua_touserdata(lua, lua_upvalueindex(1)); // gcc warns about this cast, but it should be fine
     if (!command->func) return luaL_error(lua, "init_command_closure: lua_touserdata failure");
@@ -69,17 +70,15 @@ static int init_command_closure(lua_State *lua)
 
     // give the command userdatum a metatable containing the free_command function as its __gc field
     lua_newtable(lua);
-    lua_pushcfunction(lua, free_command);
+    lua_pushcfunction(lua, free_command_lua);
     lua_setfield(lua, -2, "__gc");
     lua_setmetatable(lua, -2);
 
     return 1;
 }
 
-// this function is to be used as the __gc metafield of a Command userdatum
-static int free_command(lua_State *lua)
+static void free_command(Command *command)
 {
-    Command *command = lua_touserdata(lua, 1);
     LinkedListNode *node = command->args->first;
 
     for (int i = 0; i < command->args->len; i++)
@@ -90,6 +89,12 @@ static int free_command(lua_State *lua)
 
     free(command->args);
     free(command);
+}
+
+// this function is to be used as the __gc metafield of a Command userdatum
+static int free_command_lua(lua_State *lua)
+{
+    free_command(lua_touserdata(lua, 1));    
     return 1;
 }
 
@@ -122,10 +127,54 @@ Interpreter *interpreter_init(void)
     return interpreter;
 }
 
-void interpreter_run_event(Interpreter *interpreter, char *name) 
+int interpreter_run_event(Interpreter *interpreter, char *name) 
 {
-    (void)interpreter;
-    (void)name;
+    int event_obj_type;
+    Event *event;
+
+    (void)event;
+
+    if (interpreter->current_event)
+    {
+        linked_list_free(interpreter->current_event->commands);
+        event_free(interpreter->current_event);
+        interpreter->current_event = NULL;
+    }
+
+    event_obj_type = lua_getglobal(interpreter->lua_state, name);
+    if (event_obj_type != LUA_TTABLE)
+    {
+        return luaL_error(
+            interpreter->lua_state, 
+            "interpreter_run_event: the global with the given name has a bad type (expected table, got %s)", 
+            lua_typename(interpreter->lua_state, event_obj_type)
+        );
+    }
+
+    event = event_init(linked_list_init());
+    
+    // traverse the table and fill the event with its commands
+    lua_pushnil(interpreter->lua_state); // initial key
+    while (lua_next(interpreter->lua_state, 1))
+    {
+        if (lua_type(interpreter->lua_state, -1) == LUA_TSTRING)
+        {
+            // a text command must be manually assembled
+            // FIXME: there are too many places where a Command is manually allocated. it would be nice to have an initialization function for them instead
+            Command *command = calloc(1, sizeof(Command));
+            if (!command) FATAL("ERROR: interpreter_run_event: calloc failure.");
+            command->func = command_text;
+
+        }
+        else
+        {
+
+        }
+        lua_pop(interpreter->lua_state, -2); // pop the value
+    }
+    lua_pop(interpreter->lua_state, -1); // pop the key
+
+    return 1;
 }
 
 void interpreter_update(Interpreter *interpreter)

@@ -9,13 +9,9 @@
 #include <lualib.h>
 
 #include "command-funcs.h"
+#include "event.h"
 #include "../utility/linked-list.h"
-
-typedef struct
-{
-    CommandFn func;
-    LinkedList *args;
-} Command;
+#include "../utility/macros.h"
 
 typedef struct
 {

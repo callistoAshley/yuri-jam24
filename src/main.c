@@ -33,6 +33,7 @@ int main(void)
     Player player = PLAYER_INIT;
 
     Interpreter *interpreter = interpreter_init();
+    (void)interpreter;
 
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
