@@ -13,6 +13,7 @@
 #include "audio/audio.h"
 #include "input/input.h"
 #include "utility/macros.h"
+#include "player.h"
 
 int main(void)
 {
@@ -27,6 +28,8 @@ int main(void)
 
     Input input;
     input_new(&input);
+
+    Player player = PLAYER_INIT;
 
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
@@ -53,7 +56,7 @@ int main(void)
 
         FMOD_Studio_System_Update(audio.system);
 
-        graphics_render(&graphics);
+        graphics_render(&graphics, &player);
 
         SDL_GL_SwapWindow(window);
         SDL_Delay(1 / 60);

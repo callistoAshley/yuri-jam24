@@ -3,47 +3,7 @@
 
 #include <stdio.h>
 
-GLuint compile_shader(const char *source, GLenum type)
-{
-    GLuint shader = glCreateShader(type);
-    glShaderSource(shader, 1, &source, NULL);
-    glCompileShader(shader);
-
-    GLint success;
-    glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-    if (!success)
-    {
-        char info_log[512];
-        glGetShaderInfoLog(shader, 512, NULL, info_log);
-        FATAL("ERROR: Shader compilation failure: %s\n", info_log);
-    }
-
-    return shader;
-}
-
-GLuint link_program(GLuint vertex_shader, GLuint fragment_shader)
-{
-    GLuint program = glCreateProgram();
-    glAttachShader(program, vertex_shader);
-    glAttachShader(program, fragment_shader);
-    glLinkProgram(program);
-
-    GLint success;
-    glGetProgramiv(program, GL_LINK_STATUS, &success);
-    if (!success)
-    {
-        char info_log[512];
-        glGetProgramInfoLog(program, 512, NULL, info_log);
-        FATAL("ERROR: Program linking failure: %s\n", info_log);
-    }
-
-    glDeleteShader(vertex_shader);
-    glDeleteShader(fragment_shader);
-
-    return program;
-}
-
-char *read_entire_file(const char *path)
+void read_entire_file(const char *path, char **out, long *len)
 {
     FILE *file = fopen(path, "r");
     if (!file)
@@ -60,19 +20,33 @@ char *read_entire_file(const char *path)
     buffer[length] = '\0';
 
     fclose(file);
-    return buffer;
+
+    *out = buffer;
+    *len = length;
 }
 
 void shaders_init(Shaders *shaders)
 {
-    char *vertex_source = read_entire_file("assets/shaders/basic.vert");
-    GLuint vertex_shader = compile_shader(vertex_source, GL_VERTEX_SHADER);
-    free(vertex_source);
+    char *source;
+    long len;
+    read_entire_file("assets/shaders/basic.spv", &source, &len);
 
-    char *fragment_source = read_entire_file("assets/shaders/basic.frag");
-    GLuint fragment_shader =
-        compile_shader(fragment_source, GL_FRAGMENT_SHADER);
-    free(fragment_source);
+    GLuint create_shaders[2];
+    create_shaders[0] = glCreateShader(GL_VERTEX_SHADER);
+    create_shaders[1] = glCreateShader(GL_FRAGMENT_SHADER);
 
-    shaders->basic = link_program(vertex_shader, fragment_shader);
+    glShaderBinary(2, create_shaders, GL_SHADER_BINARY_FORMAT_SPIR_V, source,
+                   len);
+    free(source);
+    glSpecializeShader(create_shaders[0], "vs_main", 0, NULL, NULL);
+    glSpecializeShader(create_shaders[1], "fs_main", 0, NULL, NULL);
+
+    shaders->basic = glCreateProgram();
+
+    glAttachShader(shaders->basic, create_shaders[0]);
+    glAttachShader(shaders->basic, create_shaders[1]);
+    glLinkProgram(shaders->basic);
+
+    glDeleteShader(create_shaders[0]);
+    glDeleteShader(create_shaders[1]);
 }

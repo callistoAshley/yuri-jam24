@@ -58,7 +58,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     glVertexArrayAttribBinding(VAO, 1, 1);
 }
 
-void graphics_render(Graphics *graphics)
+void graphics_render(Graphics *graphics, Player *player)
 {
     glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT);

@@ -84,12 +84,35 @@ add_executable(game
 target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic)
 
 target_link_libraries(
-    game 
-    ${SDL3_LIBRARIES}
-    glad
-    cglm
-    ${FMOD_LIBRARY}
-    ${FMOD_STUDIO_LIBRARY}
-    ${LUA_LIBRARY}
-    m # link against math library (looks really stupid lol)
+  game 
+  ${SDL3_LIBRARIES}
+  glad
+  cglm
+  ${FMOD_LIBRARY}
+  ${FMOD_STUDIO_LIBRARY}
+  ${LUA_LIBRARY}
+  m # link against math library (looks really stupid lol)
 )
+
+set(SHADER_SOURCE_DIR ${CMAKE_SOURCE_DIR}/assets/shaders)
+set(SHADER_OUTPUT_DIR ${CMAKE_SOURCE_DIR}/assets/shaders)
+
+# Shader compilation with naga
+find_program(naga_executable NAMES naga PATHS ~/.cargo/bin REQUIRED) 
+file(GLOB SHADERS ${SHADER_SOURCE_DIR}/*.wgsl) # find all webgpu shaders
+
+foreach(source ${SHADERS})
+  get_filename_component(name ${source} NAME_WE)
+
+  message(STATUS "Building shader" ${source})
+  message(STATUS ${naga_executable} ${source} ${SHADER_OUTPUT_DIR}/${name}.spv)
+
+  add_custom_command(
+    OUTPUT ${SHADER_SOURCE_DIR}/${name}.spv
+    COMMAND ${naga_executable} ${source} ${SHADER_OUTPUT_DIR}/${name}.spv 
+    DEPENDS ${source}
+  )
+  list(APPEND SPV_SHADERS ${SHADER_OUTPUT_DIR}/${name}.spv)
+endforeach()
+
+add_custom_target(shaders ALL DEPENDS ${SPV_SHADERS})

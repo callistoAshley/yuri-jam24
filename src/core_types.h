@@ -13,3 +13,6 @@ typedef struct
     vec3 scale;
     quat rotation;
 } Transform;
+
+static const Transform TRANSFORM_UNIT = {
+    .position = {0}, .scale = {1}, .rotation = GLM_QUAT_IDENTITY_INIT};
