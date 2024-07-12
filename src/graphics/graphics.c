@@ -1,5 +1,7 @@
-#include <glad/glad.h>
+#include <glad/gl.h>
 #include <stdio.h>
+
+#include <SDL3/SDL_opengl.h>
 
 #include "graphics.h"
 #include "utility/macros.h"
@@ -7,14 +9,26 @@
 GLuint VBO;
 GLuint VAO;
 
-GLfloat vertices[] = {0.0f, 0.5f, 0.0f, -0.5f, -0.5f, 0.0f, 0.5f, -0.5f, 0.0f};
+GLfloat vertices[] = {
+    // 1st
+    0.0f, 0.5f, 0.0f,
+    // color
+    1.0f, 0.0f, 0.0f,
+    // 2nd
+    -0.5f, -0.5f, 0.0f,
+    // color
+    0.0f, 1.0f, 0.0f,
+    // 3rd
+    0.5f, -0.5f, 0.0f,
+    // color
+    0.0f, 0.0f, 1.0f};
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
     graphics->ctx = SDL_GL_CreateContext(window);
     SDL_PTR_ERRCHK(graphics->ctx, "GL context creation failure")
 
-    if (!gladLoadGLLoader((GLADloadproc)SDL_GL_GetProcAddress))
+    if (!gladLoadGL(SDL_GL_GetProcAddress))
     {
         FATAL("ERROR: GLAD initialization failure.\n");
     }

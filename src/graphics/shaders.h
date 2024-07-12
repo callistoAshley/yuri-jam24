@@ -1,7 +1,7 @@
 #pragma once
 
 #include "utility/list.h"
-#include <glad/glad.h>
+#include <glad/gl.h>
 
 typedef struct
 {

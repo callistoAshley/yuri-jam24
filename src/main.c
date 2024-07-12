@@ -1,8 +1,7 @@
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
-#include <glad/glad.h>
-
+#include <glad/gl.h>
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_opengl.h>
 
@@ -34,6 +33,8 @@ int main(void)
 
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
+    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
+                        SDL_GL_CONTEXT_PROFILE_CORE);
 
     window = SDL_CreateWindow("i am the window", 640, 480, SDL_WINDOW_OPENGL);
     SDL_PTR_ERRCHK(window, "window creation failure");
