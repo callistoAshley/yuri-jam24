@@ -20,6 +20,7 @@ typedef struct
 typedef struct
 {
     lua_State *lua_state;
+    Event *current_event;
 } Interpreter;
 
 Interpreter *interpreter_init(void);

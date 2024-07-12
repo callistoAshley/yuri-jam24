@@ -117,6 +117,8 @@ Interpreter *interpreter_init(void)
         lua_pop(interpreter->lua_state, 1); // pop the closure
     }
 
+    luaL_dofile(interpreter->lua_state, "assets/events.lua");
+
     return interpreter;
 }
 
@@ -126,6 +128,18 @@ void interpreter_run_event(Interpreter *interpreter, char *name)
     (void)name;
 }
 
-void interpreter_free(Interpreter *interpreter) { free(interpreter); }
+void interpreter_update(Interpreter *interpreter)
+{
+    if (interpreter->current_event)
+    {
+        // TODO: update event
+    }
+}
+
+void interpreter_free(Interpreter *interpreter) 
+{ 
+    lua_close(interpreter->lua_state);
+    free(interpreter); 
+}
 
 #pragma GCC diagnostic pop
