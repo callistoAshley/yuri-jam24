@@ -47,9 +47,15 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     glNamedBufferData(VBO, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
     glEnableVertexArrayAttrib(VAO, 0);
-    glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 3 * sizeof(GLfloat));
+    glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 6 * sizeof(GLfloat));
     glVertexArrayAttribFormat(VAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
     glVertexArrayAttribBinding(VAO, 0, 0);
+
+    glEnableVertexArrayAttrib(VAO, 1);
+    glVertexArrayVertexBuffer(VAO, 1, VBO, 3 * sizeof(GLfloat),
+                              6 * sizeof(GLfloat));
+    glVertexArrayAttribFormat(VAO, 1, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayAttribBinding(VAO, 1, 1);
 }
 
 void graphics_render(Graphics *graphics)
