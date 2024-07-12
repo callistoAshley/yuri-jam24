@@ -6,22 +6,14 @@
 #include "graphics.h"
 #include "utility/macros.h"
 
-GLuint VBO;
-GLuint VAO;
+#include <stb_easy_font.h>
 
-GLfloat vertices[] = {
-    // 1st
-    0.0f, 0.5f, 0.0f,
-    // color
-    1.0f, 0.0f, 0.0f,
-    // 2nd
-    -0.5f, -0.5f, 0.0f,
-    // color
-    0.0f, 1.0f, 0.0f,
-    // 3rd
-    0.5f, -0.5f, 0.0f,
-    // color
-    0.0f, 0.0f, 1.0f};
+GLuint VBO;
+GLuint EBO;
+GLuint VAO;
+unsigned int vertex_count;
+
+#define CHAR_QUAD_SIZE 270
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
@@ -41,21 +33,43 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     shaders_init(&graphics->shaders);
 
-    glCreateVertexArrays(1, &VAO);
-    glCreateBuffers(1, &VBO);
+    // create vertex buffer for rendering text
+    char *text = "Hello, world!";
+    int buf_size = CHAR_QUAD_SIZE * strlen(text);
+    void *text_buf = malloc(buf_size);
 
-    glNamedBufferData(VBO, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    unsigned char color[4] = {255, 0, 128, 255};
+    int quad_count =
+        stb_easy_font_print(0.0f, 0.0f, text, color, text_buf, buf_size);
+    vertex_count = quad_count * 6;
+
+    unsigned int *indicies = malloc(quad_count * 6 * sizeof(unsigned int));
+    for (int i = 0; i < quad_count; i++)
+    {
+        indicies[i * 6 + 0] = i * 4 + 0;
+        indicies[i * 6 + 1] = i * 4 + 1;
+        indicies[i * 6 + 2] = i * 4 + 2;
+        indicies[i * 6 + 3] = i * 4 + 2;
+        indicies[i * 6 + 4] = i * 4 + 3;
+        indicies[i * 6 + 5] = i * 4 + 0;
+    }
+
+    glCreateVertexArrays(1, &VAO);
+
+    glCreateBuffers(1, &VBO);
+    glCreateBuffers(1, &EBO);
+
+    glNamedBufferData(VBO, buf_size, text_buf, GL_STATIC_DRAW);
+    glNamedBufferData(EBO, quad_count * 6 * sizeof(unsigned int), indicies,
+                      GL_STATIC_DRAW);
+
+    free(text_buf);
+    free(indicies);
 
     glEnableVertexArrayAttrib(VAO, 0);
-    glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 6 * sizeof(GLfloat));
-    glVertexArrayAttribFormat(VAO, 0, 3, GL_FLOAT, GL_FALSE, 0);
+    glVertexArrayVertexBuffer(VAO, 0, VBO, 0, 4 * sizeof(float));
+    glVertexArrayAttribFormat(VAO, 0, 4, GL_FLOAT, GL_FALSE, 0);
     glVertexArrayAttribBinding(VAO, 0, 0);
-
-    glEnableVertexArrayAttrib(VAO, 1);
-    glVertexArrayVertexBuffer(VAO, 1, VBO, 3 * sizeof(GLfloat),
-                              6 * sizeof(GLfloat));
-    glVertexArrayAttribFormat(VAO, 1, 3, GL_FLOAT, GL_FALSE, 0);
-    glVertexArrayAttribBinding(VAO, 1, 1);
 }
 
 void graphics_render(Graphics *graphics, Player *player)
@@ -65,5 +79,6 @@ void graphics_render(Graphics *graphics, Player *player)
 
     glUseProgram(graphics->shaders.basic);
     glBindVertexArray(VAO);
-    glDrawArrays(GL_TRIANGLES, 0, 3);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, EBO);
+    glDrawElements(GL_TRIANGLES, vertex_count, GL_UNSIGNED_INT, 0);
 }

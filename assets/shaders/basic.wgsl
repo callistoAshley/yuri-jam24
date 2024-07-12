@@ -1,6 +1,5 @@
 struct VertexInput {
-  @location(0) position: vec3f,
-  @location(1) color: vec3f,
+  @location(0) data: vec4f, // not actually vec4, but vec3 + u32
 }
 
 struct VertexOutput {
@@ -11,8 +10,15 @@ struct VertexOutput {
 @vertex
 fn vs_main(in: VertexInput) -> VertexOutput {
   var out: VertexOutput;
-  out.position = vec4f(in.position.x, -in.position.y, in.position.z, 1.0);
-  out.color = in.color;
+  let position = in.data.xyz / vec3f(80.0, 60.0, 1.0);
+  out.position = vec4f(position, 1.0);
+
+  let color = bitcast<u32>(in.data.w);
+  out.color = vec3f(
+    f32((color >> 16) & 0xFF) / 255.0,
+    f32((color >> 8) & 0xFF) / 255.0,
+    f32(color & 0xFF) / 255.0
+  );
   return out;
 }
 
