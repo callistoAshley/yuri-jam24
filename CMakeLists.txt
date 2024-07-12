@@ -74,6 +74,7 @@ add_executable(game
 
     src/input/input.c
 
+    src/utility/linked-list.c
     src/utility/list.c
 
     stb/stb_impl.c
