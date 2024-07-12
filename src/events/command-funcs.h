@@ -1,4 +1,5 @@
 #pragma once
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -7,7 +8,7 @@
 
 #include "../player.h"
 
-typedef int (*CommandFn)(Player *player, lua_State *lua);
+typedef int (*CommandFn)(lua_State *lua);
 
-int command_text(Player *player, lua_State *lua);
-int command_test(Player *player, lua_State *lua);
+int command_text(lua_State *lua);
+int command_test(lua_State *lua);
