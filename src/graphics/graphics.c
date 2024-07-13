@@ -33,6 +33,16 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     shaders_init(&graphics->shaders);
 
+    GLuint textures[4];
+    glCreateTextures(GL_TEXTURE_2D, 4, textures);
+    for (int i = 0; i < 4; i++)
+    {
+        glTextureStorage2D(textures[i], 1, GL_RGBA8, 1, 1);
+        GLuint64 handle = glad_glGetTextureHandleARB(textures[i]);
+        glMakeTextureHandleResidentARB(handle);
+        printf("Texture handle: %lu\n", handle);
+    }
+
     // create vertex buffer for rendering text
     char *text = "Hello, world!";
     int buf_size = CHAR_QUAD_SIZE * strlen(text);
