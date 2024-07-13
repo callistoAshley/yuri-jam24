@@ -39,34 +39,17 @@ set(CGLM_SHARED OFF)
 set(CGLM_STATIC ON)
 add_subdirectory(cglm/)
 
-add_custom_target(lua ALL
-    command make
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/lua
-)
-find_library(
-    LUA_LIBRARY
-    NAMES lua
-    PATHS ${CMAKE_SOURCE_DIR}/lua
-    REQUIRED
-)
-
 include_directories(
     glad/include/
     include/
     ${FMOD_INCLUDE_DIR}
     ${FMOD_STUDIO_INCLUDE_DIR}
-    lua/
     stb/
 
     src/
 )
 
 add_executable(game
-    src/events/command-funcs.c
-    src/events/command-list.c
-    src/events/event.c
-    src/events/interpreter.c
-
     src/audio/audio.c
 
     src/graphics/graphics.c
@@ -91,7 +74,6 @@ target_link_libraries(
   cglm
   ${FMOD_LIBRARY}
   ${FMOD_STUDIO_LIBRARY}
-  ${LUA_LIBRARY}
   m # link against math library (looks really stupid lol)
 )
 
