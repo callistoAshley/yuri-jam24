@@ -1,4 +1,14 @@
 {
   "licenser.disableAutoHeaderInsertion": true,
   "editor.detectIndentation": false,
+  "rust-analyzer.cargo.buildScripts.enable": false,
+  "rust-analyzer.files.excludeDirs": [
+    "wgpu-native"
+  ],
+  "files.exclude": {
+    "wgpu-native/src": true,
+    "wgpu-native/**/*.rs": true,
+    "wgpu-native/**/*.toml": true,
+    "wgpu-native/Cargo.lock": true,
+  }
 }
