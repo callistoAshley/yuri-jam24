@@ -1,0 +1,9 @@
+=test
+hello! i am some text
+;cmd(boo! i am a command)
+;choice(yes|no)
+;cmp_choice(yes)
+;beq(branch)
+
+=branch
+i am the name of a branch
