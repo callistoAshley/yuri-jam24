@@ -1,11 +1,12 @@
 #pragma once
 
+#include <wgpu.h>
 #include "utility/list.h"
-#include <glad/gl.h>
+#include "webgpu.h"
 
 typedef struct
 {
-    GLuint basic;
+    WGPURenderPipeline basic;
 } Shaders;
 
 void shaders_init(Shaders *shaders);

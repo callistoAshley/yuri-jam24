@@ -34,7 +34,7 @@ find_path(
 )
 
 add_custom_target(wgpu-native ALL
-    COMMAND make lib-native-release
+    COMMAND make lib-native-release EXTRA_BUILD_ARGS=--quiet -E env RUSTFLAGS=-Awarnings
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/wgpu-native
 )
 find_library(
@@ -80,6 +80,8 @@ add_executable(game
 
     src/main.c
 )
+
+add_dependencies(game wgpu-native)
 
 target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic)
 
