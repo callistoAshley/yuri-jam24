@@ -1,17 +1,22 @@
 #pragma once
 
+#include <wgpu.h>
+#include <SDL3/SDL.h>
+
 #include "player.h"
 #include "shaders.h"
 
-#include <SDL3/SDL.h>
-#include <SDL3/SDL_opengl.h>
-
 typedef struct
 {
-    SDL_GLContext ctx;
+    WGPUInstance instance;
+    WGPUAdapter adapter;
+    WGPUDevice device;
+    WGPUQueue queue;
+    WGPUSurface surface;
+    WGPUSurfaceConfiguration surface_config;
     Shaders shaders;
 } Graphics;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);
 void graphics_render(Graphics *graphics, Player *player);
-// freeing the graphics context is done by SDL itself
+void graphics_free(Graphics *graphics);

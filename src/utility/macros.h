@@ -21,3 +21,10 @@
             FATAL("FMOD error: " msg ": %s\n", FMOD_ErrorString(result));      \
         }                                                                      \
     }
+#define PTR_ERRCHK(expr, msg)                                                  \
+    {                                                                          \
+        if (expr == NULL)                                                      \
+        {                                                                      \
+            FATAL("Error: " msg "\n");                                         \
+        }                                                                      \
+    }

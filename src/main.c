@@ -1,3 +1,4 @@
+#include <SDL3/SDL_video.h>
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -32,15 +33,12 @@ int main(void)
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
 
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 6);
-    SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK,
-                        SDL_GL_CONTEXT_PROFILE_CORE);
-
-    window = SDL_CreateWindow("i am the window", 640, 480, SDL_WINDOW_OPENGL);
+    window = SDL_CreateWindow("i am the window", 640, 480, SDL_WINDOW_VULKAN);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
+    graphics_render(&graphics,
+                    &player); // render once to initialize the swapchain
 
     while (!input_is_down(&input, Button_Quit))
     {
@@ -60,6 +58,7 @@ int main(void)
         SDL_Delay(1 / 60);
     }
 
+    graphics_free(&graphics);
     audio_free(&audio);
     SDL_Quit();
 

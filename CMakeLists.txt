@@ -34,7 +34,7 @@ find_path(
 )
 
 add_custom_target(wgpu-native ALL
-    COMMAND make lib-native-release EXTRA_BUILD_ARGS=--quiet -E env RUSTFLAGS=-Awarnings
+    COMMAND make lib-native-release EXTRA_BUILD_ARGS=--quiet
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/wgpu-native
 )
 find_library(
