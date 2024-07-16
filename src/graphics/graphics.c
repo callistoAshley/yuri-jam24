@@ -5,6 +5,7 @@
 #include "graphics.h"
 #include "graphics/shaders.h"
 #include "utility/macros.h"
+#include "webgpu.h"
 
 static void logCallback(WGPULogLevel level, const char *message, void *userdata)
 {
@@ -94,9 +95,89 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                                handle_request_adapter, graphics);
     PTR_ERRCHK(graphics->adapter, "failed to request WGPU adapter");
 
+    // SIGNIFICANTLY reduce the hardware we can support. still runs on my shitty
+    // macbook from 2014 though
+    WGPUFeatureName features[] = {
+        // the bindless friends :3
+        (WGPUFeatureName)WGPUNativeFeature_MultiDrawIndirect,
+        (WGPUFeatureName)WGPUNativeFeature_MultiDrawIndirectCount,
+        (WGPUFeatureName)WGPUNativeFeature_TextureBindingArray,
+        (WGPUFeatureName)WGPUNativeFeature_PartiallyBoundBindingArray,
+        // this one is probably not required if we use multi-draw
+        (WGPUFeatureName)
+            WGPUNativeFeature_SampledTextureAndStorageBufferArrayNonUniformIndexing,
+        // any hardware that we target that supports the above should support
+        // this, right???
+        (WGPUFeatureName)WGPUNativeFeature_PushConstants};
+
+    // this imposes an upper limit of 2048 textures per shader stage, which is a
+    // LOT of wiggle room
+    // unfortunately because of some oversight in the WGPU API, we have to
+    // specify every limit, or none at all. so we have to specify all of them
+    // we could get the limits from the adapter, but that means that our code
+    // could rely on really high limits (i have a 1080ti) which is obviously not
+    // good
+    // these defaults are copied from
+    // https://docs.rs/wgpu-types/0.20.0/src/wgpu_types/lib.rs.html#1186
+    WGPULimits supported_limits = {
+        .maxSampledTexturesPerShaderStage = 2048,
+
+        // default values
+        .maxTextureDimension1D = 8192,
+        .maxTextureDimension2D = 8192,
+        .maxTextureDimension3D = 2048,
+        .maxTextureArrayLayers = 256,
+        .maxBindGroups = 4,
+        .maxBindingsPerBindGroup = 1000,
+        .maxDynamicUniformBuffersPerPipelineLayout = 8,
+        .maxDynamicStorageBuffersPerPipelineLayout = 4,
+        // we don't really use much samplers luckily. all we care about
+        // is nearest neighbor
+        .maxSamplersPerShaderStage = 16,
+        .maxStorageBuffersPerShaderStage = 8,
+        .maxStorageTexturesPerShaderStage = 4,
+        .maxUniformBuffersPerShaderStage = 12,
+        .maxUniformBufferBindingSize = 64 << 10,  // 64kb
+        .maxStorageBufferBindingSize = 128 << 20, // 128mb
+        .maxVertexBuffers = 8,
+        .maxBufferSize = 256 << 20, // 256mb
+        .maxVertexAttributes = 16,
+        .maxVertexBufferArrayStride = 2048,
+        // i have never seen hardware where this is not 256
+        .minUniformBufferOffsetAlignment = 256,
+        .minStorageBufferOffsetAlignment = 256,
+        .maxInterStageShaderComponents = 60,
+        .maxColorAttachments = 8,
+        .maxColorAttachmentBytesPerSample = 32,
+        .maxComputeWorkgroupStorageSize = 16384,
+        .maxComputeInvocationsPerWorkgroup = 256,
+        .maxComputeWorkgroupSizeX = 256,
+        .maxComputeWorkgroupSizeY = 256,
+        .maxComputeWorkgroupSizeZ = 64,
+        .maxComputeWorkgroupsPerDimension = 65535,
+    };
+
+    // gotta love c polymorphism
+    WGPURequiredLimitsExtras native_limits = {
+        .chain = {.sType = (WGPUSType)WGPUSType_RequiredLimitsExtras},
+        .limits = {
+            .maxNonSamplerBindings = 1000000, // copied from wgpu's default
+            .maxPushConstantSize = 128,       // lowest i've seen is 128
+        }};
+
+    WGPURequiredLimits limits = {.nextInChain =
+                                     (WGPUChainedStruct *)&native_limits,
+                                 .limits = supported_limits};
+
+    WGPUDeviceDescriptor device_descriptor = {
+        .nextInChain = NULL,
+        .requiredFeatures = features,
+        .requiredFeatureCount = 5,
+        .requiredLimits = &limits,
+    };
     // same as above
-    wgpuAdapterRequestDevice(graphics->adapter, NULL, handle_request_device,
-                             graphics);
+    wgpuAdapterRequestDevice(graphics->adapter, &device_descriptor,
+                             handle_request_device, graphics);
     PTR_ERRCHK(graphics->device, "failed to request WGPU device");
 
     graphics->queue = wgpuDeviceGetQueue(graphics->device);
