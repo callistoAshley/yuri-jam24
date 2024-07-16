@@ -53,9 +53,7 @@ int main(void)
         FMOD_Studio_System_Update(audio.system);
 
         graphics_render(&graphics, &player);
-
-        SDL_GL_SwapWindow(window);
-        SDL_Delay(1 / 60);
+        SDL_Delay(16); // this doesn't handle vsync properly
     }
 
     graphics_free(&graphics);
