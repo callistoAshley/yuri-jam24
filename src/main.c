@@ -12,6 +12,7 @@
 #include "audio/audio.h"
 #include "input/input.h"
 #include "utility/macros.h"
+#include "events/interpreter.h"
 #include "player.h"
 
 int main(void)
@@ -38,6 +39,13 @@ int main(void)
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
+
+    /*
+    char *files[] =
+    {
+        "assets/events.txt",
+    };
+    Interpreter *interpreter = interpreter_init(files, 1);*/
 
     while (!input_is_down(&input, Button_Quit))
     {

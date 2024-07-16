@@ -68,6 +68,9 @@ include_directories(
 add_executable(game
     src/audio/audio.c
 
+    src/events/interpreter.c
+    src/events/lexer.c
+
     src/graphics/graphics.c
     src/graphics/shaders.c
 

@@ -28,3 +28,4 @@
             FATAL("Error: " msg "\n");                                         \
         }                                                                      \
     }
+

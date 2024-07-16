@@ -2,6 +2,7 @@
 
 typedef enum
 {
+    TOKEN_NONE,
     TOKEN_TEXT,
     TOKEN_CMD
 } TokenType;
