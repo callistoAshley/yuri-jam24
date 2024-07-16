@@ -1,0 +1,95 @@
+#include <stdlib.h>
+#include <string.h>
+#include "vec.h"
+
+#define VEC_GROWTH_FACTOR 2
+#define INITIAL_CAP 4
+
+void vec_init(vec *v, size_t ele_size)
+{
+    v->len = 0;
+    v->cap = INITIAL_CAP;
+    v->ele_size = ele_size;
+    v->data = malloc(v->cap * ele_size);
+}
+
+void vec_free(vec *v) { free(v->data); }
+void vec_free_with(vec *v, vec_free_fn free_fn)
+{
+    for (size_t i = 0; i < v->len; i++)
+    {
+        free_fn(v->ele_size, vec_get(v, i));
+    }
+    vec_free(v);
+}
+
+void *vec_get(vec *v, size_t index)
+{
+    if (index >= v->len)
+    {
+        return NULL;
+    }
+    return v->data + index * v->ele_size;
+}
+
+void vec_resize(vec *v, size_t new_cap)
+{
+    v->data = realloc(v->data, new_cap * v->ele_size);
+    v->cap = new_cap;
+}
+void vec_resize_with(vec *v, size_t new_cap, vec_free_fn free_fn)
+{
+    if (new_cap < v->len)
+    {
+        for (size_t i = new_cap; i < v->len; i++)
+        {
+            free_fn(v->ele_size, vec_get(v, i));
+        }
+    }
+    vec_resize(v, new_cap);
+}
+
+void vec_insert(vec *v, size_t index, void *elem)
+{
+    // resize if necessary
+    if (v->len == v->cap)
+    {
+        vec_resize(v, v->cap * VEC_GROWTH_FACTOR);
+    }
+    // if the index is inside the inner bounds of the array, shift everything to
+    // the right
+    if (index < v->len)
+    {
+        // shift everything to the right using memmove
+        memmove(v->data + (index + 1) * v->ele_size,
+                v->data + index * v->ele_size, (v->len - index) * v->ele_size);
+    }
+    // copy the element into the array
+    memcpy(v->data + index * v->ele_size, elem, v->ele_size);
+    v->len++;
+}
+
+void vec_remove(vec *v, size_t index, void *elem)
+{
+    // if the index is outside the bounds of the array, return
+    if (index >= v->len)
+    {
+        return;
+    }
+    // copy the element into the elem pointer
+    if (elem)
+        memcpy(elem, v->data + index * v->ele_size, v->ele_size);
+    // if the index is inside the inner bounds of the array, shift everything to
+    // the left
+    if (index < v->len)
+    {
+        // shift everything to the left using memmove
+        memmove(v->data + index * v->ele_size,
+                v->data + (index + 1) * v->ele_size,
+                (v->len - index) * v->ele_size);
+    }
+    v->len--;
+}
+
+void vec_push(vec *v, void *elem) { vec_insert(v, v->len, elem); }
+void vec_pop(vec *v, void *elem) { vec_remove(v, v->len - 1, elem); }
