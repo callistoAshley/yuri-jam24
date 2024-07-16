@@ -33,7 +33,7 @@ int main(void)
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
 
-    window = SDL_CreateWindow("i am the window", 640, 480, SDL_WINDOW_VULKAN);
+    window = SDL_CreateWindow("i am the window", 640, 480, 0);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
