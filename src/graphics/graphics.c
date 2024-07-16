@@ -1,11 +1,11 @@
 #include <stdio.h>
 #include <wgpu.h>
+#include <webgpu.h>
 #include <SDL3/SDL.h>
 
 #include "graphics.h"
 #include "graphics/shaders.h"
 #include "utility/macros.h"
-#include "webgpu.h"
 
 static void logCallback(WGPULogLevel level, const char *message, void *userdata)
 {
@@ -57,14 +57,23 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     wgpuSetLogCallback(logCallback, NULL);
     wgpuSetLogLevel(WGPULogLevel_Info);
 
-    const WGPUInstanceDescriptor instance_desc = {0};
+    WGPUInstanceExtras instance_extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_InstanceExtras},
+        // we can only support these backends because they're the only ones with
+        // bindless
+        .backends = WGPUBackendType_Vulkan | WGPUBackendType_Metal |
+                    WGPUBackendType_D3D12,
+        // TODO disable on release
+        .flags = WGPUInstanceFlag_Debug | WGPUInstanceBackend_Vulkan};
+    WGPUInstanceDescriptor instance_desc = {
+        .nextInChain = (WGPUChainedStruct *)&instance_extras};
     graphics->instance = wgpuCreateInstance(&instance_desc);
     PTR_ERRCHK(graphics->instance, "failed to create WGPU instance");
 
     // other platforms? what are those
     SDL_PropertiesID props = SDL_GetWindowProperties(window);
-    void *display = SDL_GetProperty(props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER,
-                                    INVALID_POINTER);
+    void *display = SDL_GetPointerProperty(
+        props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, INVALID_POINTER);
     uint64_t xwindow = SDL_GetNumberProperty(
         props, SDL_PROP_WINDOW_X11_WINDOW_NUMBER, INVALID_VALUE);
 
@@ -72,8 +81,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     SDL_ERRCHK(xwindow == INVALID_VALUE, "xwindow is null");
 
     WGPUSurfaceDescriptorFromXlibWindow raw_surface_desc = {
-        .chain = {.sType = WGPUSType_SurfaceDescriptorFromXlibWindow,
-                  .next = NULL},
+        .chain = {.sType = WGPUSType_SurfaceDescriptorFromXlibWindow},
         .display = display,
         .window = xwindow,
     };
@@ -85,7 +93,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     PTR_ERRCHK(graphics->surface, "failed to create WGPU surface");
 
     WGPURequestAdapterOptions adapter_options = {
-        .nextInChain = NULL,
         .compatibleSurface = graphics->surface,
         .powerPreference = WGPUPowerPreference_HighPerformance,
     };
@@ -170,7 +177,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                                  .limits = supported_limits};
 
     WGPUDeviceDescriptor device_descriptor = {
-        .nextInChain = NULL,
         .requiredFeatures = features,
         .requiredFeatureCount = 5,
         .requiredLimits = &limits,
