@@ -17,6 +17,7 @@
 int main(void)
 {
     SDL_Window *window;
+    bool first_frame = true;
 
     // Graphics stuff
     Graphics graphics;
@@ -33,12 +34,10 @@ int main(void)
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
 
-    window = SDL_CreateWindow("i am the window", 640, 480, 0);
+    window = SDL_CreateWindow("i am the window", 640, 480, SDL_WINDOW_HIDDEN);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
-    graphics_render(&graphics,
-                    &player); // render once to initialize the swapchain
 
     while (!input_is_down(&input, Button_Quit))
     {
@@ -54,6 +53,12 @@ int main(void)
 
         graphics_render(&graphics, &player);
         SDL_Delay(16); // this doesn't handle vsync properly
+
+        if (first_frame)
+        {
+            SDL_ShowWindow(window);
+            first_frame = false;
+        }
     }
 
     graphics_free(&graphics);
