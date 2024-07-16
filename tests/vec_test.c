@@ -25,5 +25,23 @@ int main()
         assert(elem == 9 - i);
     }
 
+    for (int i = 0; i < 10; i++)
+    {
+        vec_push(&int_vec, &i);
+    }
+    int insert_elem = 42;
+    vec_insert(&int_vec, 5, &insert_elem);
+
+    int *indexed_elem = vec_get(&int_vec, 5);
+    assert(*indexed_elem == 42);
+    indexed_elem = vec_get(&int_vec, 6);
+    assert(*indexed_elem == 5);
+    indexed_elem = vec_get(&int_vec, 4);
+    assert(*indexed_elem == 4);
+
+    vec_remove(&int_vec, 5, NULL);
+    indexed_elem = vec_get(&int_vec, 5);
+    assert(*indexed_elem == 5);
+
     vec_free(&int_vec);
 }

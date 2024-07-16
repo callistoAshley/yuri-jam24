@@ -13,6 +13,17 @@ void vec_init(vec *v, size_t ele_size)
     v->data = malloc(v->cap * ele_size);
 }
 
+vec vec_dup(vec *v)
+{
+    vec new_vec;
+    new_vec.len = v->len;
+    new_vec.cap = v->cap;
+    new_vec.ele_size = v->ele_size;
+    new_vec.data = malloc(v->cap * v->ele_size);
+    memcpy(new_vec.data, v->data, v->len * v->ele_size);
+    return new_vec;
+}
+
 void vec_free(vec *v) { free(v->data); }
 void vec_free_with(vec *v, vec_free_fn free_fn)
 {
