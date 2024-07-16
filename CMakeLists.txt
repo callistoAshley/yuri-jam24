@@ -78,11 +78,16 @@ add_executable(game
 
     src/utility/linked-list.c
     src/utility/list.c
+    src/utility/vec.c
 
     stb/stb_impl.c
 
     src/main.c
 )
+
+enable_testing()
+add_executable(vec_test tests/vec_test.c src/utility/vec.c)
+add_test(NAME vec_test COMMAND $<TARGET_FILE:vec_test>)
 
 add_dependencies(game wgpu-native)
 
