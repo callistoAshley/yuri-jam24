@@ -5,7 +5,6 @@
 #include "graphics.h"
 #include "graphics/shaders.h"
 #include "utility/macros.h"
-#include "webgpu.h"
 
 static void logCallback(WGPULogLevel level, const char *message, void *userdata)
 {
@@ -42,6 +41,13 @@ static void handle_request_device(WGPURequestDeviceStatus status,
         printf("request_adapter status: %#.8x message=%s\n", status, message);
     }
 }
+
+const vec2 vertices[] = {
+    {0.0f, 0.5f},
+    {-0.5f, -0.5f},
+    {0.5f, -0.5f},
+};
+WGPUBuffer vertex_buffer;
 
 #define INVALID_VALUE 0xDEADCAFE
 #define INVALID_POINTER (void *)INVALID_VALUE
@@ -117,6 +123,16 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     wgpuSurfaceCapabilitiesFreeMembers(surface_caps);
 
     shaders_init(graphics);
+
+    WGPUBufferDescriptor descriptor = {
+        .label = "vertex buffer",
+        .size = sizeof(vertices),
+        .usage = WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst,
+    };
+    vertex_buffer = wgpuDeviceCreateBuffer(graphics->device, &descriptor);
+    PTR_ERRCHK(vertex_buffer, "failed to create vertex buffer");
+    wgpuQueueWriteBuffer(graphics->queue, vertex_buffer, 0, vertices,
+                         sizeof(vertices));
 }
 
 void graphics_render(Graphics *graphics, Player *player)
@@ -170,7 +186,12 @@ void graphics_render(Graphics *graphics, Player *player)
     WGPURenderPassEncoder render_pass =
         wgpuCommandEncoderBeginRenderPass(command_encoder, &render_pass_desc);
 
-    // immediately finish the render pass
+    // bind pipeline and buffers
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.basic);
+    wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0, vertex_buffer, 0,
+                                         sizeof(vertices));
+    wgpuRenderPassEncoderDraw(render_pass, 3, 1, 0, 0);
+
     wgpuRenderPassEncoderEnd(render_pass);
 
     WGPUCommandBuffer command_buffer =
