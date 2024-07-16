@@ -4,9 +4,11 @@
 #include "utility/list.h"
 #include "webgpu.h"
 
-typedef struct
+struct Graphics;
+
+typedef struct Shaders
 {
     WGPURenderPipeline basic;
 } Shaders;
 
-void shaders_init(Shaders *shaders);
+void shaders_init(struct Graphics *graphics);

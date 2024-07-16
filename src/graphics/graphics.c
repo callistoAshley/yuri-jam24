@@ -3,6 +3,7 @@
 #include <SDL3/SDL.h>
 
 #include "graphics.h"
+#include "graphics/shaders.h"
 #include "utility/macros.h"
 #include "webgpu.h"
 
@@ -114,6 +115,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     wgpuSurfaceConfigure(graphics->surface, &graphics->surface_config);
 
     wgpuSurfaceCapabilitiesFreeMembers(surface_caps);
+
+    shaders_init(graphics);
 }
 
 void graphics_render(Graphics *graphics, Player *player)
@@ -184,6 +187,8 @@ void graphics_render(Graphics *graphics, Player *player)
 
 void graphics_free(Graphics *graphics)
 {
+    wgpuRenderPipelineRelease(graphics->shaders.basic);
+
     wgpuSurfaceRelease(graphics->surface);
     wgpuQueueRelease(graphics->queue);
     wgpuDeviceRelease(graphics->device);

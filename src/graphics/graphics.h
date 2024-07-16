@@ -3,10 +3,10 @@
 #include <wgpu.h>
 #include <SDL3/SDL.h>
 
-#include "player.h"
 #include "shaders.h"
+#include "player.h"
 
-typedef struct
+typedef struct Graphics
 {
     WGPUInstance instance;
     WGPUAdapter adapter;
