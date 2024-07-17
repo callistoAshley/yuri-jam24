@@ -29,3 +29,15 @@
         }                                                                      \
     }
 
+#define REALLOC_CHK(temp_ptr, assignee)                                  \
+    {                                                                    \
+        if (!temp_ptr)                                                   \
+        {                                                                \
+            if (assignee) free(assignee);                                \
+            FATAL("REALLOC_CHK failed at %s:%d.\n", __FILE__, __LINE__); \
+        }                                                                \
+        else                                                             \
+        {                                                                \
+            assignee = temp_ptr;                                         \
+        }                                                                \
+    } 
