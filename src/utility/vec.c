@@ -5,7 +5,7 @@
 #define VEC_GROWTH_FACTOR 2
 #define INITIAL_CAP 4
 
-void vec_init(vec *v, size_t ele_size)
+void vec_init(vec *v, usize ele_size)
 {
     v->len = 0;
     v->cap = INITIAL_CAP;
@@ -27,14 +27,14 @@ vec vec_dup(vec *v)
 void vec_free(vec *v) { free(v->data); }
 void vec_free_with(vec *v, vec_free_fn free_fn)
 {
-    for (size_t i = 0; i < v->len; i++)
+    for (usize i = 0; i < v->len; i++)
     {
         free_fn(v->ele_size, vec_get(v, i));
     }
     vec_free(v);
 }
 
-void *vec_get(vec *v, size_t index)
+void *vec_get(vec *v, usize index)
 {
     if (index >= v->len)
     {
@@ -43,16 +43,16 @@ void *vec_get(vec *v, size_t index)
     return v->data + index * v->ele_size;
 }
 
-void vec_resize(vec *v, size_t new_cap)
+void vec_resize(vec *v, usize new_cap)
 {
     v->data = realloc(v->data, new_cap * v->ele_size);
     v->cap = new_cap;
 }
-void vec_resize_with(vec *v, size_t new_cap, vec_free_fn free_fn)
+void vec_resize_with(vec *v, usize new_cap, vec_free_fn free_fn)
 {
     if (new_cap < v->len)
     {
-        for (size_t i = new_cap; i < v->len; i++)
+        for (usize i = new_cap; i < v->len; i++)
         {
             free_fn(v->ele_size, vec_get(v, i));
         }
@@ -60,7 +60,7 @@ void vec_resize_with(vec *v, size_t new_cap, vec_free_fn free_fn)
     vec_resize(v, new_cap);
 }
 
-void vec_insert(vec *v, size_t index, void *elem)
+void vec_insert(vec *v, usize index, void *elem)
 {
     // resize if necessary
     if (v->len == v->cap)
@@ -80,7 +80,7 @@ void vec_insert(vec *v, size_t index, void *elem)
     v->len++;
 }
 
-void vec_remove(vec *v, size_t index, void *elem)
+void vec_remove(vec *v, usize index, void *elem)
 {
     // if the index is outside the bounds of the array, return
     if (index >= v->len)
