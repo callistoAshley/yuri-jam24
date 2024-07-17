@@ -70,6 +70,7 @@ int main(void)
 
     graphics_free(&graphics);
     audio_free(&audio);
+    interpreter_free(interpreter);
     SDL_Quit();
 
     return 0;

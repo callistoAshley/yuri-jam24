@@ -170,6 +170,13 @@ Interpreter *interpreter_init(char **files, int num_files)
 
 void interpreter_free(Interpreter *interpreter)
 {
-    // TODO
-    (void)interpreter;
+    for (LinkedListNode *node = interpreter->events->first; node; node = node->next)
+    {
+        Event *event = node->data;
+        free(event->name);
+        free(event->tokens);
+        free(event);
+    }
+    linked_list_free(interpreter->events);
+    free(interpreter);
 }
