@@ -21,7 +21,6 @@ static bool is_newline(char c)
 static Event construct_event(char *name, char *text)
 {
     Event event;
-    int num_tokens = 0;
     Token token;
     char err_msg[256];
     size_t num_read;
@@ -31,6 +30,7 @@ static Event construct_event(char *name, char *text)
     event.name = malloc(strlen(name + 1));
     strcpy(event.name, name);
     event.tokens = calloc(1, sizeof(Token));
+    event.num_tokens = 0;
 
     while (num_read = lexer_next_token(text, &token, err_msg), token.type != TOKEN_NONE)
     {
@@ -42,17 +42,20 @@ static Event construct_event(char *name, char *text)
         }
 
         text += num_read;
-        event.tokens = realloc(event.tokens, ++num_tokens * sizeof(Token)); // TODO: check for memory leaks here
-        memcpy(event.tokens + (num_tokens - 1), &token, sizeof(Token)); // FIXME: is the memcpy really necessary?
+        event.tokens = realloc(event.tokens, ++event.num_tokens * sizeof(Token)); // TODO: check for memory leaks here
+        memcpy(event.tokens + (event.num_tokens - 1), &token, sizeof(Token)); // FIXME: is the memcpy really necessary?
     }
 
     return event;
 }
 
-// this function makes me want to throw up
 static Event *get_events(char *text, int *out_num_events)
 {
     Event *result;
+#define UPDATE_RESULT \
+    Event event = construct_event(event_name, event_text); \
+    result = realloc(result, ++(*out_num_events) * sizeof(Event)); /* TODO: check for memory leaks here */ \
+    result[(*out_num_events) - 1] = event;
 
     char event_name[256] = "NONE";
     char *event_text = NULL;
@@ -71,11 +74,7 @@ static Event *get_events(char *text, int *out_num_events)
 
             if (event_text)
             {
-                Event event = construct_event(event_name, event_text);
-                int name_len;
-
-                result = realloc(result, ++(*out_num_events) * sizeof(Event)); // TODO: check for memory leaks here
-                result[(*out_num_events) - 1] = event;
+                UPDATE_RESULT;
             }
 
             // construct new event name
@@ -94,11 +93,14 @@ static Event *get_events(char *text, int *out_num_events)
         {
             event_text = realloc(event_text, ++event_text_len); // TODO: check for memory leaks here
             event_text[event_text_idx++] = *text;
+            event_text[event_text_idx] = '\0';
         }
 
         newline = is_newline(*text);
         text++;
     }
+
+    UPDATE_RESULT;
 
     return result;
 }

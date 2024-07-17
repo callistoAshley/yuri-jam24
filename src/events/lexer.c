@@ -45,7 +45,7 @@ size_t lexer_next_token(char *str, Token *out_token, char out_err_msg[256])
                 char text[256];
                 int text_len;
                 out_token->type = TOKEN_TEXT;
-                for (text_len = 0; *str != '\n'; text_len++, INCREMENT)
+                for (text_len = 0; *str != '\n' && *str; text_len++, INCREMENT)
                 {
                     if (text_len >= 256)
                     {

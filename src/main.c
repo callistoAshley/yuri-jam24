@@ -40,12 +40,11 @@ int main(void)
 
     graphics_init(&graphics, window);
 
-    /*
     char *files[] =
     {
         "assets/events.txt",
     };
-    Interpreter *interpreter = interpreter_init(files, 1);*/
+    Interpreter *interpreter = interpreter_init(files, 1);
 
     while (!input_is_down(&input, Button_Quit))
     {
