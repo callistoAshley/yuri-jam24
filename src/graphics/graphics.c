@@ -107,7 +107,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     WGPUFeatureName features[] = {
         // the bindless friends :3
         (WGPUFeatureName)WGPUNativeFeature_MultiDrawIndirect,
-        (WGPUFeatureName)WGPUNativeFeature_MultiDrawIndirectCount,
+        // we would need multidraw indirect count, but we're not going to be
+        // doing any gpu-based culling so we should be fine..?
         (WGPUFeatureName)WGPUNativeFeature_TextureBindingArray,
         (WGPUFeatureName)WGPUNativeFeature_PartiallyBoundBindingArray,
         // this one is probably not required if we use multi-draw

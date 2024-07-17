@@ -73,6 +73,8 @@ add_executable(game
 
     src/graphics/graphics.c
     src/graphics/shaders.c
+    src/graphics/tex_manager.c
+    src/graphics/quad_manager.c
 
     src/input/input.c
 
@@ -81,6 +83,8 @@ add_executable(game
     src/utility/vec.c
 
     stb/stb_impl.c
+
+    src/core_types.c
 
     src/main.c
 )
