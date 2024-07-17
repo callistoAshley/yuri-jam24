@@ -1,18 +1,84 @@
 #pragma once
 
-#include "cglm/quat.h"
-#include <cglm/cglm.h>
+#include "cglm/struct/vec2.h"
+#include <cglm/struct.h>
+#include <stdbool.h>
 
-typedef float quat[4];
-
-typedef mat4 Viewport;
+typedef mat4s Viewport;
 
 typedef struct
 {
-    vec3 position;
-    vec3 scale;
-    quat rotation;
+    vec3s position;
+    vec3s scale;
+    versors rotation; // quaternion
 } Transform;
 
+// i *would* make this a #define but -Wpedantic doesn't like it
 static const Transform TRANSFORM_UNIT = {
-    .position = {0}, .scale = {1}, .rotation = GLM_QUAT_IDENTITY_INIT};
+    .position = GLMS_VEC3_ONE_INIT,
+    .scale = GLMS_VEC3_ONE_INIT,
+    .rotation = GLMS_QUAT_IDENTITY_INIT,
+};
+
+typedef struct
+{
+    vec2s min;
+    vec2s max;
+} Rect;
+
+Rect rect_new(vec2s min, vec2s max);
+Rect rect_from_min_size(vec2s min, vec2s size);
+
+// c is weird with arrays so we need to pass a pointer
+float rect_area(Rect rect);
+float rect_width(Rect rect);
+float rect_height(Rect rect);
+vec2s rect_size(Rect rect);
+
+float rect_top(Rect rect);
+float rect_bottom(Rect rect);
+float rect_left(Rect rect);
+float rect_right(Rect rect);
+
+vec2s rect_center(Rect rect);
+vec2s rect_top_left(Rect rect);
+vec2s rect_top_right(Rect rect);
+vec2s rect_bottom_left(Rect rect);
+vec2s rect_bottom_right(Rect rect);
+
+bool rect_contains(Rect rect, vec2s point);
+
+typedef struct
+{
+    vec2s position;
+    vec2s tex_coords;
+} Vertex;
+
+typedef struct
+{
+    Rect rect;
+    Rect tex_coords;
+} Quad;
+
+Quad quad_new(Rect rect, Rect tex_coords);
+Quad quad_norm_tex_coords(Quad quad, int tex_width, int tex_height);
+
+// Quads are made like this:
+// TL------TR
+// |  \ /  |
+// |  / \  |
+// BL-----BR
+// this function places the corners in clockwise order starting from the top
+// left (TL, TR, BR, BL)
+void quad_into_corners(Quad quad, Vertex corners[4]);
+// like into_corners, but forms two triangles (TL, TR, BR) and (TL, BR, BL)
+// TL-----TR
+//   \    |
+//     \  |
+//        BR
+//
+// TL
+// |  \.
+// |    \.
+// BL-----BR
+void quad_into_vertices(Quad quad, Vertex vertices[6]);

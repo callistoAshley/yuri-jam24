@@ -1,0 +1,121 @@
+#include "core_types.h"
+#include "cglm/types-struct.h"
+
+Rect rect_new(vec2s min, vec2s max)
+{
+    Rect rect;
+    rect.min = min;
+    rect.max = max;
+    return rect;
+}
+
+Rect rect_from_min_size(vec2s min, vec2s size)
+{
+    Rect rect;
+    rect.min = min;
+    rect.max = glms_vec2_add(min, size);
+    return rect;
+}
+
+// ----
+
+float rect_area(Rect rect)
+{
+    vec2s size = glms_vec2_sub(rect.max, rect.min);
+    return size.x * size.y;
+}
+float rect_width(Rect rect) { return rect.max.x - rect.min.x; }
+float rect_height(Rect rect) { return rect.max.y - rect.min.y; }
+vec2s rect_size(Rect rect) { return glms_vec2_sub(rect.max, rect.min); }
+
+// ----
+
+float rect_top(Rect rect) { return rect.max.y; }
+float rect_bottom(Rect rect) { return rect.min.y; }
+float rect_left(Rect rect) { return rect.min.x; }
+float rect_right(Rect rect) { return rect.max.x; }
+
+// ----
+
+vec2s rect_center(Rect rect)
+{
+    return glms_vec2_add(rect.min, glms_vec2_scale(rect_size(rect), 0.5f));
+}
+vec2s rect_top_left(Rect rect) { return rect.min; }
+vec2s rect_top_right(Rect rect)
+{
+    return (vec2s){.x = rect.max.x, .y = rect.min.y};
+}
+vec2s rect_bottom_left(Rect rect)
+{
+    return (vec2s){.x = rect.min.x, .y = rect.max.y};
+}
+vec2s rect_bottom_right(Rect rect) { return rect.max; }
+
+// ----
+
+bool rect_contains(Rect rect, vec2s point)
+{
+    return point.x >= rect.min.x && point.x <= rect.max.x &&
+           point.y >= rect.min.y && point.y <= rect.max.y;
+}
+
+// ----
+
+Quad quad_new(Rect rect, Rect tex_coords)
+{
+    Quad quad;
+    quad.rect = rect;
+    quad.tex_coords = tex_coords;
+    return quad;
+}
+
+Quad quad_norm_tex_coords(Quad quad, int tex_width, int tex_height)
+{
+    Rect tex_coords = quad.tex_coords;
+    tex_coords.min = glms_vec2_divs(tex_coords.min, tex_width);
+    tex_coords.max = glms_vec2_divs(tex_coords.max, tex_height);
+    return quad_new(quad.rect, tex_coords);
+}
+
+// ----
+
+void quad_into_corners(Quad quad, Vertex corners[4])
+{
+    corners[0] = (Vertex){
+        .position = rect_top_left(quad.rect),
+        .tex_coords = rect_top_left(quad.tex_coords),
+    };
+    corners[1] = (Vertex){
+        .position = rect_top_right(quad.rect),
+        .tex_coords = rect_top_right(quad.tex_coords),
+    };
+    corners[2] = (Vertex){
+        .position = rect_bottom_right(quad.rect),
+        .tex_coords = rect_bottom_right(quad.tex_coords),
+    };
+    corners[3] = (Vertex){
+        .position = rect_bottom_left(quad.rect),
+        .tex_coords = rect_bottom_left(quad.tex_coords),
+    };
+}
+
+void quad_into_vertices(Quad quad, Vertex vertices[6])
+{
+    Vertex corners[4];
+    quad_into_corners(quad, corners);
+
+    // top left
+    vertices[0] = corners[0];
+    // top right
+    vertices[1] = corners[1];
+    // bottom right
+    vertices[2] = corners[3];
+
+    // top right
+    vertices[3] = corners[1];
+    // bottom left
+    vertices[4] = corners[3];
+    // bottom right
+    vertices[5] = corners[2];
+}
