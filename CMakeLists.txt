@@ -72,6 +72,10 @@ include_directories(
 add_executable(game
     src/audio/audio.c
 
+    src/debug/windows/test.c
+    src/debug/windows/window-container.c
+    src/debug/level-editor.c
+
     src/events/interpreter.c
     src/events/lexer.c
 

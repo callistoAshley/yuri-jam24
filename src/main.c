@@ -8,15 +8,26 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "graphics/graphics.h"
 #include "audio/audio.h"
+#include "debug/level-editor.h"
+#include "graphics/graphics.h"
 #include "input/input.h"
 #include "utility/macros.h"
 #include "events/interpreter.h"
 #include "player.h"
 
-int main(void)
+int main(int argc, char **argv)
 {
+    LevelEditor *level_editor = NULL;
+
+    for (int i = 0; i < argc; i++)
+    {
+        if (!strcmp(argv[i], "--level-editor"))
+        {
+            level_editor = lvledit_init();
+        }
+    }
+
     SDL_Window *window;
     bool first_frame = true;
 
@@ -57,6 +68,8 @@ int main(void)
         }
 
         FMOD_Studio_System_Update(audio.system);
+
+        if (level_editor) lvledit_update(level_editor);
 
         graphics_render(&graphics, &player);
         SDL_Delay(16); // this doesn't handle vsync properly
