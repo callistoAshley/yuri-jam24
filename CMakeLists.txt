@@ -85,6 +85,7 @@ add_executable(game
     stb/stb_impl.c
 
     src/core_types.c
+    src/lvl-parser.c
 
     src/main.c
 )
