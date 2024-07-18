@@ -4,7 +4,7 @@
 
 #include <SDL3/SDL.h>
 
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 
+#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
 #include "graphics/imgui-wgpu.h"
 
@@ -55,8 +55,7 @@ int main(int argc, char **argv)
 
     graphics_init(&graphics, window);
 
-    char *files[] =
-    {
+    char *files[] = {
         "assets/events.txt",
     };
     Interpreter *interpreter = interpreter_init(files, 1);
@@ -65,9 +64,8 @@ int main(int argc, char **argv)
     ImGuiContext *imgui = igCreateContext(NULL);
     ImGuiIO *io = igGetIO();
     io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-    ImGui_ImplWGPU_InitInfo imgui_init_info =
-    {
-        .Device = graphics.device,
+    ImGui_ImplWGPU_InitInfo imgui_init_info = {
+        .Device = graphics.wgpu.device,
         .NumFramesInFlight = 3,
     };
     ImGui_ImplSDL3_InitForOther(window);
@@ -91,12 +89,12 @@ int main(int argc, char **argv)
 
         FMOD_Studio_System_Update(audio.system);
 
-        if (level_editor) lvledit_update(level_editor);
-
+        if (level_editor)
+            lvledit_update(level_editor);
 
         graphics_render(&graphics, &player);
-        //igRender();
-        //ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
+        // igRender();
+        // ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
         SDL_Delay(16); // this doesn't handle vsync properly
 
         if (first_frame)

@@ -1,19 +1,12 @@
 #pragma once
 
-#include <wgpu.h>
-#include <SDL3/SDL.h>
-
+#include "wgpu_resources.h"
 #include "shaders.h"
 #include "player.h"
 
 typedef struct Graphics
 {
-    WGPUInstance instance;
-    WGPUAdapter adapter;
-    WGPUDevice device;
-    WGPUQueue queue;
-    WGPUSurface surface;
-    WGPUSurfaceConfiguration surface_config;
+    WGPUResources wgpu;
     Shaders shaders;
 } Graphics;
 

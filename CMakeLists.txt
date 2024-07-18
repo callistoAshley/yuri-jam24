@@ -87,6 +87,7 @@ add_executable(game
     src/graphics/shaders.c
     src/graphics/tex_manager.c
     src/graphics/quad_manager.c
+    src/graphics/wgpu_resources.c
 
     src/input/input.c
 

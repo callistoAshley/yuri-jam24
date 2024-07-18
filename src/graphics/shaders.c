@@ -1,5 +1,4 @@
 #include "shaders.h"
-#include "graphics/graphics.h"
 #include "utility/macros.h"
 #include "webgpu.h"
 
@@ -28,7 +27,7 @@ void read_entire_file(const char *path, char **out, long *len)
     *len = length;
 }
 
-void shaders_init(Graphics *graphics)
+void shaders_init(Shaders *shaders, WGPUResources *resources)
 {
     char *buf;
     long buf_len;
@@ -48,13 +47,13 @@ void shaders_init(Graphics *graphics)
     };
 
     WGPUShaderModule shader_module = wgpuDeviceCreateShaderModule(
-        graphics->device, &shader_module_descriptor);
+        resources->device, &shader_module_descriptor);
 
     WGPUPipelineLayoutDescriptor layout_descriptor = {
         .label = "basic",
     };
     WGPUPipelineLayout layout =
-        wgpuDeviceCreatePipelineLayout(graphics->device, &layout_descriptor);
+        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
 
     WGPUVertexAttribute vertex_attributes[] = {(WGPUVertexAttribute){
         .format = WGPUVertexFormat_Float32x2,
@@ -73,7 +72,7 @@ void shaders_init(Graphics *graphics)
                                     .bufferCount = 1};
 
     WGPUColorTargetState color_targets[] = {(WGPUColorTargetState){
-        .format = graphics->surface_config.format,
+        .format = resources->surface_config.format,
         .writeMask = WGPUColorWriteMask_All,
     }};
     WGPUFragmentState fragment_state = {.module = shader_module,
@@ -97,9 +96,9 @@ void shaders_init(Graphics *graphics)
         .primitive = primitive,
         .multisample = multisample,
     };
-    graphics->shaders.basic =
-        wgpuDeviceCreateRenderPipeline(graphics->device, &descriptor);
-    PTR_ERRCHK(graphics->shaders.basic, "failed to create render pipeline");
+    shaders->basic =
+        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
+    PTR_ERRCHK(shaders->basic, "failed to create render pipeline");
 
     wgpuPipelineLayoutRelease(layout);
     wgpuShaderModuleRelease(shader_module);

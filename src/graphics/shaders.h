@@ -3,12 +3,11 @@
 #include <wgpu.h>
 #include "utility/list.h"
 #include "webgpu.h"
-
-struct Graphics;
+#include "wgpu_resources.h"
 
 typedef struct Shaders
 {
     WGPURenderPipeline basic;
 } Shaders;
 
-void shaders_init(struct Graphics *graphics);
+void shaders_init(Shaders *shaders, WGPUResources *resources);
