@@ -50,6 +50,9 @@ find_path(
   REQUIRED
 )
 
+set(IMGUI_STATIC ON)
+add_subdirectory(cimgui/)
+
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
 add_subdirectory(cglm/)
@@ -61,6 +64,7 @@ include_directories(
     ${WGPU_INCLUDE_DIR}
     ${WGPU_INCLUDE_DIR}/webgpu-headers
     stb/
+    cimgui/
 
     src/
 )
@@ -105,5 +109,6 @@ target_link_libraries(
   ${FMOD_LIBRARY}
   ${FMOD_STUDIO_LIBRARY}
   ${WGPU_LIBRARY}
+  cimgui
   m # link against math library (looks really stupid lol)
 )
