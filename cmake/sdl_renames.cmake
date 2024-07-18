@@ -1,0 +1,31 @@
+# cimgui's SDL3 backend hasn't yet accounted for various recent name changes in the SDL3 API
+
+add_compile_definitions(
+    SDLK_a_renamed_SDLK_A=SDLK_A
+    SDLK_b_renamed_SDLK_B=SDLK_B
+    SDLK_c_renamed_SDLK_C=SDLK_C
+    SDLK_d_renamed_SDLK_D=SDLK_D
+    SDLK_e_renamed_SDLK_E=SDLK_E
+    SDLK_f_renamed_SDLK_F=SDLK_F
+    SDLK_g_renamed_SDLK_G=SDLK_G
+    SDLK_h_renamed_SDLK_H=SDLK_H
+    SDLK_i_renamed_SDLK_I=SDLK_I
+    SDLK_j_renamed_SDLK_J=SDLK_J
+    SDLK_k_renamed_SDLK_K=SDLK_K
+    SDLK_l_renamed_SDLK_L=SDLK_L
+    SDLK_m_renamed_SDLK_M=SDLK_M
+    SDLK_n_renamed_SDLK_N=SDLK_N
+    SDLK_o_renamed_SDLK_O=SDLK_O
+    SDLK_p_renamed_SDLK_P=SDLK_P
+    SDLK_q_renamed_SDLK_Q=SDLK_Q
+    SDLK_r_renamed_SDLK_R=SDLK_R
+    SDLK_s_renamed_SDLK_S=SDLK_S
+    SDLK_t_renamed_SDLK_T=SDLK_T
+    SDLK_u_renamed_SDLK_U=SDLK_U
+    SDLK_v_renamed_SDLK_V=SDLK_V
+    SDLK_w_renamed_SDLK_W=SDLK_W
+    SDLK_x_renamed_SDLK_X=SDLK_X
+    SDLK_y_renamed_SDLK_Y=SDLK_Y
+    SDLK_z_renamed_SDLK_Z=SDLK_Z
+    SDL_GL_DeleteContext_renamed_SDL_GL_DestroyContext=SDL_GL_DestroyContext
+)

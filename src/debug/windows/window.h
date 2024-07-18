@@ -1,5 +1,8 @@
 #pragma once
 
+#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 
+#include <cimgui.h>
+
 typedef struct Window
 {
     void (*init_fn)  (struct Window *self); 

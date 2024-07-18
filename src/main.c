@@ -4,6 +4,10 @@
 
 #include <SDL3/SDL.h>
 
+#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 
+#include <cimgui.h>
+#include "graphics/imgui-wgpu.h"
+
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -57,13 +61,31 @@ int main(int argc, char **argv)
     };
     Interpreter *interpreter = interpreter_init(files, 1);
 
+    // imgui initialization
+    ImGuiContext *imgui = igCreateContext(NULL);
+    ImGuiIO *io = igGetIO();
+    io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+    ImGui_ImplWGPU_InitInfo imgui_init_info =
+    {
+        .Device = graphics.device,
+        .NumFramesInFlight = 3,
+    };
+    ImGui_ImplSDL3_InitForOther(window);
+    ImGui_ImplWGPU_Init(&imgui_init_info);
+
     while (!input_is_down(&input, Button_Quit))
     {
         SDL_Event event;
 
+        /*
+        ImGui_ImplWGPU_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        igNewFrame();*/
+
         input_start_frame(&input);
         while (SDL_PollEvent(&event))
         {
+            ImGui_ImplSDL3_ProcessEvent(&event);
             input_process(&event, &input);
         }
 
@@ -71,7 +93,10 @@ int main(int argc, char **argv)
 
         if (level_editor) lvledit_update(level_editor);
 
+
         graphics_render(&graphics, &player);
+        //igRender();
+        //ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
         SDL_Delay(16); // this doesn't handle vsync properly
 
         if (first_frame)
@@ -85,6 +110,9 @@ int main(int argc, char **argv)
     audio_free(&audio);
     interpreter_free(interpreter);
     SDL_Quit();
+    ImGui_ImplSDL3_Shutdown();
+    ImGui_ImplWGPU_Shutdown();
+    igDestroyContext(imgui);
 
     return 0;
 }

@@ -20,6 +20,11 @@ void wnd_test_init(Window *self)
 void wnd_test_update(Window *self)
 {
     (void)self;
+    if (igBegin("hello", NULL, 0))
+    {
+        igText("hello");
+    }
+    igEnd();
 }
 
 void wnd_test_free(Window *self)

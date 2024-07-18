@@ -50,6 +50,9 @@ find_path(
   REQUIRED
 )
 
+# cimgui
+# goofy hack: some internal imgui sources rely on "webgpu/webgpu.h", so create a symlink to it
+file(CREATE_LINK ${WGPU_INCLUDE_DIR}/webgpu-headers ${WGPU_INCLUDE_DIR}/webgpu SYMBOLIC)
 set(IMGUI_STATIC ON)
 add_subdirectory(cimgui/)
 
@@ -65,6 +68,7 @@ include_directories(
     ${WGPU_INCLUDE_DIR}/webgpu-headers
     stb/
     cimgui/
+    cimgui/imgui/
 
     src/
 )
@@ -96,6 +100,9 @@ add_executable(game
     src/lvl-parser.c
 
     src/main.c
+
+    cimgui/imgui/backends/imgui_impl_wgpu.cpp
+    cimgui/imgui/backends/imgui_impl_sdl3.cpp
 )
 
 enable_testing()
@@ -104,7 +111,7 @@ add_test(NAME vec_test COMMAND $<TARGET_FILE:vec_test>)
 
 add_dependencies(game wgpu-native)
 
-target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic)
+target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic -fpermissive)
 
 target_link_libraries(
   game 
@@ -116,3 +123,5 @@ target_link_libraries(
   cimgui
   m # link against math library (looks really stupid lol)
 )
+
+include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
