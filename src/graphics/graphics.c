@@ -72,7 +72,7 @@ void graphics_render(Graphics *graphics)
             .loadOp = WGPULoadOp_Clear,
             .storeOp = WGPUStoreOp_Store,
             .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
-            .clearValue = {0.1f, 0.2f, 0.3f, 1.0f},
+            .clearValue = {sin(SDL_GetTicks() / 1000.0f), 0.2f, 0.3f, 1.0f},
         },
     };
     WGPURenderPassDescriptor render_pass_desc = {
@@ -89,9 +89,9 @@ void graphics_render(Graphics *graphics)
                                          sizeof(vertices));
     wgpuRenderPassEncoderDraw(render_pass, 3, 1, 0, 0);
 
-    wgpuRenderPassEncoderEnd(render_pass);
-
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
+
+    wgpuRenderPassEncoderEnd(render_pass);
 
     WGPUCommandBuffer command_buffer =
         wgpuCommandEncoderFinish(command_encoder, NULL);

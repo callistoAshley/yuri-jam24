@@ -62,6 +62,8 @@ int main(int argc, char **argv)
 
     WGPUMultisampleState multisample_state = {
         .count = 1,
+        .mask = 0xFFFFFFFF,
+        .alphaToCoverageEnabled = false,
     };
 
     // imgui initialization
@@ -70,7 +72,7 @@ int main(int argc, char **argv)
     io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui_ImplWGPU_InitInfo imgui_init_info = {
         .Device = graphics.wgpu.device,
-        .NumFramesInFlight = 1,
+        .NumFramesInFlight = 3,
         .PipelineMultisampleState = multisample_state,
         .RenderTargetFormat = graphics.wgpu.surface_config.format,
     };
