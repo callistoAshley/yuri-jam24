@@ -21,7 +21,7 @@ typedef union
 } QuadEntryData;
 
 #define INITIAL_BUFFER_CAP 6 * 32
-#define INITIAL_BUFFER_SIZE sizeof(Vertex) * INITIAL_BUFFER_CAP
+#define INITIAL_BUFFER_SIZE sizeof(QuadEntryData) * INITIAL_BUFFER_CAP
 
 void quad_manager_init(QuadManager *manager, WGPUResources *resources)
 {
@@ -114,12 +114,12 @@ void quad_manager_upload_dirty(QuadManager *manager, WGPUResources *resources)
         return;
 
     u32 buffer_size = wgpuBufferGetSize(manager->buffer);
-    if (manager->entries.len > buffer_size)
+    if (manager->entries.len * sizeof(QuadEntryData) > buffer_size)
     {
         wgpuBufferRelease(manager->buffer);
         WGPUBufferDescriptor buffer_desc = {
             // multiply by two to avoid resizing too often
-            .size = manager->entries.len * sizeof(Vertex) * 2,
+            .size = manager->entries.len * sizeof(QuadEntryData) * 2,
             .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
             .label = "quad manager buffer",
         };
@@ -128,5 +128,5 @@ void quad_manager_upload_dirty(QuadManager *manager, WGPUResources *resources)
     }
     wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
                          manager->entries.data,
-                         manager->entries.len * sizeof(Vertex));
+                         manager->entries.len * sizeof(QuadEntryData));
 }

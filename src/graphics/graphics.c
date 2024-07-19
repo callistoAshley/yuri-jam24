@@ -2,7 +2,6 @@
 #include <wgpu.h>
 
 #include "graphics.h"
-#include "cglm/struct/vec2.h"
 #include "core_types.h"
 #include "graphics/quad_manager.h"
 #include "imgui-wgpu.h"
@@ -16,13 +15,19 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     shaders_init(&graphics->shaders, &graphics->wgpu);
     quad_manager_init(&graphics->quad_manager, &graphics->wgpu);
 
-    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 100, .y = 100});
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
-    Quad quad = {
-        .rect = rect,
-        .tex_coords = tex_coords,
-    };
-    entry = quad_manager_add(&graphics->quad_manager, quad);
+    for (int i = 0; i < 48; i++)
+    {
+        Rect rect = rect_from_min_size(
+            (vec2s){.x = (320 - 45 + 32) + sin(i / 7.7) * 90,
+                    .y = (240 - 45 + 32) + cos(i / 7.7) * 90},
+            (vec2s){.x = 32, .y = 32});
+        Quad quad = {
+            .rect = rect,
+            .tex_coords = tex_coords,
+        };
+        entry = quad_manager_add(&graphics->quad_manager, quad);
+    }
 }
 
 void graphics_render(Graphics *graphics)
@@ -85,7 +90,8 @@ void graphics_render(Graphics *graphics)
     u32 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
-    wgpuRenderPassEncoderDraw(render_pass, 6, 1, 0, 0);
+    for (int i = 0; i < 48; i++)
+        wgpuRenderPassEncoderDraw(render_pass, 6, 1, i * 6, 0);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 
