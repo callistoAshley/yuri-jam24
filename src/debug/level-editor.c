@@ -14,6 +14,20 @@ LevelEditor *lvledit_init(void)
 
 void lvledit_update(LevelEditor *editor)
 {
+    if (igBeginMainMenuBar())
+    {
+        if (igBeginMenu("File", true))
+        {
+            if (igMenuItem_Bool("Load", NULL, false, true))
+            {
+            }
+            if (igMenuItem_Bool("Save", NULL, false, true))
+            {
+            }
+            igEndMenu();
+        }
+        igEndMainMenuBar();
+    }
     wndcont_update(editor->container);
 }
 
