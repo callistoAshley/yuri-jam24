@@ -52,7 +52,7 @@ find_path(
 
 # cimgui
 # goofy hack: some internal imgui sources rely on "webgpu/webgpu.h", so create a symlink to it
-file(CREATE_LINK ${WGPU_INCLUDE_DIR}/webgpu-headers ${WGPU_INCLUDE_DIR}/webgpu SYMBOLIC)
+file(CREATE_LINK ${WGPU_INCLUDE_DIR}/webgpu-headers ${CMAKE_SOURCE_DIR}/webgpu SYMBOLIC)
 set(IMGUI_STATIC ON)
 add_subdirectory(cimgui/)
 
@@ -65,6 +65,7 @@ include_directories(
     ${FMOD_INCLUDE_DIR}
     ${FMOD_STUDIO_INCLUDE_DIR}
     ${WGPU_INCLUDE_DIR}
+    ${CMAKE_SOURCE_DIR}
     ${WGPU_INCLUDE_DIR}/webgpu-headers
     stb/
     cimgui/
