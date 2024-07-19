@@ -23,12 +23,17 @@
 int main(int argc, char **argv)
 {
     LevelEditor *level_editor = NULL;
+    bool imgui_demo;
 
     for (int i = 0; i < argc; i++)
     {
         if (!strcmp(argv[i], "--level-editor"))
         {
             level_editor = lvledit_init();
+        }
+        else if (!strcmp(argv[i], "--imgui-demo"))
+        {
+            imgui_demo = true;
         }
     }
 
@@ -86,6 +91,8 @@ int main(int argc, char **argv)
         ImGui_ImplWGPU_NewFrame();
         ImGui_ImplSDL3_NewFrame();
         igNewFrame();
+
+        if (imgui_demo) igShowDemoWindow(NULL);
 
         input_start_frame(&input);
         while (SDL_PollEvent(&event))
