@@ -6,8 +6,6 @@
 #include "graphics/wgpu_resources.h"
 #include "utility/macros.h"
 
-#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
-#include <cimgui.h>
 #include "graphics/imgui-wgpu.h"
 
 const vec2 vertices[] = {
