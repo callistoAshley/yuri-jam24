@@ -60,13 +60,19 @@ int main(int argc, char **argv)
     };
     Interpreter *interpreter = interpreter_init(files, 1);
 
+    WGPUMultisampleState multisample_state = {
+        .count = 1,
+    };
+
     // imgui initialization
     ImGuiContext *imgui = igCreateContext(NULL);
     ImGuiIO *io = igGetIO();
     io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui_ImplWGPU_InitInfo imgui_init_info = {
         .Device = graphics.wgpu.device,
-        .NumFramesInFlight = 3,
+        .NumFramesInFlight = 1,
+        .PipelineMultisampleState = multisample_state,
+        .RenderTargetFormat = graphics.wgpu.surface_config.format,
     };
     ImGui_ImplSDL3_InitForOther(window);
     ImGui_ImplWGPU_Init(&imgui_init_info);
@@ -75,10 +81,9 @@ int main(int argc, char **argv)
     {
         SDL_Event event;
 
-        /*
         ImGui_ImplWGPU_NewFrame();
         ImGui_ImplSDL3_NewFrame();
-        igNewFrame();*/
+        igNewFrame();
 
         input_start_frame(&input);
         while (SDL_PollEvent(&event))
@@ -92,9 +97,10 @@ int main(int argc, char **argv)
         if (level_editor)
             lvledit_update(level_editor);
 
-        graphics_render(&graphics, &player);
-        // igRender();
-        // ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
+        igShowDemoWindow(NULL);
+
+        igRender();
+        graphics_render(&graphics);
         SDL_Delay(16); // this doesn't handle vsync properly
 
         if (first_frame)

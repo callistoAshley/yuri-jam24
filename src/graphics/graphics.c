@@ -6,6 +6,10 @@
 #include "graphics/wgpu_resources.h"
 #include "utility/macros.h"
 
+#define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
+#include <cimgui.h>
+#include "graphics/imgui-wgpu.h"
+
 const vec2 vertices[] = {
     {0.0f, 0.5f},
     {-0.5f, -0.5f},
@@ -29,7 +33,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                          sizeof(vertices));
 }
 
-void graphics_render(Graphics *graphics, Player *player)
+void graphics_render(Graphics *graphics)
 {
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -88,6 +92,8 @@ void graphics_render(Graphics *graphics, Player *player)
     wgpuRenderPassEncoderDraw(render_pass, 3, 1, 0, 0);
 
     wgpuRenderPassEncoderEnd(render_pass);
+
+    ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 
     WGPUCommandBuffer command_buffer =
         wgpuCommandEncoderFinish(command_encoder, NULL);
