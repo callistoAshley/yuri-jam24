@@ -20,8 +20,7 @@ typedef u32 QuadEntry;
 void quad_manager_init(QuadManager *manager, WGPUResources *resources);
 void quad_manager_free(QuadManager *manager);
 
-QuadEntry quad_manager_add(QuadManager *manager, WGPUResources *resources,
-                           Quad quad);
+QuadEntry quad_manager_add(QuadManager *manager, Quad quad);
 void quad_manager_remove(QuadManager *manager, QuadEntry entry);
 void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad);
 

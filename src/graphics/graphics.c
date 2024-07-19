@@ -2,37 +2,33 @@
 #include <wgpu.h>
 
 #include "graphics.h"
-#include "graphics/shaders.h"
-#include "graphics/wgpu_resources.h"
+#include "cglm/struct/vec2.h"
+#include "core_types.h"
+#include "graphics/quad_manager.h"
+#include "imgui-wgpu.h"
 #include "utility/macros.h"
 
-#include "graphics/imgui-wgpu.h"
-
-const vec2 vertices[] = {
-    {0.0f, 0.5f},
-    {-0.5f, -0.5f},
-    {0.5f, -0.5f},
-};
-WGPUBuffer vertex_buffer;
+QuadEntry entry;
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
     wgpu_resources_init(&graphics->wgpu, window);
     shaders_init(&graphics->shaders, &graphics->wgpu);
+    quad_manager_init(&graphics->quad_manager, &graphics->wgpu);
 
-    WGPUBufferDescriptor descriptor = {
-        .label = "vertex buffer",
-        .size = sizeof(vertices),
-        .usage = WGPUBufferUsage_Vertex | WGPUBufferUsage_CopyDst,
+    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 100, .y = 100});
+    Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+    Quad quad = {
+        .rect = rect,
+        .tex_coords = tex_coords,
     };
-    vertex_buffer = wgpuDeviceCreateBuffer(graphics->wgpu.device, &descriptor);
-    PTR_ERRCHK(vertex_buffer, "failed to create vertex buffer");
-    wgpuQueueWriteBuffer(graphics->wgpu.queue, vertex_buffer, 0, vertices,
-                         sizeof(vertices));
+    entry = quad_manager_add(&graphics->quad_manager, quad);
 }
 
 void graphics_render(Graphics *graphics)
 {
+    quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
+
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
 
@@ -85,9 +81,11 @@ void graphics_render(Graphics *graphics)
 
     // bind pipeline and buffers
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.basic);
-    wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0, vertex_buffer, 0,
-                                         sizeof(vertices));
-    wgpuRenderPassEncoderDraw(render_pass, 3, 1, 0, 0);
+
+    u32 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
+    wgpuRenderPassEncoderSetVertexBuffer(
+        render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
+    wgpuRenderPassEncoderDraw(render_pass, 6, 1, 0, 0);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 

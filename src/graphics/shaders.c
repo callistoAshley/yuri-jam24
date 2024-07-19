@@ -1,4 +1,5 @@
 #include "shaders.h"
+#include "core_types.h"
 #include "utility/macros.h"
 #include "webgpu.h"
 
@@ -55,15 +56,21 @@ void shaders_init(Shaders *shaders, WGPUResources *resources)
     WGPUPipelineLayout layout =
         wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
 
-    WGPUVertexAttribute vertex_attributes[] = {(WGPUVertexAttribute){
-        .format = WGPUVertexFormat_Float32x2,
-        .offset = 0,
-        .shaderLocation = 0,
-    }};
+    WGPUVertexAttribute vertex_attributes[] = {
+        (WGPUVertexAttribute){
+            .format = WGPUVertexFormat_Float32x2,
+            .offset = 0,
+            .shaderLocation = 0,
+        },
+        (WGPUVertexAttribute){
+            .format = WGPUVertexFormat_Float32x2,
+            .offset = 2 * sizeof(float),
+            .shaderLocation = 1,
+        }};
     WGPUVertexBufferLayout vertex_buffer_layout = {
-        .arrayStride = 8,
+        .arrayStride = sizeof(Vertex),
         .stepMode = WGPUVertexStepMode_Vertex,
-        .attributeCount = 1,
+        .attributeCount = 2,
         .attributes = vertex_attributes};
 
     WGPUVertexState vertex_state = {.module = shader_module,

@@ -99,8 +99,6 @@ int main(int argc, char **argv)
         if (level_editor)
             lvledit_update(level_editor);
 
-        igShowDemoWindow(NULL);
-
         igRender();
         graphics_render(&graphics);
         SDL_Delay(16); // this doesn't handle vsync properly
