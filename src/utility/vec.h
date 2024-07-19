@@ -21,6 +21,7 @@ typedef void (*vec_free_fn)(usize, void *);
 
 // initializes a vec with the given element size
 void vec_init(vec *v, usize ele_size);
+void vec_init_with_capacity(vec *v, usize ele_size, usize cap);
 // returns a copy of the given vec. the data is copied, so the original vec can
 // be freed or modified without affecting the copy.
 vec vec_dup(vec *v);

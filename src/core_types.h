@@ -4,6 +4,8 @@
 #include <cglm/struct.h>
 #include <stdbool.h>
 
+#include "sensible_nums.h"
+
 typedef mat4s Viewport;
 
 typedef struct

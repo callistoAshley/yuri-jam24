@@ -12,7 +12,13 @@ void vec_init(vec *v, usize ele_size)
     v->ele_size = ele_size;
     v->data = malloc(v->cap * ele_size);
 }
-
+void vec_init_with_capacity(vec *v, usize ele_size, usize cap)
+{
+    v->len = 0;
+    v->cap = cap;
+    v->ele_size = ele_size;
+    v->data = malloc(v->cap * ele_size);
+}
 vec vec_dup(vec *v)
 {
     vec new_vec;
