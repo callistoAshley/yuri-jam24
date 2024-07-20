@@ -2,6 +2,7 @@
 #include <wgpu.h>
 
 #include "graphics.h"
+#include "cglm/struct/clipspace/persp_rh_no.h"
 #include "core_types.h"
 #include "binding_helper.h"
 #include "graphics/quad_manager.h"
@@ -39,16 +40,12 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     };
     quad_manager_add(&graphics->quad_manager, quad);
 
-    Transform transform = transform_from_xyz(32.0, 32.0, 0.0);
+    Transform transform = transform_from_xyz(0.0, 0.0, 0.0);
     transform_manager_add(&graphics->transform_manager, transform);
 }
 
 void graphics_render(Graphics *graphics)
 {
-    Transform transform =
-        transform_from_xyz(fmod(SDL_GetTicks() / 10.0, 640.0), 32.0, 0.0);
-    transform_manager_update(&graphics->transform_manager, 0, transform);
-
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
@@ -103,6 +100,12 @@ void graphics_render(Graphics *graphics)
     WGPURenderPassEncoder render_pass =
         wgpuCommandEncoderBeginRenderPass(command_encoder, &render_pass_desc);
 
+    typedef struct
+    {
+        mat4s camera;
+        u32 transform_index;
+    } PushConstants;
+
     // bind pipeline and buffers
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.basic);
     wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
@@ -111,9 +114,18 @@ void graphics_render(Graphics *graphics)
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
 
-    u32 transform_index = 0;
+    mat4s camera_projection =
+        glms_perspective_rh_no(1.0f, 640.0f / 480.0f, 0.1f, 100.0f);
+    mat4s camera_transform = glms_look_rh_no(
+        (vec3s){.x = 0.0, .y = 0.0, .z = -100.0}, GLMS_ZUP, GLMS_YUP);
+    mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
+    PushConstants push_constants = {
+        .camera = camera,
+        .transform_index = 0,
+    };
     wgpuRenderPassEncoderSetPushConstants(render_pass, WGPUShaderStage_Vertex,
-                                          0, sizeof(u32), &transform_index);
+                                          0, sizeof(PushConstants),
+                                          &push_constants);
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
                               QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
 
