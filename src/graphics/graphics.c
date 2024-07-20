@@ -4,8 +4,11 @@
 #include "graphics.h"
 #include "core_types.h"
 #include "binding_helper.h"
+#include "graphics/quad_manager.h"
+#include "graphics/transform_manager.h"
 #include "imgui-wgpu.h"
 #include "utility/macros.h"
+#include "webgpu.h"
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
@@ -35,11 +38,20 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         .tex_coords = tex_coords,
     };
     quad_manager_add(&graphics->quad_manager, quad);
+
+    Transform transform = transform_from_xyz(32.0, 32.0, 0.0);
+    transform_manager_add(&graphics->transform_manager, transform);
 }
 
 void graphics_render(Graphics *graphics)
 {
+    Transform transform =
+        transform_from_xyz(fmod(SDL_GetTicks() / 10.0, 640.0), 32.0, 0.0);
+    transform_manager_update(&graphics->transform_manager, 0, transform);
+
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
+    transform_manager_upload_dirty(&graphics->transform_manager,
+                                   &graphics->wgpu);
 
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -93,14 +105,15 @@ void graphics_render(Graphics *graphics)
 
     // bind pipeline and buffers
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.basic);
-
     wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
                                       graphics->transform_bind_group, 0, 0);
-
     u32 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
 
+    u32 transform_index = 0;
+    wgpuRenderPassEncoderSetPushConstants(render_pass, WGPUShaderStage_Vertex,
+                                          0, sizeof(u32), &transform_index);
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
                               QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
 
@@ -122,6 +135,12 @@ void graphics_render(Graphics *graphics)
 
 void graphics_free(Graphics *graphics)
 {
+    quad_manager_free(&graphics->quad_manager);
+    transform_manager_free(&graphics->transform_manager);
+    wgpuBindGroupRelease(graphics->transform_bind_group);
+
     wgpuRenderPipelineRelease(graphics->shaders.basic);
+    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.transform);
+
     wgpu_resources_free(&graphics->wgpu);
 }

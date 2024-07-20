@@ -52,7 +52,20 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     WGPUShaderModule shader_module = wgpuDeviceCreateShaderModule(
         resources->device, &shader_module_descriptor);
 
+    WGPUPushConstantRange push_constant_ranges[] = {
+        (WGPUPushConstantRange){
+            .stages = WGPUShaderStage_Vertex,
+            .start = 0,
+            .end = sizeof(u32),
+        },
+    };
+    WGPUPipelineLayoutExtras extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
+        .pushConstantRanges = push_constant_ranges,
+        .pushConstantRangeCount = 1,
+    };
     WGPUPipelineLayoutDescriptor layout_descriptor = {
+        .nextInChain = (WGPUChainedStruct *)&extras,
         .label = "basic",
         .bindGroupLayoutCount = 1,
         .bindGroupLayouts = &layouts->transform,
