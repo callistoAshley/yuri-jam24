@@ -8,7 +8,8 @@
 
 typedef struct Shaders
 {
-    WGPURenderPipeline basic;
+    WGPURenderPipeline object;
+    WGPURenderPipeline lighting;
 } Shaders;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,

@@ -35,7 +35,7 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     char *buf;
     long buf_len;
 
-    read_entire_file("assets/shaders/basic.wgsl", &buf, &buf_len);
+    read_entire_file("assets/shaders/object.wgsl", &buf, &buf_len);
 
     // this uses null-terminated strings, but read_entire_file returns something
     // null-terminated anyway, so it's fine (really wish this used a
@@ -45,7 +45,7 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .code = buf,
     };
     WGPUShaderModuleDescriptor shader_module_descriptor = {
-        .label = "basic",
+        .label = "object",
         .nextInChain = (WGPUChainedStruct *)&wgsl_module_descriptor,
     };
 
@@ -101,13 +101,20 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                                     .buffers = &vertex_buffer_layout,
                                     .bufferCount = 1};
 
-    WGPUColorTargetState color_targets[] = {(WGPUColorTargetState){
-        .format = resources->surface_config.format,
-        .writeMask = WGPUColorWriteMask_All,
-    }};
+    WGPUColorTargetState color_targets[] = {
+        // color
+        (WGPUColorTargetState){
+            .format = WGPUTextureFormat_RGBA8Unorm,
+            .writeMask = WGPUColorWriteMask_All,
+        },
+        // normal
+        (WGPUColorTargetState){
+            .format = WGPUTextureFormat_RGBA32Float,
+            .writeMask = WGPUColorWriteMask_All,
+        }};
     WGPUFragmentState fragment_state = {.module = shader_module,
                                         .entryPoint = "fs_main",
-                                        .targetCount = 1,
+                                        .targetCount = 2,
                                         .targets = color_targets};
 
     WGPUPrimitiveState primitive = {
@@ -119,16 +126,16 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     };
 
     WGPURenderPipelineDescriptor descriptor = {
-        .label = "basic",
+        .label = "object",
         .layout = layout,
         .vertex = vertex_state,
         .fragment = &fragment_state,
         .primitive = primitive,
         .multisample = multisample,
     };
-    shaders->basic =
+    shaders->object =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
-    PTR_ERRCHK(shaders->basic, "failed to create render pipeline");
+    PTR_ERRCHK(shaders->object, "failed to create render pipeline");
 
     wgpuPipelineLayoutRelease(layout);
     wgpuShaderModuleRelease(shader_module);
