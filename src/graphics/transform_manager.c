@@ -58,14 +58,15 @@ TransformEntry transform_manager_add(TransformManager *manager,
         entry.transform = matrix;
         assert(entry.next.is_free != ENTRY_FREE);
         vec_push(&manager->entries, &entry);
+        manager->next++;
     }
     else
     {
         TransformEntryData *entry = vec_get(&manager->entries, manager->next);
         assert(entry->next.is_free == ENTRY_FREE);
+        manager->next = entry->next.next;
         entry->transform = matrix;
     }
-    manager->next++;
 
     return key;
 }

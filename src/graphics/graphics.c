@@ -21,16 +21,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     quad_manager_init(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_init(&graphics->transform_manager, &graphics->wgpu);
 
-    BindGroupBuilder builder;
-    bind_group_builder_init(&builder);
-
-    bind_group_builder_append_buffer(&builder,
-                                     graphics->transform_manager.buffer);
-
-    graphics->transform_bind_group = bind_group_build(
-        &builder, graphics->wgpu.device, graphics->bind_group_layouts.transform,
-        "Transform Bind Group");
-
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
                                    (vec2s){.x = 32, .y = 32});
@@ -49,6 +39,18 @@ void graphics_render(Graphics *graphics)
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
+
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+
+    WGPUBindGroup transform_bind_group = bind_group_build(
+        &builder, graphics->wgpu.device, graphics->bind_group_layouts.basic,
+        "Transform Bind Group");
+
+    bind_group_builder_free(&builder);
 
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -108,8 +110,8 @@ void graphics_render(Graphics *graphics)
 
     // bind pipeline and buffers
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.basic);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
-                                      graphics->transform_bind_group, 0, 0);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, transform_bind_group, 0,
+                                      0);
     u32 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
@@ -138,6 +140,8 @@ void graphics_render(Graphics *graphics)
     wgpuQueueSubmit(graphics->wgpu.queue, 1, &command_buffer);
     wgpuSurfacePresent(graphics->wgpu.surface);
 
+    wgpuBindGroupRelease(transform_bind_group);
+
     wgpuCommandBufferRelease(command_buffer);
     wgpuRenderPassEncoderRelease(render_pass);
     wgpuCommandEncoderRelease(command_encoder);
@@ -149,10 +153,9 @@ void graphics_free(Graphics *graphics)
 {
     quad_manager_free(&graphics->quad_manager);
     transform_manager_free(&graphics->transform_manager);
-    wgpuBindGroupRelease(graphics->transform_bind_group);
 
     wgpuRenderPipelineRelease(graphics->shaders.basic);
-    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.transform);
+    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.basic);
 
     wgpu_resources_free(&graphics->wgpu);
 }

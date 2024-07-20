@@ -17,7 +17,7 @@ void bing_group_layouts_init(BindGroupLayouts *layouts,
     };
     bind_group_layout_builder_append(&builder, entry);
 
-    layouts->transform = bind_group_layout_build(&builder, resources->device,
-                                                 "Basic Bind Group Layout");
+    layouts->basic = bind_group_layout_build(&builder, resources->device,
+                                             "Basic Bind Group Layout");
     bind_group_layout_builder_free(&builder); // free the builder after use
 }

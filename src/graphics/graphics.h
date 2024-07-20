@@ -16,8 +16,6 @@ typedef struct Graphics
 
     QuadManager quad_manager;
     TransformManager transform_manager;
-
-    WGPUBindGroup transform_bind_group;
 } Graphics;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);

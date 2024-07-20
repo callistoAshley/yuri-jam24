@@ -73,7 +73,7 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .nextInChain = (WGPUChainedStruct *)&extras,
         .label = "basic",
         .bindGroupLayoutCount = 1,
-        .bindGroupLayouts = &layouts->transform,
+        .bindGroupLayouts = &layouts->basic,
     };
     WGPUPipelineLayout layout =
         wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
