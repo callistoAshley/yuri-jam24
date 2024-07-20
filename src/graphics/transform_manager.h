@@ -24,9 +24,6 @@ void transform_manager_free(TransformManager *manager);
 TransformEntry transform_manager_add(TransformManager *manager,
                                      Transform transform);
 void transform_manager_remove(TransformManager *manager, TransformEntry entry);
-
-Transform transform_manager_get(TransformManager *manager,
-                                TransformEntry entry);
 void transform_manager_update(TransformManager *manager, TransformEntry entry,
                               Transform transform);
 

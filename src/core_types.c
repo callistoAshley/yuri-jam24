@@ -1,6 +1,106 @@
 #include "core_types.h"
 #include "cglm/types-struct.h"
 
+Transform transform_from_xyz(float x, float y, float z)
+{
+    return transform_from_pos((vec3s){.x = x, .y = y, .z = z});
+}
+Transform transform_from_pos(vec3s position)
+{
+    return (Transform){
+        .position = position,
+        .scale = GLMS_VEC3_ONE_INIT,
+        .rotation = GLMS_QUAT_IDENTITY_INIT,
+    };
+}
+Transform transform_from_rot(versors rotation)
+{
+    return (Transform){
+        .position = GLMS_VEC3_ZERO_INIT,
+        .scale = GLMS_VEC3_ONE_INIT,
+        .rotation = rotation,
+    };
+}
+Transform transform_from_scale(vec3s scale)
+{
+    return (Transform){
+        .position = GLMS_VEC3_ZERO_INIT,
+        .scale = scale,
+        .rotation = GLMS_QUAT_IDENTITY_INIT,
+    };
+}
+Transform transform_from_position_scale(vec3s position, vec3s scale)
+{
+    return (Transform){
+        .position = position,
+        .scale = scale,
+        .rotation = GLMS_QUAT_IDENTITY_INIT,
+    };
+}
+Transform transform_from_position_rotation(vec3s position, versors rotation)
+{
+    return (Transform){
+        .position = position,
+        .scale = GLMS_VEC3_ONE_INIT,
+        .rotation = rotation,
+    };
+}
+
+// ----
+
+vec3s transform_local_x(Transform transform)
+{
+    return glms_quat_rotatev(transform.rotation, GLMS_XUP);
+}
+vec3s transform_local_y(Transform transform)
+{
+    return glms_quat_rotatev(transform.rotation, GLMS_YUP);
+}
+vec3s transform_local_z(Transform transform)
+{
+    return glms_quat_rotatev(transform.rotation, GLMS_ZUP);
+}
+
+// ----
+
+vec3s transform_left(Transform transform)
+{
+    return glms_vec3_negate(transform_local_x(transform));
+}
+vec3s transform_right(Transform transform)
+{
+    return transform_local_x(transform);
+}
+vec3s transform_up(Transform transform) { return transform_local_y(transform); }
+vec3s transform_down(Transform transform)
+{
+    return glms_vec3_negate(transform_local_y(transform));
+}
+
+// ----
+
+vec3s transform_forward(Transform transform)
+{
+    return glms_vec3_negate(transform_local_z(transform));
+}
+vec3s transform_backward(Transform transform)
+{
+    return transform_local_z(transform);
+}
+
+// ----
+
+mat4s transform_into_matrix(Transform transform)
+{
+    mat4s matrix = glms_mat4_identity();
+    matrix = glms_translate(matrix, transform.position);
+    matrix = glms_quat_rotate(matrix, transform.rotation);
+    matrix = glms_scale(matrix, transform.scale);
+    return matrix;
+}
+
+// ----
+
 Rect rect_new(vec2s min, vec2s max)
 {
     Rect rect;

@@ -22,6 +22,27 @@ static const Transform TRANSFORM_UNIT = {
     .rotation = GLMS_QUAT_IDENTITY_INIT,
 };
 
+Transform transform_from_xyz(float x, float y, float z);
+Transform transform_from_pos(vec3s position);
+Transform transform_from_rot(versors rotation);
+Transform transform_from_scale(vec3s scale);
+Transform transform_from_position_scale(vec3s position, vec3s scale);
+Transform transform_from_position_rotation(vec3s position, versors rotation);
+
+vec3s transform_local_x(Transform transform);
+vec3s transform_local_y(Transform transform);
+vec3s transform_local_z(Transform transform);
+
+vec3s transform_left(Transform transform);
+vec3s transform_right(Transform transform);
+vec3s transform_up(Transform transform);
+vec3s transform_down(Transform transform);
+
+vec3s transform_forward(Transform transform);
+vec3s transform_backward(Transform transform);
+
+mat4s transform_into_matrix(Transform transform);
+
 typedef struct
 {
     vec2s min;
