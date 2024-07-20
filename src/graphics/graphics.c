@@ -3,29 +3,38 @@
 
 #include "graphics.h"
 #include "core_types.h"
-#include "graphics/quad_manager.h"
+#include "binding_helper.h"
 #include "imgui-wgpu.h"
 #include "utility/macros.h"
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
     wgpu_resources_init(&graphics->wgpu, window);
-    shaders_init(&graphics->shaders, &graphics->wgpu);
+    bing_group_layouts_init(&graphics->bind_group_layouts, &graphics->wgpu);
+    shaders_init(&graphics->shaders, &graphics->bind_group_layouts,
+                 &graphics->wgpu);
+
     quad_manager_init(&graphics->quad_manager, &graphics->wgpu);
+    transform_manager_init(&graphics->transform_manager, &graphics->wgpu);
+
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+
+    graphics->transform_bind_group = bind_group_build(
+        &builder, graphics->wgpu.device, graphics->bind_group_layouts.transform,
+        "Transform Bind Group");
 
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
-    for (int i = 0; i < 48; i++)
-    {
-        Rect rect = rect_from_min_size(
-            (vec2s){.x = (320 - 45 + 32) + sin(i / 7.7) * 90,
-                    .y = (240 - 45 + 32) + cos(i / 7.7) * 90},
-            (vec2s){.x = 32, .y = 32});
-        Quad quad = {
-            .rect = rect,
-            .tex_coords = tex_coords,
-        };
-        quad_manager_add(&graphics->quad_manager, quad);
-    }
+    Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
+                                   (vec2s){.x = 32, .y = 32});
+    Quad quad = {
+        .rect = rect,
+        .tex_coords = tex_coords,
+    };
+    quad_manager_add(&graphics->quad_manager, quad);
 }
 
 void graphics_render(Graphics *graphics)
@@ -85,12 +94,15 @@ void graphics_render(Graphics *graphics)
     // bind pipeline and buffers
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.basic);
 
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
+                                      graphics->transform_bind_group, 0, 0);
+
     u32 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
-    for (int i = 0; i < 48; i++)
-        wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
-                                  QUAD_ENTRY_TO_VERTEX_INDEX(i), 0);
+
+    wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
+                              QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 

@@ -78,6 +78,7 @@ void bind_group_builder_append_buffer(BindGroupBuilder *builder,
     WGPUBindGroupEntry entry = {
         .binding = builder->entries.len,
         .buffer = buffer,
+        .size = wgpuBufferGetSize(buffer),
     };
     vec_push(&builder->entries, &entry);
 }

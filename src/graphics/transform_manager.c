@@ -23,11 +23,11 @@ typedef union
 #define INITIAL_BUFFER_CAP 32
 #define INITIAL_BUFFER_SIZE sizeof(TransformEntryData) * INITIAL_BUFFER_CAP
 
-void Transform_manager_init(TransformManager *manager, WGPUResources *resources)
+void transform_manager_init(TransformManager *manager, WGPUResources *resources)
 {
     WGPUBufferDescriptor buffer_desc = {
         .size = INITIAL_BUFFER_SIZE,
-        .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
+        .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Storage,
         .label = "Transform manager buffer",
     };
     manager->buffer = wgpuDeviceCreateBuffer(resources->device, &buffer_desc);
@@ -36,7 +36,7 @@ void Transform_manager_init(TransformManager *manager, WGPUResources *resources)
     manager->next = 0;
 }
 
-void Transform_manager_free(TransformManager *manager)
+void transform_manager_free(TransformManager *manager)
 {
     wgpuBufferRelease(manager->buffer);
     vec_free(&manager->entries);
@@ -44,7 +44,7 @@ void Transform_manager_free(TransformManager *manager)
 
 // ---  ---
 
-TransformEntry Transform_manager_add(TransformManager *manager,
+TransformEntry transform_manager_add(TransformManager *manager,
                                      Transform Transform)
 {
     mat4s matrix = transform_into_matrix(Transform);
@@ -70,7 +70,7 @@ TransformEntry Transform_manager_add(TransformManager *manager,
     return key;
 }
 
-void Transform_manager_remove(TransformManager *manager, TransformEntry entry)
+void transform_manager_remove(TransformManager *manager, TransformEntry entry)
 {
     TransformEntryData *data = vec_get(&manager->entries, entry);
     assert(data->next.is_free != ENTRY_FREE);
@@ -83,7 +83,7 @@ void Transform_manager_remove(TransformManager *manager, TransformEntry entry)
     // free
 }
 
-void Transform_manager_update(TransformManager *manager, TransformEntry entry,
+void transform_manager_update(TransformManager *manager, TransformEntry entry,
                               Transform Transform)
 {
     TransformEntryData *data = vec_get(&manager->entries, entry);
@@ -96,14 +96,16 @@ void Transform_manager_update(TransformManager *manager, TransformEntry entry,
 
 // ---  ---
 
-void Transform_manager_upload_dirty(TransformManager *manager,
+bool transform_manager_upload_dirty(TransformManager *manager,
                                     WGPUResources *resources)
 {
     if (!manager->dirty)
-        return;
+        return false;
 
     u32 buffer_size = wgpuBufferGetSize(manager->buffer);
-    if (manager->entries.len * sizeof(TransformEntryData) > buffer_size)
+    bool needs_regen =
+        manager->entries.len * sizeof(TransformEntryData) > buffer_size;
+    if (needs_regen)
     {
         wgpuBufferRelease(manager->buffer);
         WGPUBufferDescriptor buffer_desc = {
@@ -118,4 +120,6 @@ void Transform_manager_upload_dirty(TransformManager *manager,
     wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
                          manager->entries.data,
                          manager->entries.len * sizeof(TransformEntryData));
+
+    return needs_regen;
 }

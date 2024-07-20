@@ -10,7 +10,9 @@ typedef struct
 {
     WGPUBuffer buffer;
     vec entries; // either occupied, or an index to the next free entry
-    bool dirty;  // a list of dirty entries vec<TransformEntry>
+    // FIXME: more efficient way to track this that doesn't require
+    // a full buffer upload every time?
+    bool dirty;
     u32 next;
 } TransformManager;
 
@@ -28,5 +30,6 @@ void transform_manager_update(TransformManager *manager, TransformEntry entry,
                               Transform transform);
 
 // call before using for rendering
-void transform_manager_upload_dirty(TransformManager *manager,
+// returns true if the buffer was regenerated
+bool transform_manager_upload_dirty(TransformManager *manager,
                                     WGPUResources *resources);

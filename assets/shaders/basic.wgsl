@@ -8,6 +8,9 @@ struct VertexOutput {
   @location(0) tex_coords: vec2f,
 }
 
+@group(0) @binding(0)
+var<storage> transforms: array<mat4x4f>;
+
 @vertex
 fn vs_main(in: VertexInput) -> VertexOutput {
   var out: VertexOutput;

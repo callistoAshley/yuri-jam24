@@ -1,5 +1,6 @@
 #include "shaders.h"
 #include "core_types.h"
+#include "graphics/bind_group_layouts.h"
 #include "utility/macros.h"
 #include "webgpu.h"
 
@@ -28,7 +29,8 @@ void read_entire_file(const char *path, char **out, long *len)
     *len = length;
 }
 
-void shaders_init(Shaders *shaders, WGPUResources *resources)
+void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
+                  WGPUResources *resources)
 {
     char *buf;
     long buf_len;
@@ -52,6 +54,8 @@ void shaders_init(Shaders *shaders, WGPUResources *resources)
 
     WGPUPipelineLayoutDescriptor layout_descriptor = {
         .label = "basic",
+        .bindGroupLayoutCount = 1,
+        .bindGroupLayouts = &layouts->transform,
     };
     WGPUPipelineLayout layout =
         wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
