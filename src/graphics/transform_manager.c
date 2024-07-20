@@ -63,6 +63,7 @@ TransformEntry transform_manager_add(TransformManager *manager,
     else
     {
         TransformEntryData *entry = vec_get(&manager->entries, manager->next);
+        assert(entry != NULL);
         assert(entry->next.is_free == ENTRY_FREE);
         manager->next = entry->next.next;
         entry->transform = matrix;
@@ -74,6 +75,7 @@ TransformEntry transform_manager_add(TransformManager *manager,
 void transform_manager_remove(TransformManager *manager, TransformEntry entry)
 {
     TransformEntryData *data = vec_get(&manager->entries, entry);
+    assert(data != NULL);
     assert(data->next.is_free != ENTRY_FREE);
 
     data->next.is_free = ENTRY_FREE;
@@ -88,6 +90,7 @@ void transform_manager_update(TransformManager *manager, TransformEntry entry,
                               Transform Transform)
 {
     TransformEntryData *data = vec_get(&manager->entries, entry);
+    assert(data != NULL);
     assert(data->next.is_free != ENTRY_FREE);
 
     mat4s matrix = transform_into_matrix(Transform);

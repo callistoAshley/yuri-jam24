@@ -63,8 +63,11 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     };
     quad_manager_add(&graphics->quad_manager, quad);
 
+    quad.rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
+                                   (vec2s){.x = 640.0, .y = 480.0});
+    quad_manager_add(&graphics->quad_manager, quad);
+
     Transform transform = transform_from_xyz(0.0, 0.0, 0.0);
-    transform_manager_add(&graphics->transform_manager, transform);
     transform_manager_add(&graphics->transform_manager, transform);
 }
 
@@ -86,10 +89,6 @@ void graphics_render(Graphics *graphics, Input *input)
         camera_y++;
     if (input_is_down(input, Button_Crouch))
         camera_y--;
-
-    Transform transform = transform_from_xyz(
-        fmod(SDL_GetTicks() / 10.0, 640.0) - 320.0, 0.0, 0.0);
-    transform_manager_update(&graphics->transform_manager, 1, transform);
 
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
@@ -246,7 +245,7 @@ void graphics_render(Graphics *graphics, Input *input)
 
     LightPushCosntants light_push_constants = {
         .camera = camera,
-        .transform_index = 1,
+        .transform_index = 0,
         .color = {.x = 1.0, .y = 1.0, .z = 1.0, .w = 1.0},
     };
     wgpuRenderPassEncoderSetPushConstants(
@@ -254,7 +253,7 @@ void graphics_render(Graphics *graphics, Input *input)
         sizeof(LightPushCosntants), &light_push_constants);
 
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
-                              QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
+                              QUAD_ENTRY_TO_VERTEX_INDEX(1), 0);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 

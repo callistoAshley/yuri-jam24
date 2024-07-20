@@ -63,6 +63,7 @@ QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
     else
     {
         QuadEntryData *entry = vec_get(&manager->entries, manager->next);
+        assert(entry != NULL);
         assert(entry->next.is_free == ENTRY_FREE);
         manager->next = entry->next.next;
         memcpy(entry->vertex, vertices, sizeof(vertices));
@@ -74,6 +75,7 @@ QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
 void quad_manager_remove(QuadManager *manager, QuadEntry entry)
 {
     QuadEntryData *data = vec_get(&manager->entries, entry);
+    assert(data != NULL);
     assert(data->next.is_free != ENTRY_FREE);
 
     data->next.is_free = ENTRY_FREE;
@@ -87,6 +89,7 @@ void quad_manager_remove(QuadManager *manager, QuadEntry entry)
 void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad)
 {
     QuadEntryData *data = vec_get(&manager->entries, entry);
+    assert(data != NULL);
     assert(data->next.is_free != ENTRY_FREE);
 
     Vertex vertices[VERTICES_PER_QUAD];
