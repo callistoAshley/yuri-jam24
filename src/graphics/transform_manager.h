@@ -10,7 +10,7 @@ typedef struct
 {
     WGPUBuffer buffer;
     vec entries; // either occupied, or an index to the next free entry
-    vec dirty;   // a list of dirty entries vec<TransformEntry>
+    bool dirty;  // a list of dirty entries vec<TransformEntry>
     u32 next;
 } TransformManager;
 

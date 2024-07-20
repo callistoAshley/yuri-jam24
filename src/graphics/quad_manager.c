@@ -58,15 +58,14 @@ QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
         memcpy(entry.vertex, vertices, sizeof(vertices));
         assert(entry.next.is_free != ENTRY_FREE);
         vec_push(&manager->entries, &entry);
-        manager->next++;
     }
     else
     {
         QuadEntryData *entry = vec_get(&manager->entries, manager->next);
         assert(entry->next.is_free == ENTRY_FREE);
         memcpy(entry->vertex, vertices, sizeof(vertices));
-        manager->next++;
     }
+    manager->next++;
 
     return key;
 }
