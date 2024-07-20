@@ -35,6 +35,15 @@ void bing_group_layouts_init(BindGroupLayouts *layouts,
     };
     bind_group_layout_builder_append(&builder, entry);
 
+    WGPUSamplerBindingLayout sampler_layout = {
+        .type = WGPUSamplerBindingType_Filtering,
+    };
+    entry = (WGPUBindGroupLayoutEntry){
+        .sampler = sampler_layout,
+        .visibility = WGPUShaderStage_Fragment,
+    };
+    bind_group_layout_builder_append(&builder, entry);
+
     layouts->basic = bind_group_layout_build(&builder, resources->device,
                                              "Basic Bind Group Layout");
     bind_group_layout_builder_free(&builder); // free the builder after use

@@ -61,7 +61,7 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
     // load texture
     int width, height, channels;
     stbi_uc *data = stbi_load(path, &width, &height, &channels, 4);
-    assert(channels == 4);
+    printf("Loaded texture %s: %dx%d %d\n", path, width, height, channels);
 
     WGPUExtent3D extents = {
         .width = width,
@@ -89,8 +89,8 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
         .bytesPerRow = width * 4,
         .rowsPerImage = height,
     };
-    wgpuQueueWriteTexture(resources->queue, &copy, data,
-                          width * height * channels, &layout, &extents);
+    wgpuQueueWriteTexture(resources->queue, &copy, data, width * height * 4,
+                          &layout, &extents);
     WGPUTextureView view = wgpuTextureCreateView(texture, NULL);
 
     free(data);

@@ -18,6 +18,7 @@ typedef struct Graphics
     QuadManager quad_manager;
     TransformManager transform_manager;
     TextureManager texture_manager;
+    WGPUSampler sampler;
 } Graphics;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);

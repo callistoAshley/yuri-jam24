@@ -25,9 +25,14 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     // to pass wgpu
     texture_manager_init(&graphics->texture_manager);
 
+    texture_manager_load(&graphics->texture_manager,
+                         "assets/textures/molly.png", &graphics->wgpu);
+
+    graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
+
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
-                                   (vec2s){.x = 32, .y = 32});
+                                   (vec2s){.x = 64, .y = 64});
     Quad quad = {
         .rect = rect,
         .tex_coords = tex_coords,
@@ -53,6 +58,7 @@ void graphics_render(Graphics *graphics)
         &builder,
         (WGPUTextureView *)graphics->texture_manager.texture_views.data,
         graphics->texture_manager.texture_views.len);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     WGPUBindGroup transform_bind_group = bind_group_build(
         &builder, graphics->wgpu.device, graphics->bind_group_layouts.basic,
@@ -114,6 +120,7 @@ void graphics_render(Graphics *graphics)
     {
         mat4s camera;
         u32 transform_index;
+        u32 texture_index;
     } PushConstants;
 
     // bind pipeline and buffers
@@ -132,10 +139,11 @@ void graphics_render(Graphics *graphics)
     PushConstants push_constants = {
         .camera = camera,
         .transform_index = 0,
+        .texture_index = 0,
     };
-    wgpuRenderPassEncoderSetPushConstants(render_pass, WGPUShaderStage_Vertex,
-                                          0, sizeof(PushConstants),
-                                          &push_constants);
+    wgpuRenderPassEncoderSetPushConstants(
+        render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+        sizeof(PushConstants), &push_constants);
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
                               QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
 

@@ -56,10 +56,11 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     {
         mat4s camera;
         u32 transform_index;
+        u32 texture_index;
     } PushConstants;
     WGPUPushConstantRange push_constant_ranges[] = {
         (WGPUPushConstantRange){
-            .stages = WGPUShaderStage_Vertex,
+            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
             .start = 0,
             .end = sizeof(PushConstants),
         },

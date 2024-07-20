@@ -12,6 +12,8 @@ struct VertexOutput {
 var<storage> transforms: array<mat4x4f>;
 @group(0) @binding(1)
 var textures: binding_array<texture_2d<f32>>;
+@group(0) @binding(2)
+var tex_sampler: sampler;
 
 struct PushConstants {
   camera: mat4x4f,
@@ -26,7 +28,8 @@ fn vs_main(in: VertexInput) -> VertexOutput {
   var out: VertexOutput;
 
   let transform = transforms[push_constants.transform_index];
-  let world_position = transform * vec4f(in.position, 0.0, 1.0);
+  let model_position = vec4f(in.position.x, -in.position.y, 0.0, 1.0);
+  let world_position = transform * model_position;
 
   out.position = push_constants.camera * world_position;
   out.tex_coords = in.tex_coords;
@@ -35,5 +38,12 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-  return vec4f(in.tex_coords, 1.0, 1.0);
+  let texture = textures[push_constants.texture_index];
+  let color = textureSample(texture, tex_sampler, in.tex_coords);
+
+  if (color.a < 0.1) {
+    discard;
+  }
+
+  return color;
 }
