@@ -1,6 +1,7 @@
 #pragma once
 
 #include "graphics/tex_manager.h"
+#include "input/input.h"
 #include "transform_manager.h"
 #include "wgpu_resources.h"
 #include "quad_manager.h"
@@ -22,5 +23,5 @@ typedef struct Graphics
 } Graphics;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);
-void graphics_render(Graphics *graphics);
+void graphics_render(Graphics *graphics, Input *input);
 void graphics_free(Graphics *graphics);

@@ -108,7 +108,7 @@ int main(int argc, char **argv)
             lvledit_update(level_editor);
 
         igRender();
-        graphics_render(&graphics);
+        graphics_render(&graphics, &input);
         SDL_Delay(16); // this doesn't handle vsync properly
 
         if (first_frame)

@@ -9,6 +9,7 @@
 #include "graphics/tex_manager.h"
 #include "graphics/transform_manager.h"
 #include "imgui-wgpu.h"
+#include "input/input.h"
 #include "utility/macros.h"
 #include "webgpu.h"
 
@@ -32,7 +33,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
-                                   (vec2s){.x = 64, .y = 64});
+                                   (vec2s){.x = 8 * 1.33, .y = 8});
     Quad quad = {
         .rect = rect,
         .tex_coords = tex_coords,
@@ -43,8 +44,25 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     transform_manager_add(&graphics->transform_manager, transform);
 }
 
-void graphics_render(Graphics *graphics)
+int camera_x = 0;
+int camera_y = 0;
+int camera_z = 0;
+
+void graphics_render(Graphics *graphics, Input *input)
 {
+    if (input_is_down(input, Button_Down))
+        camera_z--;
+    if (input_is_down(input, Button_Up))
+        camera_z++;
+    if (input_is_down(input, Button_Left))
+        camera_x++;
+    if (input_is_down(input, Button_Right))
+        camera_x--;
+    if (input_is_down(input, Button_Jump))
+        camera_y++;
+    if (input_is_down(input, Button_Crouch))
+        camera_y--;
+
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
@@ -133,8 +151,9 @@ void graphics_render(Graphics *graphics)
 
     mat4s camera_projection =
         glms_perspective_rh_no(1.0f, 640.0f / 480.0f, 0.1f, 100.0f);
-    mat4s camera_transform = glms_look_rh_no(
-        (vec3s){.x = 0.0, .y = 0.0, .z = -100.0}, GLMS_ZUP, GLMS_YUP);
+    mat4s camera_transform =
+        glms_look_rh_no((vec3s){.x = camera_x, .y = camera_y, .z = camera_z},
+                        GLMS_ZUP, GLMS_YUP);
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
     PushConstants push_constants = {
         .camera = camera,
