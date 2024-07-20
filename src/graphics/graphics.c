@@ -169,6 +169,7 @@ void graphics_free(Graphics *graphics)
 {
     quad_manager_free(&graphics->quad_manager);
     transform_manager_free(&graphics->transform_manager);
+    texture_manager_free(&graphics->texture_manager);
 
     wgpuRenderPipelineRelease(graphics->shaders.basic);
     wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.basic);
