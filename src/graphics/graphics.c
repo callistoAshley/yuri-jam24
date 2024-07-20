@@ -89,7 +89,8 @@ void graphics_render(Graphics *graphics)
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
     for (int i = 0; i < 48; i++)
-        wgpuRenderPassEncoderDraw(render_pass, 6, 1, i * 6, 0);
+        wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
+                                  QUAD_ENTRY_TO_VERTEX_INDEX(i), 0);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 

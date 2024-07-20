@@ -15,6 +15,7 @@ typedef struct
 } QuadManager;
 
 #define ENTRY_FREE UINT32_MAX
+#define QUAD_ENTRY_TO_VERTEX_INDEX(entry) ((entry) * VERTICES_PER_QUAD)
 typedef u32 QuadEntry;
 
 void quad_manager_init(QuadManager *manager, WGPUResources *resources);

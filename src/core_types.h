@@ -65,6 +65,8 @@ typedef struct
 Quad quad_new(Rect rect, Rect tex_coords);
 Quad quad_norm_tex_coords(Quad quad, int tex_width, int tex_height);
 
+#define VERTICES_PER_QUAD 6
+
 // Quads are made like this:
 // TL------TR
 // |  \ /  |
@@ -83,4 +85,4 @@ void quad_into_corners(Quad quad, Vertex corners[4]);
 // |  \.
 // |    \.
 // BL-----BR
-void quad_into_vertices(Quad quad, Vertex vertices[6]);
+void quad_into_vertices(Quad quad, Vertex vertices[VERTICES_PER_QUAD]);

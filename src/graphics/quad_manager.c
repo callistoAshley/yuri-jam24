@@ -11,7 +11,7 @@
 // a union lets us do both.
 typedef union
 {
-    Vertex vertex[6];
+    Vertex vertex[VERTICES_PER_QUAD];
     struct
     {
         // will be ENTRY_FREE if the entry is free
@@ -46,7 +46,7 @@ void quad_manager_free(QuadManager *manager)
 
 QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
 {
-    Vertex vertices[6];
+    Vertex vertices[VERTICES_PER_QUAD];
     quad_into_vertices(quad, vertices);
 
     QuadEntry key = manager->next;
@@ -89,7 +89,7 @@ void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad)
     QuadEntryData *data = vec_get(&manager->entries, entry);
     assert(data->next.is_free != ENTRY_FREE);
 
-    Vertex vertices[6];
+    Vertex vertices[VERTICES_PER_QUAD];
     quad_into_vertices(quad, vertices);
     memcpy(data->vertex, vertices, sizeof(vertices));
     manager->dirty = true;
