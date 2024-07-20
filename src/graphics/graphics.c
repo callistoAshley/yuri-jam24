@@ -6,6 +6,7 @@
 #include "core_types.h"
 #include "binding_helper.h"
 #include "graphics/quad_manager.h"
+#include "graphics/tex_manager.h"
 #include "graphics/transform_manager.h"
 #include "imgui-wgpu.h"
 #include "utility/macros.h"
@@ -20,6 +21,9 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     quad_manager_init(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_init(&graphics->transform_manager, &graphics->wgpu);
+    // texture manager has no gpu side resources allocated initially so no need
+    // to pass wgpu
+    texture_manager_init(&graphics->texture_manager);
 
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
@@ -45,6 +49,10 @@ void graphics_render(Graphics *graphics)
 
     bind_group_builder_append_buffer(&builder,
                                      graphics->transform_manager.buffer);
+    bind_group_builder_append_texture_view_array(
+        &builder,
+        (WGPUTextureView *)graphics->texture_manager.texture_views.data,
+        graphics->texture_manager.texture_views.len);
 
     WGPUBindGroup transform_bind_group = bind_group_build(
         &builder, graphics->wgpu.device, graphics->bind_group_layouts.basic,

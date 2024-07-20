@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/tex_manager.h"
 #include "transform_manager.h"
 #include "wgpu_resources.h"
 #include "quad_manager.h"
@@ -16,6 +17,7 @@ typedef struct Graphics
 
     QuadManager quad_manager;
     TransformManager transform_manager;
+    TextureManager texture_manager;
 } Graphics;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);

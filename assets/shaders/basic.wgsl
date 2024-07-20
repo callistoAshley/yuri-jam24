@@ -10,10 +10,13 @@ struct VertexOutput {
 
 @group(0) @binding(0)
 var<storage> transforms: array<mat4x4f>;
+@group(0) @binding(1)
+var textures: binding_array<texture_2d<f32>>;
 
 struct PushConstants {
   camera: mat4x4f,
   transform_index: u32,
+  texture_index: i32,
 }
 
 var<push_constant> push_constants: PushConstants;
