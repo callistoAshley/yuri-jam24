@@ -42,6 +42,11 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
+  // don't bother performing expensive lighting calculations if the tex_coords are out of bounds
+  if (in.tex_coords.x < 0.0 || in.tex_coords.x > 1.0 || in.tex_coords.y < 0.0 || in.tex_coords.y > 1.0) {
+    discard;
+  }
+
   let color = textureSample(color, tex_sampler, in.tex_coords);
   let normal = textureSample(normal, tex_sampler, in.tex_coords);
 

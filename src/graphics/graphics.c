@@ -65,6 +65,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     Transform transform = transform_from_xyz(0.0, 0.0, 0.0);
     transform_manager_add(&graphics->transform_manager, transform);
+    transform_manager_add(&graphics->transform_manager, transform);
 }
 
 int camera_x = 0;
@@ -85,6 +86,10 @@ void graphics_render(Graphics *graphics, Input *input)
         camera_y++;
     if (input_is_down(input, Button_Crouch))
         camera_y--;
+
+    Transform transform = transform_from_xyz(
+        fmod(SDL_GetTicks() / 10.0, 640.0) - 320.0, 0.0, 0.0);
+    transform_manager_update(&graphics->transform_manager, 1, transform);
 
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
@@ -241,7 +246,7 @@ void graphics_render(Graphics *graphics, Input *input)
 
     LightPushCosntants light_push_constants = {
         .camera = camera,
-        .transform_index = 0,
+        .transform_index = 1,
         .color = {.x = 1.0, .y = 1.0, .z = 1.0, .w = 1.0},
     };
     wgpuRenderPassEncoderSetPushConstants(
