@@ -7,7 +7,8 @@
 
 typedef struct
 {
-    WGPUBindGroupLayout basic;
+    WGPUBindGroupLayout object;
+    WGPUBindGroupLayout lighting;
 } BindGroupLayouts;
 
 void bing_group_layouts_init(BindGroupLayouts *layouts,

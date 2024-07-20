@@ -102,7 +102,7 @@ void graphics_render(Graphics *graphics, Input *input)
     bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     WGPUBindGroup transform_bind_group = bind_group_build(
-        &builder, graphics->wgpu.device, graphics->bind_group_layouts.basic,
+        &builder, graphics->wgpu.device, graphics->bind_group_layouts.object,
         "Transform Bind Group");
 
     bind_group_builder_free(&builder);
@@ -238,7 +238,7 @@ void graphics_free(Graphics *graphics)
     texture_manager_free(&graphics->texture_manager);
 
     wgpuRenderPipelineRelease(graphics->shaders.object);
-    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.basic);
+    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.object);
 
     wgpu_resources_free(&graphics->wgpu);
 }

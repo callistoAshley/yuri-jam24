@@ -19,8 +19,11 @@ var tex_sampler: sampler;
 
 struct PushConstants {
   camera: mat4x4f,
+  transform_index: u32,
   color: vec4f,
 }
+
+var<push_constant> push_constants: PushConstants;
 
 @vertex
 fn vs_main(in: VertexInput) -> VertexOutput {
@@ -35,7 +38,7 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 }
 
 @fragment
-fn fs_main(in: VertexOutput) -> vec4f {
+fn fs_main(in: VertexOutput) -> @location(0) vec4f {
   let color = textureSample(color, tex_sampler, in.tex_coords);
   let normal = textureSample(normal, tex_sampler, in.tex_coords);
 
