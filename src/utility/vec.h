@@ -35,6 +35,9 @@ void vec_free_with(vec *v, vec_free_fn free_fn);
 // out of bounds
 void *vec_get(vec *v, usize index);
 
+void vec_clear(vec *v);
+void vec_clear_with(vec *v, vec_free_fn free_fn);
+
 // resizes the vec to the given capacity.
 void vec_resize(vec *v, usize new_cap);
 // resizes the vec to the given capacity, and calls free_fn on each element that

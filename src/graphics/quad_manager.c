@@ -11,7 +11,7 @@
 // a union lets us do both.
 typedef union
 {
-    Vertex vertex;
+    Vertex vertex[6];
     struct
     {
         // will be ENTRY_FREE if the entry is free
@@ -20,7 +20,7 @@ typedef union
     } next;
 } QuadEntryData;
 
-#define INITIAL_BUFFER_CAP 6 * 32
+#define INITIAL_BUFFER_CAP 32
 #define INITIAL_BUFFER_SIZE sizeof(QuadEntryData) * INITIAL_BUFFER_CAP
 
 void quad_manager_init(QuadManager *manager, WGPUResources *resources)
@@ -31,10 +31,9 @@ void quad_manager_init(QuadManager *manager, WGPUResources *resources)
         .label = "quad manager buffer",
     };
     manager->buffer = wgpuDeviceCreateBuffer(resources->device, &buffer_desc);
-    vec_init_with_capacity(&manager->entries, sizeof(Vertex),
+    vec_init_with_capacity(&manager->entries, sizeof(QuadEntryData),
                            INITIAL_BUFFER_CAP);
     manager->next = 0;
-    manager->dirty = false;
 }
 
 void quad_manager_free(QuadManager *manager)
@@ -55,23 +54,18 @@ QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
 
     if (manager->next == manager->entries.len)
     {
-        for (int i = 0; i < 6; i++)
-        {
-            QuadEntryData entry = {.vertex = vertices[i]};
-            assert(entry.next.is_free != ENTRY_FREE);
-            vec_push(&manager->entries, &entry);
-        }
-        manager->next += 6;
+        QuadEntryData entry;
+        memcpy(entry.vertex, vertices, sizeof(vertices));
+        assert(entry.next.is_free != ENTRY_FREE);
+        vec_push(&manager->entries, &entry);
+        manager->next++;
     }
     else
     {
         QuadEntryData *entry = vec_get(&manager->entries, manager->next);
         assert(entry->next.is_free == ENTRY_FREE);
-        for (int i = 0; i < 6; i++)
-        {
-            entry[i].vertex = vertices[i];
-        }
-        manager->next += 6;
+        memcpy(entry->vertex, vertices, sizeof(vertices));
+        manager->next++;
     }
 
     return key;
@@ -97,12 +91,7 @@ void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad)
 
     Vertex vertices[6];
     quad_into_vertices(quad, vertices);
-
-    for (int i = 0; i < 6; i++)
-    {
-        data[i].vertex = vertices[i];
-    }
-
+    memcpy(data->vertex, vertices, sizeof(vertices));
     manager->dirty = true;
 }
 

@@ -49,6 +49,16 @@ void *vec_get(vec *v, usize index)
     return v->data + index * v->ele_size;
 }
 
+void vec_clear(vec *v) { v->len = 0; }
+void vec_clear_with(vec *v, vec_free_fn free_fn)
+{
+    for (usize i = 0; i < v->len; i++)
+    {
+        free_fn(v->ele_size, vec_get(v, i));
+    }
+    vec_clear(v);
+}
+
 void vec_resize(vec *v, usize new_cap)
 {
     v->data = realloc(v->data, new_cap * v->ele_size);

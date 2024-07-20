@@ -10,8 +10,8 @@ typedef struct
 {
     WGPUBuffer buffer;
     vec entries; // either occupied, or an index to the next free entry
-    u32 next;
     bool dirty;
+    u32 next;
 } QuadManager;
 
 #define ENTRY_FREE UINT32_MAX

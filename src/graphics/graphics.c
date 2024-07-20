@@ -7,8 +7,6 @@
 #include "imgui-wgpu.h"
 #include "utility/macros.h"
 
-QuadEntry entry;
-
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
     wgpu_resources_init(&graphics->wgpu, window);
@@ -26,7 +24,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
             .rect = rect,
             .tex_coords = tex_coords,
         };
-        entry = quad_manager_add(&graphics->quad_manager, quad);
+        quad_manager_add(&graphics->quad_manager, quad);
     }
 }
 
