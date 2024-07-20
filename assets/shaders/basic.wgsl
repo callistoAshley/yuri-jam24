@@ -28,8 +28,7 @@ fn vs_main(in: VertexInput) -> VertexOutput {
   var out: VertexOutput;
 
   let transform = transforms[push_constants.transform_index];
-  let model_position = vec4f(in.position.x, -in.position.y, 0.0, 1.0);
-  let world_position = transform * model_position;
+  let world_position = transform * vec4f(in.position, 0.0, 1.0);
 
   out.position = push_constants.camera * world_position;
   out.tex_coords = in.tex_coords;

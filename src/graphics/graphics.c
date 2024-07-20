@@ -33,7 +33,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
-                                   (vec2s){.x = 8 * 1.33, .y = 8});
+                                   (vec2s){.x = 200 * 1.33, .y = 200});
     Quad quad = {
         .rect = rect,
         .tex_coords = tex_coords,
@@ -149,11 +149,11 @@ void graphics_render(Graphics *graphics, Input *input)
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
 
-    mat4s camera_projection =
-        glms_perspective_rh_no(1.0f, 640.0f / 480.0f, 0.1f, 100.0f);
+    mat4s camera_projection = glms_ortho(0.0, 640.0, 480.0, 0.0, -1.0f, 1.0f);
     mat4s camera_transform =
-        glms_look_rh_no((vec3s){.x = camera_x, .y = camera_y, .z = camera_z},
-                        GLMS_ZUP, GLMS_YUP);
+        glms_look((vec3s){.x = camera_x, .y = camera_y, .z = camera_z},
+                  (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+                  (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
     PushConstants push_constants = {
         .camera = camera,
