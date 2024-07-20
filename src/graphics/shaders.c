@@ -155,7 +155,27 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     WGPUShaderModule lighting_module = wgpuDeviceCreateShaderModule(
         resources->device, &lighting_module_descriptor);
 
+    typedef struct
+    {
+        mat4s camera;
+        u32 transform_index;
+        vec4s color;
+    } LightPushCosntants;
+
+    WGPUPushConstantRange lighting_push_constant_ranges[] = {
+        (WGPUPushConstantRange){
+            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+            .start = 0,
+            .end = sizeof(LightPushCosntants),
+        },
+    };
+    WGPUPipelineLayoutExtras lighting_extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
+        .pushConstantRanges = lighting_push_constant_ranges,
+        .pushConstantRangeCount = 1,
+    };
     WGPUPipelineLayoutDescriptor layout_descriptor_lighting = {
+        .nextInChain = (WGPUChainedStruct *)&lighting_extras,
         .label = "lighting",
         .bindGroupLayoutCount = 1,
         .bindGroupLayouts = &layouts->lighting,

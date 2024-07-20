@@ -56,6 +56,7 @@ void bing_group_layouts_init(BindGroupLayouts *layouts,
     };
     bind_group_layout_builder_append(&builder, entry);
 
+    texture_layout.sampleType = WGPUTextureSampleType_UnfilterableFloat;
     entry = (WGPUBindGroupLayoutEntry){
         .texture = texture_layout,
         .visibility = WGPUShaderStage_Fragment,
@@ -63,6 +64,7 @@ void bing_group_layouts_init(BindGroupLayouts *layouts,
     bind_group_layout_builder_append(&builder, entry);
     bind_group_layout_builder_append(&builder, entry);
 
+    sampler_layout.type = WGPUSamplerBindingType_NonFiltering;
     entry = (WGPUBindGroupLayoutEntry){
         .sampler = sampler_layout,
         .visibility = WGPUShaderStage_Fragment,

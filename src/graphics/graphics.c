@@ -107,6 +107,20 @@ void graphics_render(Graphics *graphics, Input *input)
 
     bind_group_builder_free(&builder);
 
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+    bind_group_builder_append_texture_view(&builder, graphics->color_view);
+    bind_group_builder_append_texture_view(&builder, graphics->normal_view);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    WGPUBindGroup light_bind_group = bind_group_build(
+        &builder, graphics->wgpu.device, graphics->bind_group_layouts.lighting,
+        "Light Bind Group");
+
+    bind_group_builder_free(&builder);
+
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
 
@@ -168,7 +182,7 @@ void graphics_render(Graphics *graphics, Input *input)
         mat4s camera;
         u32 transform_index;
         u32 texture_index;
-    } PushConstants;
+    } ObjectPushConstants;
 
     // bind pipeline and buffers
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
@@ -184,14 +198,14 @@ void graphics_render(Graphics *graphics, Input *input)
                   (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
                   (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
-    PushConstants push_constants = {
+    ObjectPushConstants push_constants = {
         .camera = camera,
         .transform_index = 0,
         .texture_index = 0,
     };
     wgpuRenderPassEncoderSetPushConstants(
         render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-        sizeof(PushConstants), &push_constants);
+        sizeof(ObjectPushConstants), &push_constants);
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
                               QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
 
@@ -212,6 +226,30 @@ void graphics_render(Graphics *graphics, Input *input)
     };
     render_pass = wgpuCommandEncoderBeginRenderPass(command_encoder,
                                                     &screen_render_pass_desc);
+
+    typedef struct
+    {
+        mat4s camera;
+        u32 transform_index;
+        vec4s color;
+    } LightPushCosntants;
+
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.lighting);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0, 0);
+    wgpuRenderPassEncoderSetVertexBuffer(
+        render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
+
+    LightPushCosntants light_push_constants = {
+        .camera = camera,
+        .transform_index = 0,
+        .color = {.x = 1.0, .y = 1.0, .z = 1.0, .w = 1.0},
+    };
+    wgpuRenderPassEncoderSetPushConstants(
+        render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+        sizeof(LightPushCosntants), &light_push_constants);
+
+    wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
+                              QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 

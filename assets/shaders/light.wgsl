@@ -1,6 +1,6 @@
 struct VertexInput {
   @location(0) position: vec2f,
-  @location(1) tex_coords: vec2f,
+  @location(1) unused: vec2f, // We don't use this, but it's needed to match the vertex layout
 }
 
 struct VertexOutput {
@@ -33,7 +33,10 @@ fn vs_main(in: VertexInput) -> VertexOutput {
   let world_position = transform * vec4f(in.position, 0.0, 1.0);
 
   out.position = push_constants.camera * world_position;
-  out.tex_coords = in.tex_coords;
+  // we want -1,1 to map to 0,0 and 1,-1 to map to 1,1
+  let tex_x = (out.position.x + 1.0) / 2.0; // (-1 + 1) / 2 = 0, (1 + 1) / 2 = 1
+  let tex_y = (out.position.y - 1.0) / -2.0; // (1 - 1) / -2 = 0, (-1 - 1) / -2 = 1
+  out.tex_coords = vec2f(tex_x, tex_y);
   return out;
 }
 
