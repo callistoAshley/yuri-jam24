@@ -52,7 +52,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
     texture_manager_load(&graphics->texture_manager,
-                         "assets/textures/molly.png", &graphics->wgpu);
+                         "assets/textures/other_molly.jpg", &graphics->wgpu);
 
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},

@@ -1,6 +1,7 @@
 struct VertexInput {
   @location(0) position: vec2f,
-  @location(1) unused: vec2f, // We don't use this, but it's needed to match the vertex layout
+  // We don't use this, but it's needed to match the vertex layout
+  @location(1) tex_coords_unused: vec2f,
 }
 
 struct VertexOutput {
@@ -51,7 +52,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
   let screen_size = vec2f(640.0, 480.0);
 
   let camera_world_pos = vec3f(0.0, 0.0, 0.0);
-  let light_world_pos = vec3f(screen_size / 2.0, 0.0);
+  let light_world_pos = vec3f(screen_size / 2.0, 1.0);
   let frag_world_pos = vec3f(in.tex_coords * screen_size, 0.0) + camera_world_pos;
 
   let light_dir = normalize(light_world_pos - frag_world_pos);
@@ -65,13 +66,13 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
   let specular = specular_strength * spec * push_constants.color;
 
   let constant = 1.0;
-  let linear = 0.007;
-  let quadratic = 0.0002;
+  let linear = 0.0014;
+  let quadratic = 0.000007;
 
   let distance = length(light_world_pos - frag_world_pos);
   let attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
   
-  let out = color * (diffuse + ambient + specular) * attenuation;
+  let out = color * (diffuse + ambient) * attenuation;
 
   return vec4f(out.rgb, 1.0);
 }
