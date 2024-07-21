@@ -42,13 +42,36 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-  // don't bother performing expensive lighting calculations if the tex_coords are out of bounds
-  if (in.tex_coords.x < 0.0 || in.tex_coords.x > 1.0 || in.tex_coords.y < 0.0 || in.tex_coords.y > 1.0) {
-    discard;
-  }
-
   let color = textureSample(color, tex_sampler, in.tex_coords);
   let normal = textureSample(normal, tex_sampler, in.tex_coords);
 
-  return color;
+  let ambient_strength = 0.1;
+  let ambient = ambient_strength * push_constants.color;
+
+  let screen_size = vec2f(640.0, 480.0);
+
+  let camera_world_pos = vec3f(0.0, 0.0, 0.0);
+  let light_world_pos = vec3f(screen_size / 2.0, 0.0);
+  let frag_world_pos = vec3f(in.tex_coords * screen_size, 0.0) + camera_world_pos;
+
+  let light_dir = normalize(light_world_pos - frag_world_pos);
+  let diffuse = max(dot(normal.xyz, light_dir), 0.0) * push_constants.color;
+
+  let specular_strength = 0.5;
+  let view_dir = normalize(camera_world_pos - frag_world_pos);
+  let reflect_dir = reflect(-light_dir, normal.xyz);
+
+  let spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0);
+  let specular = specular_strength * spec * push_constants.color;
+
+  let constant = 1.0;
+  let linear = 0.007;
+  let quadratic = 0.0002;
+
+  let distance = length(light_world_pos - frag_world_pos);
+  let attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
+  
+  let out = color * (diffuse + ambient + specular) * attenuation;
+
+  return vec4f(out.rgb, 1.0);
 }
