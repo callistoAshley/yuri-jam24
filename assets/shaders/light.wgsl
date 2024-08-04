@@ -20,7 +20,9 @@ var tex_sampler: sampler;
 
 struct PushConstants {
   camera: mat4x4f,
+  camera_world_pos: vec3f,
   transform_index: u32,
+  light_world_pos: vec3f,
   color: vec4f,
 }
 
@@ -51,15 +53,12 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
   let screen_size = vec2f(640.0, 480.0);
 
-  let camera_world_pos = vec3f(0.0, 0.0, 0.0);
-  let light_world_pos = vec3f(screen_size / 2.0, 1.0);
-  let frag_world_pos = vec3f(in.tex_coords * screen_size, 0.0) + camera_world_pos;
-
   let constant = 1.0;
   let linear = 0.027;
   let quadratic = 0.0028;
 
-  let distance = length(light_world_pos - frag_world_pos);
+  let frag_world_pos = vec3f(in.tex_coords * screen_size, 0.0) + push_constants.camera_world_pos;
+  let distance = length(push_constants.light_world_pos - frag_world_pos);
   let attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
   
   let out = color * push_constants.color * attenuation;
