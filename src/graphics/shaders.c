@@ -158,15 +158,17 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     typedef struct
     {
         mat4s camera;
+        vec3s camera_world_pos;
         u32 transform_index;
+        vec3s light_world_pos;
         vec4s color;
-    } LightPushCosntants;
+    } LightPushConstants;
 
     WGPUPushConstantRange lighting_push_constant_ranges[] = {
         (WGPUPushConstantRange){
             .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
             .start = 0,
-            .end = sizeof(LightPushCosntants),
+            .end = sizeof(LightPushConstants),
         },
     };
     WGPUPipelineLayoutExtras lighting_extras = {

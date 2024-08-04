@@ -234,23 +234,26 @@ void graphics_render(Graphics *graphics, Input *input)
     typedef struct
     {
         mat4s camera;
+        vec3s camera_world_pos;
         u32 transform_index;
+        vec3s light_world_pos;
         vec4s color;
-    } LightPushCosntants;
+    } LightPushConstants;
 
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.lighting);
     wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0, 0);
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
 
-    LightPushCosntants light_push_constants = {
+    LightPushConstants light_push_constants = {
         .camera = camera,
+        .camera_world_pos = {.x = camera_x, .y = camera_y, .z = camera_z},
         .transform_index = 0,
         .color = {.x = 1.0, .y = 1.0, .z = 1.0, .w = 1.0},
     };
     wgpuRenderPassEncoderSetPushConstants(
         render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-        sizeof(LightPushCosntants), &light_push_constants);
+        sizeof(LightPushConstants), &light_push_constants);
 
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
                               QUAD_ENTRY_TO_VERTEX_INDEX(1), 0);
