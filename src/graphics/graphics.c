@@ -23,8 +23,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     texture_manager_init(&graphics->texture_manager);
 
     WGPUExtent3D extents = {
-        .width = 640,
-        .height = 480,
+        .width = 320,
+        .height = 240,
         .depthOrArrayLayers = 1,
     };
     WGPUTextureDescriptor desc = {
@@ -69,22 +69,17 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
 int camera_x = 0;
 int camera_y = 0;
-int camera_z = 0;
 
 void graphics_render(Graphics *graphics, Input *input)
 {
     if (input_is_down(input, Button_Down))
-        camera_z--;
+        camera_y--;
     if (input_is_down(input, Button_Up))
-        camera_z++;
+        camera_y++;
     if (input_is_down(input, Button_Left))
         camera_x++;
     if (input_is_down(input, Button_Right))
         camera_x--;
-    if (input_is_down(input, Button_Jump))
-        camera_y++;
-    if (input_is_down(input, Button_Crouch))
-        camera_y--;
 
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
@@ -187,7 +182,7 @@ void graphics_render(Graphics *graphics, Input *input)
 
     mat4s camera_projection = glms_ortho(0.0, 640.0, 480.0, 0.0, -1.0f, 1.0f);
     mat4s camera_transform =
-        glms_look((vec3s){.x = camera_x, .y = camera_y, .z = camera_z},
+        glms_look((vec3s){.x = camera_x, .y = camera_y, .z = 0},
                   (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
                   (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
@@ -226,7 +221,8 @@ void graphics_render(Graphics *graphics, Input *input)
 
     LightPushConstants light_push_constants = {
         .camera = camera,
-        .camera_world_pos = {.x = camera_x, .y = camera_y, .z = camera_z},
+        .camera_world_pos = {.x = camera_x, .y = camera_y, .z = 0},
+        .light_world_pos = {.x = 48.0, .y = 0.0, .z = 0.0},
         .transform_index = 0,
         .color = {.x = 1.0, .y = 1.0, .z = 1.0, .w = 1.0},
     };
