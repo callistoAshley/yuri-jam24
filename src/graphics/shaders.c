@@ -52,17 +52,11 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     WGPUShaderModule object_module = wgpuDeviceCreateShaderModule(
         resources->device, &object_module_descriptor);
 
-    typedef struct
-    {
-        mat4s camera;
-        u32 transform_index;
-        u32 texture_index;
-    } PushConstants;
     WGPUPushConstantRange object_push_constant_ranges[] = {
         (WGPUPushConstantRange){
             .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
             .start = 0,
-            .end = sizeof(PushConstants),
+            .end = sizeof(ObjectPushConstants),
         },
     };
     WGPUPipelineLayoutExtras object_extras = {
@@ -154,15 +148,6 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
 
     WGPUShaderModule lighting_module = wgpuDeviceCreateShaderModule(
         resources->device, &lighting_module_descriptor);
-
-    typedef struct
-    {
-        mat4s camera;
-        vec3s camera_world_pos;
-        u32 transform_index;
-        vec3s light_world_pos;
-        vec4s color;
-    } LightPushConstants;
 
     WGPUPushConstantRange lighting_push_constant_ranges[] = {
         (WGPUPushConstantRange){

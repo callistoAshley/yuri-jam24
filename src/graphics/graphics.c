@@ -2,12 +2,8 @@
 #include <wgpu.h>
 
 #include "graphics.h"
-#include "cglm/struct/clipspace/persp_rh_no.h"
 #include "core_types.h"
 #include "binding_helper.h"
-#include "graphics/quad_manager.h"
-#include "graphics/tex_manager.h"
-#include "graphics/transform_manager.h"
 #include "imgui-wgpu.h"
 #include "input/input.h"
 #include "utility/macros.h"
@@ -181,13 +177,6 @@ void graphics_render(Graphics *graphics, Input *input)
     WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
         command_encoder, &object_render_pass_desc);
 
-    typedef struct
-    {
-        mat4s camera;
-        u32 transform_index;
-        u32 texture_index;
-    } ObjectPushConstants;
-
     // bind pipeline and buffers
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
     wgpuRenderPassEncoderSetBindGroup(render_pass, 0, transform_bind_group, 0,
@@ -230,16 +219,6 @@ void graphics_render(Graphics *graphics, Input *input)
     };
     render_pass = wgpuCommandEncoderBeginRenderPass(command_encoder,
                                                     &screen_render_pass_desc);
-
-    typedef struct
-    {
-        mat4s camera;
-        vec3s camera_world_pos;
-        u32 transform_index;
-        vec3s light_world_pos;
-        vec4s color;
-    } LightPushConstants;
-
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.lighting);
     wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0, 0);
     wgpuRenderPassEncoderSetVertexBuffer(
