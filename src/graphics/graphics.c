@@ -26,18 +26,45 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     // to pass wgpu
     texture_manager_init(&graphics->texture_manager);
 
-    texture_manager_load(&graphics->texture_manager,
-                         "assets/textures/molly.png", &graphics->wgpu);
+    WGPUExtent3D extents = {
+        .width = 640,
+        .height = 480,
+        .depthOrArrayLayers = 1,
+    };
+    WGPUTextureDescriptor desc = {
+        .label = "color texture",
+        .size = extents,
+        .dimension = WGPUTextureDimension_2D,
+        .format = WGPUTextureFormat_RGBA8Unorm,
+        .mipLevelCount = 1,
+        .sampleCount = 1,
+        .usage =
+            WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_TextureBinding,
+    };
+    graphics->color = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+    graphics->color_view = wgpuTextureCreateView(graphics->color, NULL);
+
+    desc.label = "normal texture";
+    desc.format = WGPUTextureFormat_RGBA32Float;
+    graphics->normal = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+    graphics->normal_view = wgpuTextureCreateView(graphics->normal, NULL);
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
+    texture_manager_load(&graphics->texture_manager,
+                         "assets/textures/other_molly.jpg", &graphics->wgpu);
+
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
-                                   (vec2s){.x = 8 * 1.33, .y = 8});
+                                   (vec2s){.x = 200 * 1.33, .y = 200});
     Quad quad = {
         .rect = rect,
         .tex_coords = tex_coords,
     };
+    quad_manager_add(&graphics->quad_manager, quad);
+
+    quad.rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
+                                   (vec2s){.x = 640.0, .y = 480.0});
     quad_manager_add(&graphics->quad_manager, quad);
 
     Transform transform = transform_from_xyz(0.0, 0.0, 0.0);
@@ -79,8 +106,22 @@ void graphics_render(Graphics *graphics, Input *input)
     bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     WGPUBindGroup transform_bind_group = bind_group_build(
-        &builder, graphics->wgpu.device, graphics->bind_group_layouts.basic,
+        &builder, graphics->wgpu.device, graphics->bind_group_layouts.object,
         "Transform Bind Group");
+
+    bind_group_builder_free(&builder);
+
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+    bind_group_builder_append_texture_view(&builder, graphics->color_view);
+    bind_group_builder_append_texture_view(&builder, graphics->normal_view);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    WGPUBindGroup light_bind_group = bind_group_build(
+        &builder, graphics->wgpu.device, graphics->bind_group_layouts.lighting,
+        "Light Bind Group");
 
     bind_group_builder_free(&builder);
 
@@ -117,54 +158,102 @@ void graphics_render(Graphics *graphics, Input *input)
     WGPUCommandEncoder command_encoder =
         wgpuDeviceCreateCommandEncoder(graphics->wgpu.device, NULL);
 
-    WGPURenderPassColorAttachment attachments[] = {
+    WGPURenderPassColorAttachment object_attachments[] = {
         {
-            .view = frame,
+            .view = graphics->color_view,
             .loadOp = WGPULoadOp_Clear,
             .storeOp = WGPUStoreOp_Store,
             .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
-            .clearValue = {sin(SDL_GetTicks() / 1000.0f), 0.2f, 0.3f, 1.0f},
+            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
         },
+        {
+            .view = graphics->normal_view,
+            .loadOp = WGPULoadOp_Clear,
+            .storeOp = WGPUStoreOp_Store,
+            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
+        }};
+    WGPURenderPassDescriptor object_render_pass_desc = {
+        .label = "object render pass encoder",
+        .colorAttachmentCount = 2,
+        .colorAttachments = object_attachments,
     };
-    WGPURenderPassDescriptor render_pass_desc = {
-        .label = "render pass encoder",
-        .colorAttachmentCount = 1,
-        .colorAttachments = attachments,
-    };
-    WGPURenderPassEncoder render_pass =
-        wgpuCommandEncoderBeginRenderPass(command_encoder, &render_pass_desc);
+    WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
+        command_encoder, &object_render_pass_desc);
 
     typedef struct
     {
         mat4s camera;
         u32 transform_index;
         u32 texture_index;
-    } PushConstants;
+    } ObjectPushConstants;
 
     // bind pipeline and buffers
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.basic);
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
     wgpuRenderPassEncoderSetBindGroup(render_pass, 0, transform_bind_group, 0,
                                       0);
     u32 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
 
-    mat4s camera_projection =
-        glms_perspective_rh_no(1.0f, 640.0f / 480.0f, 0.1f, 100.0f);
+    mat4s camera_projection = glms_ortho(0.0, 640.0, 480.0, 0.0, -1.0f, 1.0f);
     mat4s camera_transform =
-        glms_look_rh_no((vec3s){.x = camera_x, .y = camera_y, .z = camera_z},
-                        GLMS_ZUP, GLMS_YUP);
+        glms_look((vec3s){.x = camera_x, .y = camera_y, .z = camera_z},
+                  (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+                  (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
-    PushConstants push_constants = {
+    ObjectPushConstants push_constants = {
         .camera = camera,
         .transform_index = 0,
         .texture_index = 0,
     };
     wgpuRenderPassEncoderSetPushConstants(
         render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-        sizeof(PushConstants), &push_constants);
+        sizeof(ObjectPushConstants), &push_constants);
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
                               QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
+
+    wgpuRenderPassEncoderEnd(render_pass);
+    wgpuRenderPassEncoderRelease(render_pass);
+
+    WGPURenderPassColorAttachment screen_attachments[] = {{
+        .view = frame,
+        .loadOp = WGPULoadOp_Clear,
+        .storeOp = WGPUStoreOp_Store,
+        .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f},
+        .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+    }};
+    WGPURenderPassDescriptor screen_render_pass_desc = {
+        .label = "screen render pass encoder",
+        .colorAttachmentCount = 1,
+        .colorAttachments = screen_attachments,
+    };
+    render_pass = wgpuCommandEncoderBeginRenderPass(command_encoder,
+                                                    &screen_render_pass_desc);
+
+    typedef struct
+    {
+        mat4s camera;
+        u32 transform_index;
+        vec4s color;
+    } LightPushCosntants;
+
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.lighting);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0, 0);
+    wgpuRenderPassEncoderSetVertexBuffer(
+        render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
+
+    LightPushCosntants light_push_constants = {
+        .camera = camera,
+        .transform_index = 0,
+        .color = {.x = 1.0, .y = 1.0, .z = 1.0, .w = 1.0},
+    };
+    wgpuRenderPassEncoderSetPushConstants(
+        render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+        sizeof(LightPushCosntants), &light_push_constants);
+
+    wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
+                              QUAD_ENTRY_TO_VERTEX_INDEX(1), 0);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 
@@ -190,8 +279,8 @@ void graphics_free(Graphics *graphics)
     transform_manager_free(&graphics->transform_manager);
     texture_manager_free(&graphics->texture_manager);
 
-    wgpuRenderPipelineRelease(graphics->shaders.basic);
-    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.basic);
+    wgpuRenderPipelineRelease(graphics->shaders.object);
+    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.object);
 
     wgpu_resources_free(&graphics->wgpu);
 }

@@ -44,7 +44,35 @@ void bing_group_layouts_init(BindGroupLayouts *layouts,
     };
     bind_group_layout_builder_append(&builder, entry);
 
-    layouts->basic = bind_group_layout_build(&builder, resources->device,
-                                             "Basic Bind Group Layout");
+    layouts->object = bind_group_layout_build(&builder, resources->device,
+                                              "Basic Bind Group Layout");
     bind_group_layout_builder_free(&builder); // free the builder after use
+
+    bind_group_layout_builder_init(&builder);
+
+    entry = (WGPUBindGroupLayoutEntry){
+        .buffer = buffer_layout,
+        .visibility = WGPUShaderStage_Vertex,
+    };
+    bind_group_layout_builder_append(&builder, entry);
+
+    texture_layout.sampleType = WGPUTextureSampleType_UnfilterableFloat;
+    entry = (WGPUBindGroupLayoutEntry){
+        .texture = texture_layout,
+        .visibility = WGPUShaderStage_Fragment,
+    };
+    bind_group_layout_builder_append(&builder, entry);
+    bind_group_layout_builder_append(&builder, entry);
+
+    sampler_layout.type = WGPUSamplerBindingType_NonFiltering;
+    entry = (WGPUBindGroupLayoutEntry){
+        .sampler = sampler_layout,
+        .visibility = WGPUShaderStage_Fragment,
+    };
+    bind_group_layout_builder_append(&builder, entry);
+
+    layouts->lighting = bind_group_layout_build(&builder, resources->device,
+                                                "Lighting Bind Group Layout");
+
+    bind_group_layout_builder_free(&builder);
 }

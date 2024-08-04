@@ -35,22 +35,22 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     char *buf;
     long buf_len;
 
-    read_entire_file("assets/shaders/basic.wgsl", &buf, &buf_len);
+    read_entire_file("assets/shaders/object.wgsl", &buf, &buf_len);
 
     // this uses null-terminated strings, but read_entire_file returns something
     // null-terminated anyway, so it's fine (really wish this used a
     // length-based thing instead!!)
-    WGPUShaderModuleWGSLDescriptor wgsl_module_descriptor = {
+    WGPUShaderModuleWGSLDescriptor object_wgsl_descriptor = {
         .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
         .code = buf,
     };
-    WGPUShaderModuleDescriptor shader_module_descriptor = {
-        .label = "basic",
-        .nextInChain = (WGPUChainedStruct *)&wgsl_module_descriptor,
+    WGPUShaderModuleDescriptor object_module_descriptor = {
+        .label = "object",
+        .nextInChain = (WGPUChainedStruct *)&object_wgsl_descriptor,
     };
 
-    WGPUShaderModule shader_module = wgpuDeviceCreateShaderModule(
-        resources->device, &shader_module_descriptor);
+    WGPUShaderModule object_module = wgpuDeviceCreateShaderModule(
+        resources->device, &object_module_descriptor);
 
     typedef struct
     {
@@ -58,26 +58,26 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         u32 transform_index;
         u32 texture_index;
     } PushConstants;
-    WGPUPushConstantRange push_constant_ranges[] = {
+    WGPUPushConstantRange object_push_constant_ranges[] = {
         (WGPUPushConstantRange){
             .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
             .start = 0,
             .end = sizeof(PushConstants),
         },
     };
-    WGPUPipelineLayoutExtras extras = {
+    WGPUPipelineLayoutExtras object_extras = {
         .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
-        .pushConstantRanges = push_constant_ranges,
+        .pushConstantRanges = object_push_constant_ranges,
         .pushConstantRangeCount = 1,
     };
-    WGPUPipelineLayoutDescriptor layout_descriptor = {
-        .nextInChain = (WGPUChainedStruct *)&extras,
+    WGPUPipelineLayoutDescriptor object_layout_descriptor = {
+        .nextInChain = (WGPUChainedStruct *)&object_extras,
         .label = "basic",
         .bindGroupLayoutCount = 1,
-        .bindGroupLayouts = &layouts->basic,
+        .bindGroupLayouts = &layouts->object,
     };
-    WGPUPipelineLayout layout =
-        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
+    WGPUPipelineLayout object_layout = wgpuDeviceCreatePipelineLayout(
+        resources->device, &object_layout_descriptor);
 
     WGPUVertexAttribute vertex_attributes[] = {
         (WGPUVertexAttribute){
@@ -96,19 +96,26 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .attributeCount = 2,
         .attributes = vertex_attributes};
 
-    WGPUVertexState vertex_state = {.module = shader_module,
+    WGPUVertexState vertex_state = {.module = object_module,
                                     .entryPoint = "vs_main",
                                     .buffers = &vertex_buffer_layout,
                                     .bufferCount = 1};
 
-    WGPUColorTargetState color_targets[] = {(WGPUColorTargetState){
-        .format = resources->surface_config.format,
-        .writeMask = WGPUColorWriteMask_All,
-    }};
-    WGPUFragmentState fragment_state = {.module = shader_module,
+    WGPUColorTargetState object_color_targets[] = {
+        // color
+        (WGPUColorTargetState){
+            .format = WGPUTextureFormat_RGBA8Unorm,
+            .writeMask = WGPUColorWriteMask_All,
+        },
+        // normal
+        (WGPUColorTargetState){
+            .format = WGPUTextureFormat_RGBA32Float,
+            .writeMask = WGPUColorWriteMask_All,
+        }};
+    WGPUFragmentState fragment_state = {.module = object_module,
                                         .entryPoint = "fs_main",
-                                        .targetCount = 1,
-                                        .targets = color_targets};
+                                        .targetCount = 2,
+                                        .targets = object_color_targets};
 
     WGPUPrimitiveState primitive = {
         .topology = WGPUPrimitiveTopology_TriangleList,
@@ -118,18 +125,97 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .mask = 0xFFFFFFFF,
     };
 
-    WGPURenderPipelineDescriptor descriptor = {
-        .label = "basic",
-        .layout = layout,
+    WGPURenderPipelineDescriptor object_descriptor = {
+        .label = "object",
+        .layout = object_layout,
         .vertex = vertex_state,
         .fragment = &fragment_state,
         .primitive = primitive,
         .multisample = multisample,
     };
-    shaders->basic =
-        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
-    PTR_ERRCHK(shaders->basic, "failed to create render pipeline");
+    shaders->object =
+        wgpuDeviceCreateRenderPipeline(resources->device, &object_descriptor);
+    PTR_ERRCHK(shaders->object, "failed to create render pipeline");
 
-    wgpuPipelineLayoutRelease(layout);
-    wgpuShaderModuleRelease(shader_module);
+    free(buf);
+    wgpuPipelineLayoutRelease(object_layout);
+    wgpuShaderModuleRelease(object_module);
+
+    read_entire_file("assets/shaders/light.wgsl", &buf, &buf_len);
+
+    WGPUShaderModuleWGSLDescriptor lighting_wgsl_descriptor = {
+        .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
+        .code = buf,
+    };
+    WGPUShaderModuleDescriptor lighting_module_descriptor = {
+        .label = "lighting",
+        .nextInChain = (WGPUChainedStruct *)&lighting_wgsl_descriptor,
+    };
+
+    WGPUShaderModule lighting_module = wgpuDeviceCreateShaderModule(
+        resources->device, &lighting_module_descriptor);
+
+    typedef struct
+    {
+        mat4s camera;
+        u32 transform_index;
+        vec4s color;
+    } LightPushCosntants;
+
+    WGPUPushConstantRange lighting_push_constant_ranges[] = {
+        (WGPUPushConstantRange){
+            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+            .start = 0,
+            .end = sizeof(LightPushCosntants),
+        },
+    };
+    WGPUPipelineLayoutExtras lighting_extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
+        .pushConstantRanges = lighting_push_constant_ranges,
+        .pushConstantRangeCount = 1,
+    };
+    WGPUPipelineLayoutDescriptor layout_descriptor_lighting = {
+        .nextInChain = (WGPUChainedStruct *)&lighting_extras,
+        .label = "lighting",
+        .bindGroupLayoutCount = 1,
+        .bindGroupLayouts = &layouts->lighting,
+    };
+
+    WGPUPipelineLayout layout_lighting = wgpuDeviceCreatePipelineLayout(
+        resources->device, &layout_descriptor_lighting);
+
+    WGPUVertexState vertex_state_lighting = {
+        .module = lighting_module,
+        .entryPoint = "vs_main",
+        .buffers = &vertex_buffer_layout,
+        .bufferCount = 1,
+    };
+
+    WGPUColorTargetState lighting_color_targets[] = {(WGPUColorTargetState){
+        .format = resources->surface_config.format,
+        .writeMask = WGPUColorWriteMask_All,
+    }};
+
+    WGPUFragmentState fragment_state_lighting = {
+        .module = lighting_module,
+        .entryPoint = "fs_main",
+        .targetCount = 1,
+        .targets = lighting_color_targets,
+    };
+
+    WGPURenderPipelineDescriptor lighting_descriptor = {
+        .label = "lighting",
+        .layout = layout_lighting,
+        .vertex = vertex_state_lighting,
+        .fragment = &fragment_state_lighting,
+        .primitive = primitive,
+        .multisample = multisample,
+    };
+
+    shaders->lighting =
+        wgpuDeviceCreateRenderPipeline(resources->device, &lighting_descriptor);
+
+    free(buf);
+    wgpuPipelineLayoutRelease(layout_lighting);
+    wgpuShaderModuleRelease(lighting_module);
 }

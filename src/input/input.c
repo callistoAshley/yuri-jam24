@@ -38,7 +38,7 @@ void input_process(SDL_Event *event, Input *input)
         case SDLK_SPACE:
             input->curr |= Button_Jump;
             break;
-        case SDLK_LCTRL:
+        case SDLK_C:
             input->curr |= Button_Crouch;
             break;
         case SDLK_ESCAPE:

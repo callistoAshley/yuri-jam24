@@ -122,6 +122,10 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
         WGPUTextureView *free_view =
             vec_get(&manager->texture_views, manager->next);
 
+        assert(free_entry != NULL);
+        assert(free_texture != NULL);
+        assert(free_view != NULL);
+
         assert(free_entry->ref_count == 0);
         manager->next = free_entry->index;
 
@@ -144,6 +148,10 @@ void texture_manager_unload(TextureManager *manager, TextureEntry *entry)
 
         WGPUTexture *texture = vec_get(&manager->textures, entry->index);
         WGPUTextureView *view = vec_get(&manager->texture_views, entry->index);
+
+        assert(texture != NULL);
+        assert(view != NULL);
+
         wgpuTextureViewRelease(*view);
         wgpuTextureRelease(*texture);
 
@@ -156,11 +164,15 @@ void texture_manager_unload(TextureManager *manager, TextureEntry *entry)
 WGPUTexture texture_manager_get_texture(TextureManager *manager,
                                         TextureEntry *entry)
 {
-    return *(WGPUTexture *)vec_get(&manager->textures, entry->index);
+    WGPUTexture *texture = vec_get(&manager->textures, entry->index);
+    assert(texture != NULL);
+    return *texture;
 }
 
 WGPUTextureView texture_manager_get_texture_view(TextureManager *manager,
                                                  TextureEntry *entry)
 {
-    return *(WGPUTextureView *)vec_get(&manager->texture_views, entry->index);
+    WGPUTextureView *view = vec_get(&manager->texture_views, entry->index);
+    assert(view != NULL);
+    return *view;
 }
