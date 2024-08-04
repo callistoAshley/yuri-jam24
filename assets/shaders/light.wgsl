@@ -55,24 +55,14 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
   let light_world_pos = vec3f(screen_size / 2.0, 1.0);
   let frag_world_pos = vec3f(in.tex_coords * screen_size, 0.0) + camera_world_pos;
 
-  let light_dir = normalize(light_world_pos - frag_world_pos);
-  let diffuse = max(dot(normal.xyz, light_dir), 0.0) * push_constants.color;
-
-  let specular_strength = 0.5;
-  let view_dir = normalize(camera_world_pos - frag_world_pos);
-  let reflect_dir = reflect(-light_dir, normal.xyz);
-
-  let spec = pow(max(dot(view_dir, reflect_dir), 0.0), 32.0);
-  let specular = specular_strength * spec * push_constants.color;
-
   let constant = 1.0;
-  let linear = 0.0014;
-  let quadratic = 0.000007;
+  let linear = 0.027;
+  let quadratic = 0.0028;
 
   let distance = length(light_world_pos - frag_world_pos);
   let attenuation = 1.0 / (constant + linear * distance + quadratic * (distance * distance));
   
-  let out = color * (diffuse + ambient) * attenuation;
+  let out = color * push_constants.color * attenuation;
 
   return vec4f(out.rgb, 1.0);
 }
