@@ -4,71 +4,22 @@
     "type": "split",
     "children": [
       {
-        "id": "0c244385cee020ab",
+        "id": "95c211db288e2127",
         "type": "tabs",
         "children": [
           {
-            "id": "29ac550217ee5bca",
+            "id": "6ff3038ed05721ac",
             "type": "leaf",
             "state": {
               "type": "markdown",
               "state": {
-                "file": "the drabblezone/1.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "717e1bfb9115d42e",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "the drabblezone/2.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "fb0c19fe4aeadfb9",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "The Angels.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "c985b259acdcbe3f",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "Untitled.md",
-                "mode": "source",
-                "source": false
-              }
-            }
-          },
-          {
-            "id": "cfabafab4eec54b2",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "characters.md",
+                "file": "The Sun.md",
                 "mode": "source",
                 "source": false
               }
             }
           }
-        ],
-        "currentTab": 2
+        ]
       }
     ],
     "direction": "vertical"
@@ -134,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "The Angels.md",
+                "file": "The Sun.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -151,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "The Angels.md",
+                "file": "The Sun.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -174,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "The Angels.md"
+                "file": "The Sun.md"
               }
             }
           }
@@ -195,13 +146,14 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "fb0c19fe4aeadfb9",
+  "active": "6ff3038ed05721ac",
   "lastOpenFiles": [
-    "characters.md",
-    "the drabblezone/1.md",
-    "the drabblezone/2.md",
     "The Angels.md",
+    "The Sun.md",
     "Untitled.md",
+    "the drabblezone/2.md",
+    "the drabblezone/1.md",
+    "characters.md",
     "braindump.md",
     "the drabblezone",
     "characters",

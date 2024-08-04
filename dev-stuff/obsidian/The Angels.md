@@ -5,3 +5,5 @@ maybe they didn't exactly concern themselves with human affairs but humans knew 
 the angels were protecting humanity from something and people lived in large colonies
 the entity they were being protected from was the sun?
 halos emitted a kind of cloud that protected people from the sun
+
+earth slowly freezing and the angels keeping it warm?
