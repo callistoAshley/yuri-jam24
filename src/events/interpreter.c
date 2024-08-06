@@ -29,7 +29,7 @@ static Event construct_event(char *name, char *text)
 
     memset(err_msg, 0, 256);
 
-    event.name = malloc(strlen(name + 1));
+    event.name = malloc(strlen(name) + 1);
     strcpy(event.name, name);
     event.tokens = calloc(1, sizeof(Token));
     event.num_tokens = 0;
@@ -46,7 +46,8 @@ static Event construct_event(char *name, char *text)
         text += num_read;
         realloc_temp = realloc(event.tokens, ++event.num_tokens * sizeof(Token)); 
         REALLOC_CHK(realloc_temp, event.tokens);
-        memcpy(event.tokens + (event.num_tokens - 1), &token, sizeof(Token)); // FIXME: is the memcpy really necessary?
+        event.tokens[event.num_tokens - 1] = token;
+        //memcpy(event.tokens + (event.num_tokens - 1), &token, sizeof(Token)); // FIXME: is the memcpy really necessary?
     }
 
     return event;
@@ -130,7 +131,7 @@ Interpreter *interpreter_init(char **files, int num_files)
         FILE *file = fopen(file_path, "r");
 
         file_len = flen(file);
-        file_text = malloc(file_len);
+        file_text = calloc(file_len + 1, 1);
         if (!file_text)
         {
             fclose(file);

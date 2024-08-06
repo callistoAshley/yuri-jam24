@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "The Sun.md",
+                "file": "Untitled.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "The Sun.md",
+                "file": "Untitled.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "The Sun.md",
+                "file": "Untitled.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "The Sun.md"
+                "file": "Untitled.md"
               }
             }
           }
@@ -148,8 +148,8 @@
   },
   "active": "6ff3038ed05721ac",
   "lastOpenFiles": [
-    "The Angels.md",
     "The Sun.md",
+    "The Angels.md",
     "Untitled.md",
     "the drabblezone/2.md",
     "the drabblezone/1.md",
