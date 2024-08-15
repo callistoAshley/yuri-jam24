@@ -11,5 +11,6 @@ typedef struct Window
     void (*update_fn)(struct Window *self);
     void (*free_fn)  (struct Window *self);
 
+    void *wnd_cont;
     void *userdata;
 } Window;

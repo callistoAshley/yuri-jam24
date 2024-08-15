@@ -2,12 +2,18 @@
 #include "windows/new-map.h"
 #include "windows/tilemap-editor.h"
 
+static void new_map_callback(void *wnd_cont, NewMapInfo info)
+{
+    LevelEditor *editor = ((WindowContainer *)wnd_cont)->owner;
+    wnd_tmap_edit_init_tilemap(editor->tmap_edit, info.input_width, info.input_height);
+}
+
 LevelEditor *lvledit_init(void)
 {
     LevelEditor *editor = calloc(1, sizeof(LevelEditor));
     PTR_ERRCHK(editor, "lvledit_init: calloc failure.");
 
-    editor->container = wndcont_init();
+    editor->container = wndcont_init(editor);
     editor->tmap_edit = wndcont_add(editor->container, tmap_edit_window);
 
     return editor;
@@ -21,7 +27,8 @@ void lvledit_update(LevelEditor *editor)
         {
             if (igMenuItem_Bool("New", NULL, false, true))
             {
-                wndcont_add(editor->container, new_map_window);
+                Window *wnd = wndcont_add(editor->container, new_map_window);
+                wnd_new_map_set_done_callback(wnd, new_map_callback);
             }
             if (igMenuItem_Bool("Load", NULL, false, true))
             {

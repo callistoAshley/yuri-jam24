@@ -2,8 +2,8 @@
 
 typedef struct
 {
-    char input_name[256];
-    int input_width, input_height;
+    NewMapInfo info;
+    NewMapDoneFn done_callback;
 } NewMapWndState;
 
 Window new_map_window =
@@ -18,6 +18,12 @@ void wnd_new_map_init(Window *self)
     self->userdata = calloc(1, sizeof(NewMapWndState));
 }
 
+void wnd_new_map_set_done_callback(Window *self, NewMapDoneFn fn)
+{
+    NewMapWndState *state = self->userdata;
+    state->done_callback = fn;
+}
+
 void wnd_new_map_update(Window *self)
 {
     NewMapWndState *state = self->userdata;
@@ -28,8 +34,8 @@ void wnd_new_map_update(Window *self)
     {
         igInputText(
             "Name", 
-            state->input_name, 
-            sizeof(state->input_name), 
+            state->info.input_name, 
+            sizeof(state->info.input_name), 
             ImGuiInputTextFlags_None,
             NULL,
             NULL
@@ -37,7 +43,7 @@ void wnd_new_map_update(Window *self)
 
         igInputInt(
             "Width",
-            &state->input_width,
+            &state->info.input_width,
             1,
             0,
             ImGuiInputTextFlags_None
@@ -45,7 +51,7 @@ void wnd_new_map_update(Window *self)
 
         igInputInt(
             "Height",
-            &state->input_height,
+            &state->info.input_height,
             1,
             0,
             ImGuiInputTextFlags_None
@@ -54,18 +60,19 @@ void wnd_new_map_update(Window *self)
         if (igSmallButton("OK"))
         {
             // no spaces and no empty strings
-            if (strspn(state->input_name, " ") == strlen(state->input_name))
+            if (strspn(state->info.input_name, " ") == strlen(state->info.input_name))
             {
                 puts("bad map name");
             }
             else
             {
+                state->done_callback(self->wnd_cont, state->info);
                 self->remove = true;
             }
         }
 
-        if (state->input_width < 0) state->input_width = 0;
-        if (state->input_height < 0) state->input_height = 0;
+        if (state->info.input_width < 0) state->info.input_width = 0;
+        if (state->info.input_height < 0) state->info.input_height = 0;
     }
     igEnd();
 }

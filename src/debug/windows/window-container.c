@@ -8,10 +8,12 @@ static void window_free_fn(usize sz, void *elem)
     free(window);
 }
 
-WindowContainer *wndcont_init(void)
+WindowContainer *wndcont_init(void *owner)
 {
     WindowContainer *cont = calloc(1, sizeof(WindowContainer));
     PTR_ERRCHK(cont, "wndcont_init: calloc failure.");
+
+    cont->owner = owner;
 
     vec_init(&cont->windows, sizeof(Window));
 
@@ -22,8 +24,9 @@ Window *wndcont_add(WindowContainer *cont, Window window)
 {
     Window *result = malloc(sizeof(Window));
     PTR_ERRCHK(result, "wndcont_add: malloc failure.");
-
     memcpy(result, &window, sizeof(Window));
+
+    result->wnd_cont = cont;
     result->init_fn(result);
 
     vec_push(&cont->windows, result);
