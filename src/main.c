@@ -3,7 +3,6 @@
 #include <fmod_studio.h>
 
 #include <SDL3/SDL.h>
-
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
 #include "graphics/imgui-wgpu.h"
@@ -105,7 +104,10 @@ int main(int argc, char **argv)
         FMOD_Studio_System_Update(audio.system);
 
         if (level_editor)
+        {
             lvledit_update(level_editor);
+            if (level_editor->request_quit) break;
+        }
 
         igRender();
         graphics_render(&graphics, &input);

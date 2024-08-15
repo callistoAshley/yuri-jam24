@@ -78,6 +78,7 @@ add_executable(game
     src/audio/audio.c
 
     src/debug/windows/test.c
+    src/debug/windows/tilemap-editor.c
     src/debug/windows/window-container.c
     src/debug/level-editor.c
 

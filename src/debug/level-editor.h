@@ -9,6 +9,7 @@
 typedef struct
 {
     WindowContainer *container;
+    bool request_quit;
 } LevelEditor;
 
 LevelEditor *lvledit_init(void);
