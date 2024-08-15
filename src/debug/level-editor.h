@@ -8,8 +8,11 @@
 
 typedef struct
 {
-    WindowContainer *container;
     bool request_quit;
+
+    Window *tmap_edit;
+
+    WindowContainer *container;
 } LevelEditor;
 
 LevelEditor *lvledit_init(void);

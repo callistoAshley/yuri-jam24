@@ -43,9 +43,9 @@ void wndcont_remove(WindowContainer *cont, Window *window)
             break;
         }
     }
-    vec_remove(&cont->windows, index, NULL);
 
     window->free_fn(window);
+    vec_remove(&cont->windows, index, NULL);
 }
 
 void wndcont_update(WindowContainer *cont)
@@ -54,6 +54,12 @@ void wndcont_update(WindowContainer *cont)
     {
         Window *window = vec_get(&cont->windows, i);
         window->update_fn(window);
+
+        if (window->remove)
+        {
+            wndcont_remove(cont, window);
+            i--;
+        }
     }
 }
 

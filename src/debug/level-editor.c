@@ -1,4 +1,5 @@
 #include "level-editor.h"
+#include "windows/new-map.h"
 #include "windows/tilemap-editor.h"
 
 LevelEditor *lvledit_init(void)
@@ -7,7 +8,7 @@ LevelEditor *lvledit_init(void)
     PTR_ERRCHK(editor, "lvledit_init: calloc failure.");
 
     editor->container = wndcont_init();
-    wndcont_add(editor->container, tmap_edit_window);
+    editor->tmap_edit = wndcont_add(editor->container, tmap_edit_window);
 
     return editor;
 }
@@ -18,6 +19,10 @@ void lvledit_update(LevelEditor *editor)
     {
         if (igBeginMenu("File", true))
         {
+            if (igMenuItem_Bool("New", NULL, false, true))
+            {
+                wndcont_add(editor->container, new_map_window);
+            }
             if (igMenuItem_Bool("Load", NULL, false, true))
             {
             }
