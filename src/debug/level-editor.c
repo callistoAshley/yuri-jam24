@@ -1,4 +1,5 @@
 #include "level-editor.h"
+#include "windows/brush.h"
 #include "windows/new-map.h"
 #include "windows/tilemap-editor.h"
 
@@ -8,13 +9,14 @@ static void new_map_callback(void *wnd_cont, NewMapInfo info)
     wnd_tmap_edit_init_tilemap(editor->tmap_edit, info.input_width, info.input_height);
 }
 
-LevelEditor *lvledit_init(void)
+LevelEditor *lvledit_init(Graphics *graphics)
 {
     LevelEditor *editor = calloc(1, sizeof(LevelEditor));
     PTR_ERRCHK(editor, "lvledit_init: calloc failure.");
 
-    editor->container = wndcont_init(editor);
+    editor->container = wndcont_init(editor, graphics);
     editor->tmap_edit = wndcont_add(editor->container, tmap_edit_window);
+    wndcont_add(editor->container, brush_window);
 
     return editor;
 }

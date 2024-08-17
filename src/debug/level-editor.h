@@ -3,8 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "windows/window-container.h"
+#include "graphics/graphics.h"
 #include "utility/macros.h"
+#include "windows/window-container.h"
 
 typedef struct
 {
@@ -13,8 +14,9 @@ typedef struct
     Window *tmap_edit;
 
     WindowContainer *container;
+    Graphics *graphics;
 } LevelEditor;
 
-LevelEditor *lvledit_init(void);
+LevelEditor *lvledit_init(Graphics *graphics);
 void lvledit_update(LevelEditor *editor);
 void lvledit_free(LevelEditor *editor);

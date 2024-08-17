@@ -77,6 +77,7 @@ include_directories(
 add_executable(game
     src/audio/audio.c
 
+    src/debug/windows/brush.c
     src/debug/windows/new-map.c
     src/debug/windows/test.c
     src/debug/windows/tilemap-editor.c
