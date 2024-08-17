@@ -22,13 +22,14 @@
 int main(int argc, char **argv)
 {
     LevelEditor *level_editor = NULL;
+    bool init_level_editor = false;
     bool imgui_demo = false;
 
     for (int i = 0; i < argc; i++)
     {
         if (!strcmp(argv[i], "--level-editor"))
         {
-            level_editor = lvledit_init();
+            init_level_editor = true;
         }
         else if (!strcmp(argv[i], "--imgui-demo"))
         {
@@ -59,6 +60,8 @@ int main(int argc, char **argv)
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
+
+    if (init_level_editor) level_editor = lvledit_init(&graphics);
 
     char *files[] = {
         "assets/events.txt",

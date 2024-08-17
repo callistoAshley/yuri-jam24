@@ -8,12 +8,13 @@ static void window_free_fn(usize sz, void *elem)
     free(window);
 }
 
-WindowContainer *wndcont_init(void *owner)
+WindowContainer *wndcont_init(void *owner, Graphics *graphics)
 {
     WindowContainer *cont = calloc(1, sizeof(WindowContainer));
     PTR_ERRCHK(cont, "wndcont_init: calloc failure.");
 
     cont->owner = owner;
+    cont->graphics = graphics;
 
     vec_init(&cont->windows, sizeof(Window));
 
