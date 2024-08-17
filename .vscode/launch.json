@@ -9,7 +9,9 @@
       "request": "launch",
       "name": "Debug",
       "program": "${workspaceFolder}/build/game",
-      "args": [],
+      "args": [
+        "--level-editor"
+      ],
       "cwd": "${workspaceFolder}"
     }
   ]

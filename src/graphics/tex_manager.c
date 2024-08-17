@@ -70,6 +70,8 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
         .height = height,
         .depthOrArrayLayers = 1,
     };
+    WGPUTextureFormat view_formats[] = {WGPUTextureFormat_RGBA8Unorm,
+                                        WGPUTextureFormat_RGBA8UnormSrgb};
     WGPUTextureDescriptor desc = {
         .label = path,
         .size = extents,
@@ -78,6 +80,8 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
         .mipLevelCount = 1,
         .sampleCount = 1,
         .usage = WGPUTextureUsage_CopyDst | WGPUTextureUsage_TextureBinding,
+        .viewFormats = view_formats,
+        .viewFormatCount = 2,
     };
 
     WGPUTexture texture = wgpuDeviceCreateTexture(resources->device, &desc);
