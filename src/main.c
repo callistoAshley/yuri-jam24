@@ -54,7 +54,8 @@ int main(int argc, char **argv)
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
 
-    window = SDL_CreateWindow("i am the window", 640, 480, SDL_WINDOW_HIDDEN);
+    window = SDL_CreateWindow("i am the window", WINDOW_WIDTH, WINDOW_HEIGHT,
+                              SDL_WINDOW_HIDDEN);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
@@ -106,7 +107,8 @@ int main(int argc, char **argv)
         if (level_editor)
         {
             lvledit_update(level_editor);
-            if (level_editor->request_quit) break;
+            if (level_editor->request_quit)
+                break;
         }
 
         igRender();

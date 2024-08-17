@@ -12,6 +12,10 @@
 
 int screen_quad_index;
 
+int hacky_quad_index;
+int hacky_transform_index;
+TextureEntry *hacky_texture;
+
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
     wgpu_resources_init(&graphics->wgpu, window);
@@ -33,8 +37,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                          &graphics->wgpu);
 
     WGPUExtent3D extents = {
-        .width = 320,
-        .height = 240,
+        .width = INTERNAL_SCREEN_WIDTH,
+        .height = INTERNAL_SCREEN_HEIGHT,
         .depthOrArrayLayers = 1,
     };
     WGPUTextureDescriptor desc = {
@@ -70,6 +74,23 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         };
         screen_quad_index = quad_manager_add(&graphics->quad_manager, quad);
     }
+
+    Rect rect = {
+        .min = {.x = 0.0, .y = 0.0},
+        .max = {.x = 64.0, .y = 92.0},
+    };
+    Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+    Quad quad = {
+        .rect = rect,
+        .tex_coords = tex_coords,
+    };
+    hacky_quad_index = quad_manager_add(&graphics->quad_manager, quad);
+    Transform transform = transform_from_xyz(0, 0, 0);
+    hacky_transform_index =
+        transform_manager_add(&graphics->transform_manager, transform);
+    hacky_texture =
+        texture_manager_load(&graphics->texture_manager,
+                             "assets/textures/red_start.png", &graphics->wgpu);
 }
 
 int camera_x = 0;
@@ -183,12 +204,23 @@ void graphics_render(Graphics *graphics, Input *input)
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
 
-    mat4s camera_projection = glms_ortho(0.0, 640.0, 480.0, 0.0, -1.0f, 1.0f);
+    mat4s camera_projection = glms_ortho(
+        0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0, -1.0f, 1.0f);
     mat4s camera_transform =
         glms_look((vec3s){.x = camera_x, .y = camera_y, .z = 0},
                   (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
                   (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
+    ObjectPushConstants push_constants = {
+        .camera = camera,
+        .transform_index = hacky_transform_index,
+        .texture_index = hacky_texture->index,
+    };
+    wgpuRenderPassEncoderSetPushConstants(
+        render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+        sizeof(ObjectPushConstants), &push_constants);
+    wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
+                              QUAD_ENTRY_TO_VERTEX_INDEX(hacky_quad_index), 0);
 
     wgpuRenderPassEncoderEnd(render_pass);
     wgpuRenderPassEncoderRelease(render_pass);

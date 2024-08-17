@@ -6,8 +6,7 @@ typedef struct
     uint16_t *tilemap;
 } TmapEditWndState;
 
-Window tmap_edit_window =
-{
+Window tmap_edit_window = {
     .init_fn = wnd_tmap_edit_init,
     .update_fn = wnd_tmap_edit_update,
     .free_fn = wnd_tmap_edit_free,
@@ -40,13 +39,9 @@ void wnd_tmap_edit_update(Window *self)
         }
         else
         {
-
         }
     }
     igEnd();
 }
 
-void wnd_tmap_edit_free(Window *self)
-{
-    free(self->userdata);
-}
+void wnd_tmap_edit_free(Window *self) { free(self->userdata); }

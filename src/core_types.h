@@ -17,7 +17,7 @@ typedef struct
 
 // i *would* make this a #define but -Wpedantic doesn't like it
 static const Transform TRANSFORM_UNIT = {
-    .position = GLMS_VEC3_ONE_INIT,
+    .position = GLMS_VEC3_ZERO_INIT,
     .scale = GLMS_VEC3_ONE_INIT,
     .rotation = GLMS_QUAT_IDENTITY_INIT,
 };
