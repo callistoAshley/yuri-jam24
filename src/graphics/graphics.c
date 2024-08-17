@@ -12,10 +12,6 @@
 
 int screen_quad_index;
 
-int molly_quad_index;
-TextureEntry *molly_texture_index;
-int molly_transform_index;
-
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
     wgpu_resources_init(&graphics->wgpu, window);
@@ -28,6 +24,13 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     // texture manager has no gpu side resources allocated initially so no need
     // to pass wgpu
     texture_manager_init(&graphics->texture_manager);
+
+    // load bearing molly
+    // why do we need this? primarily to make sure that at least one texture is
+    // loaded, because you can't bind an empty texture array
+    texture_manager_load(&graphics->texture_manager,
+                         "assets/textures/load_bearing_molly.png",
+                         &graphics->wgpu);
 
     WGPUExtent3D extents = {
         .width = 320,
@@ -53,26 +56,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     graphics->normal_view = wgpuTextureCreateView(graphics->normal, NULL);
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
-
-    // molly :)
-    {
-        molly_texture_index = texture_manager_load(
-            &graphics->texture_manager, "assets/textures/other_molly.jpg",
-            &graphics->wgpu);
-
-        Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
-        Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
-                                       (vec2s){.x = 200 * 1.33, .y = 200});
-        Quad quad = {
-            .rect = rect,
-            .tex_coords = tex_coords,
-        };
-        molly_quad_index = quad_manager_add(&graphics->quad_manager, quad);
-
-        Transform transform = transform_from_xyz(0.0, 0.0, 0.0);
-        molly_transform_index =
-            transform_manager_add(&graphics->transform_manager, transform);
-    }
 
     // screen quad
     {
@@ -206,16 +189,6 @@ void graphics_render(Graphics *graphics, Input *input)
                   (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
                   (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
-    ObjectPushConstants push_constants = {
-        .camera = camera,
-        .transform_index = molly_transform_index,
-        .texture_index = molly_texture_index->index,
-    };
-    wgpuRenderPassEncoderSetPushConstants(
-        render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-        sizeof(ObjectPushConstants), &push_constants);
-    wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
-                              QUAD_ENTRY_TO_VERTEX_INDEX(molly_quad_index), 0);
 
     wgpuRenderPassEncoderEnd(render_pass);
     wgpuRenderPassEncoderRelease(render_pass);

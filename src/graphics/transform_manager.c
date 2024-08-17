@@ -34,6 +34,7 @@ void transform_manager_init(TransformManager *manager, WGPUResources *resources)
     vec_init_with_capacity(&manager->entries, sizeof(TransformEntryData),
                            INITIAL_BUFFER_CAP);
     manager->next = 0;
+    manager->dirty = false;
 }
 
 void transform_manager_free(TransformManager *manager)
@@ -105,25 +106,34 @@ bool transform_manager_upload_dirty(TransformManager *manager,
 {
     if (!manager->dirty)
         return false;
+    manager->dirty = false;
 
     u32 buffer_size = wgpuBufferGetSize(manager->buffer);
     bool needs_regen =
-        manager->entries.len * sizeof(TransformEntryData) > buffer_size;
+        manager->entries.cap * sizeof(TransformEntryData) > buffer_size;
     if (needs_regen)
     {
         wgpuBufferRelease(manager->buffer);
         WGPUBufferDescriptor buffer_desc = {
-            // multiply by two to avoid resizing too often
-            .size = manager->entries.len * sizeof(TransformEntryData) * 2,
+            // make sure the buffer has the same size as the array capacity.
+            // if the array capacity ever grows, it's always double the previous
+            // size.
+            // previously this code would do this based on the array
+            // length, which would work
+            // but would require more resizing operations.
+            .size = manager->entries.cap * sizeof(TransformEntryData),
             .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
             .label = "Transform manager buffer",
         };
         manager->buffer =
             wgpuDeviceCreateBuffer(resources->device, &buffer_desc);
     }
+    // While this means we're writing
+    // uninitialized memory, that memory
+    // shouldn't be touched without a use-before-init bug.
     wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
                          manager->entries.data,
-                         manager->entries.len * sizeof(TransformEntryData));
+                         manager->entries.cap * sizeof(TransformEntryData));
 
     return needs_regen;
 }

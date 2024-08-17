@@ -1,5 +1,6 @@
 #include "tex_manager.h"
 #include "sensible_nums.h"
+#include "utility/macros.h"
 #include "webgpu.h"
 #include <stb_image.h>
 
@@ -61,6 +62,7 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
     // load texture
     int width, height, channels;
     stbi_uc *data = stbi_load(path, &width, &height, &channels, 4);
+    PTR_ERRCHK(data, "Failed to load texture!");
     printf("Loaded texture %s: %dx%d %d\n", path, width, height, channels);
 
     WGPUExtent3D extents = {

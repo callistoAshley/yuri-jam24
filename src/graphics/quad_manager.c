@@ -34,6 +34,7 @@ void quad_manager_init(QuadManager *manager, WGPUResources *resources)
     vec_init_with_capacity(&manager->entries, sizeof(QuadEntryData),
                            INITIAL_BUFFER_CAP);
     manager->next = 0;
+    manager->dirty = false;
 }
 
 void quad_manager_free(QuadManager *manager)
@@ -104,21 +105,32 @@ void quad_manager_upload_dirty(QuadManager *manager, WGPUResources *resources)
 {
     if (!manager->dirty)
         return;
+    manager->dirty = false;
 
     u32 buffer_size = wgpuBufferGetSize(manager->buffer);
-    if (manager->entries.len * sizeof(QuadEntryData) > buffer_size)
+    bool needs_regen =
+        manager->entries.cap * sizeof(QuadEntryData) > buffer_size;
+    if (needs_regen)
     {
         wgpuBufferRelease(manager->buffer);
         WGPUBufferDescriptor buffer_desc = {
-            // multiply by two to avoid resizing too often
-            .size = manager->entries.len * sizeof(QuadEntryData) * 2,
+            // make sure the buffer has the same size as the array capacity.
+            // if the array capacity ever grows, it's always double the previous
+            // size.
+            // previously this code would do this based on the array
+            // length, which would work
+            // but would require more resizing operations.
+            .size = manager->entries.cap,
             .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
             .label = "quad manager buffer",
         };
         manager->buffer =
             wgpuDeviceCreateBuffer(resources->device, &buffer_desc);
     }
+    // While this means we're writing
+    // uninitialized memory, that memory
+    // shouldn't be touched without a use-before-init bug.
     wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
                          manager->entries.data,
-                         manager->entries.len * sizeof(QuadEntryData));
+                         manager->entries.cap * sizeof(QuadEntryData));
 }
