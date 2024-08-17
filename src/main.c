@@ -15,6 +15,7 @@
 #include "debug/level-editor.h"
 #include "graphics/graphics.h"
 #include "input/input.h"
+#include "utility/log.h"
 #include "utility/macros.h"
 #include "events/interpreter.h"
 #include "player.h"

@@ -101,6 +101,7 @@ add_executable(game
 
     src/utility/linked-list.c
     src/utility/list.c
+    src/utility/log.c
     src/utility/vec.c
 
     stb/stb_impl.c
