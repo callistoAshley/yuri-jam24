@@ -4,10 +4,17 @@
 #include "graphics.h"
 #include "core_types.h"
 #include "binding_helper.h"
+#include "graphics/tex_manager.h"
 #include "imgui-wgpu.h"
 #include "input/input.h"
 #include "utility/macros.h"
 #include "webgpu.h"
+
+int screen_quad_index;
+
+int molly_quad_index;
+TextureEntry *molly_texture_index;
+int molly_transform_index;
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
@@ -47,24 +54,39 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
-    texture_manager_load(&graphics->texture_manager,
-                         "assets/textures/other_molly.jpg", &graphics->wgpu);
+    // molly :)
+    {
+        molly_texture_index = texture_manager_load(
+            &graphics->texture_manager, "assets/textures/other_molly.jpg",
+            &graphics->wgpu);
 
-    Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
-    Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
-                                   (vec2s){.x = 200 * 1.33, .y = 200});
-    Quad quad = {
-        .rect = rect,
-        .tex_coords = tex_coords,
-    };
-    quad_manager_add(&graphics->quad_manager, quad);
+        Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+        Rect rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
+                                       (vec2s){.x = 200 * 1.33, .y = 200});
+        Quad quad = {
+            .rect = rect,
+            .tex_coords = tex_coords,
+        };
+        molly_quad_index = quad_manager_add(&graphics->quad_manager, quad);
 
-    quad.rect = rect_from_min_size((vec2s){.x = 0., .y = 0.},
-                                   (vec2s){.x = 640.0, .y = 480.0});
-    quad_manager_add(&graphics->quad_manager, quad);
+        Transform transform = transform_from_xyz(0.0, 0.0, 0.0);
+        molly_transform_index =
+            transform_manager_add(&graphics->transform_manager, transform);
+    }
 
-    Transform transform = transform_from_xyz(0.0, 0.0, 0.0);
-    transform_manager_add(&graphics->transform_manager, transform);
+    // screen quad
+    {
+        Rect rect = {
+            .min = {.x = -1.0, .y = 1.0},
+            .max = {.x = 1.0, .y = -1.0},
+        };
+        Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+        Quad quad = {
+            .rect = rect,
+            .tex_coords = tex_coords,
+        };
+        screen_quad_index = quad_manager_add(&graphics->quad_manager, quad);
+    }
 }
 
 int camera_x = 0;
@@ -104,8 +126,6 @@ void graphics_render(Graphics *graphics, Input *input)
 
     bind_group_builder_init(&builder);
 
-    bind_group_builder_append_buffer(&builder,
-                                     graphics->transform_manager.buffer);
     bind_group_builder_append_texture_view(&builder, graphics->color_view);
     bind_group_builder_append_texture_view(&builder, graphics->normal_view);
     bind_group_builder_append_sampler(&builder, graphics->sampler);
@@ -188,14 +208,14 @@ void graphics_render(Graphics *graphics, Input *input)
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
     ObjectPushConstants push_constants = {
         .camera = camera,
-        .transform_index = 0,
-        .texture_index = 0,
+        .transform_index = molly_transform_index,
+        .texture_index = molly_texture_index->index,
     };
     wgpuRenderPassEncoderSetPushConstants(
         render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
         sizeof(ObjectPushConstants), &push_constants);
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
-                              QUAD_ENTRY_TO_VERTEX_INDEX(0), 0);
+                              QUAD_ENTRY_TO_VERTEX_INDEX(molly_quad_index), 0);
 
     wgpuRenderPassEncoderEnd(render_pass);
     wgpuRenderPassEncoderRelease(render_pass);
@@ -219,19 +239,8 @@ void graphics_render(Graphics *graphics, Input *input)
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
 
-    LightPushConstants light_push_constants = {
-        .camera = camera,
-        .camera_world_pos = {.x = camera_x, .y = camera_y, .z = 0},
-        .light_world_pos = {.x = 48.0, .y = 0.0, .z = 0.0},
-        .transform_index = 0,
-        .color = {.x = 1.0, .y = 1.0, .z = 1.0, .w = 1.0},
-    };
-    wgpuRenderPassEncoderSetPushConstants(
-        render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-        sizeof(LightPushConstants), &light_push_constants);
-
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
-                              QUAD_ENTRY_TO_VERTEX_INDEX(1), 0);
+                              QUAD_ENTRY_TO_VERTEX_INDEX(screen_quad_index), 0);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 

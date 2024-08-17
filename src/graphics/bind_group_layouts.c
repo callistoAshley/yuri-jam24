@@ -50,12 +50,6 @@ void bing_group_layouts_init(BindGroupLayouts *layouts,
 
     bind_group_layout_builder_init(&builder);
 
-    entry = (WGPUBindGroupLayoutEntry){
-        .buffer = buffer_layout,
-        .visibility = WGPUShaderStage_Vertex,
-    };
-    bind_group_layout_builder_append(&builder, entry);
-
     texture_layout.sampleType = WGPUTextureSampleType_UnfilterableFloat;
     entry = (WGPUBindGroupLayoutEntry){
         .texture = texture_layout,

@@ -17,15 +17,6 @@ typedef struct Shaders
 typedef struct
 {
     mat4s camera;
-    vec3s camera_world_pos;
-    u32 transform_index;
-    vec3s light_world_pos;
-    vec4s color;
-} LightPushConstants;
-
-typedef struct
-{
-    mat4s camera;
     u32 transform_index;
     u32 texture_index;
 } ObjectPushConstants;
