@@ -27,7 +27,7 @@ typedef struct
     mat4s camera;
     u32 transform_index;
     u32 texture_index;
-    u32 map_width, map_height;
+    u32 map_width;
 } TilemapPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,

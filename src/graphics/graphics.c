@@ -99,6 +99,66 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 int camera_x = 0;
 int camera_y = 0;
 
+void build_object_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+{
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+    bind_group_builder_append_texture_view_array(
+        &builder,
+        (WGPUTextureView *)graphics->texture_manager.texture_views.data,
+        graphics->texture_manager.texture_views.len);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
+                                   graphics->bind_group_layouts.object,
+                                   "Transform Bind Group");
+
+    bind_group_builder_free(&builder);
+}
+
+void build_light_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+{
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_texture_view(&builder, graphics->color_view);
+    bind_group_builder_append_texture_view(&builder, graphics->normal_view);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
+                                   graphics->bind_group_layouts.lighting,
+                                   "Light Bind Group");
+
+    bind_group_builder_free(&builder);
+}
+
+void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+{
+    // FIXME it's a waste to create a new bind group every frame + this has the
+    // same layout as the regular object bind group
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+    bind_group_builder_append_texture_view_array(
+        &builder,
+        (WGPUTextureView *)graphics->texture_manager.texture_views.data,
+        graphics->texture_manager.texture_views.len);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
+                                   graphics->bind_group_layouts.tilemap,
+                                   "Tilemap Bind Group");
+
+    bind_group_builder_free(&builder);
+}
+
 void graphics_render(Graphics *graphics, Input *input)
 {
     if (input_is_down(input, Button_Down))
@@ -114,34 +174,14 @@ void graphics_render(Graphics *graphics, Input *input)
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
 
-    BindGroupBuilder builder;
-    bind_group_builder_init(&builder);
+    WGPUBindGroup object_bind_group;
+    build_object_bind_group(graphics, &object_bind_group);
 
-    bind_group_builder_append_buffer(&builder,
-                                     graphics->transform_manager.buffer);
-    bind_group_builder_append_texture_view_array(
-        &builder,
-        (WGPUTextureView *)graphics->texture_manager.texture_views.data,
-        graphics->texture_manager.texture_views.len);
-    bind_group_builder_append_sampler(&builder, graphics->sampler);
+    WGPUBindGroup light_bind_group;
+    build_light_bind_group(graphics, &light_bind_group);
 
-    WGPUBindGroup transform_bind_group = bind_group_build(
-        &builder, graphics->wgpu.device, graphics->bind_group_layouts.object,
-        "Transform Bind Group");
-
-    bind_group_builder_free(&builder);
-
-    bind_group_builder_init(&builder);
-
-    bind_group_builder_append_texture_view(&builder, graphics->color_view);
-    bind_group_builder_append_texture_view(&builder, graphics->normal_view);
-    bind_group_builder_append_sampler(&builder, graphics->sampler);
-
-    WGPUBindGroup light_bind_group = bind_group_build(
-        &builder, graphics->wgpu.device, graphics->bind_group_layouts.lighting,
-        "Light Bind Group");
-
-    bind_group_builder_free(&builder);
+    WGPUBindGroup tilemap_bind_group;
+    build_tilemap_bind_group(graphics, &tilemap_bind_group);
 
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -207,7 +247,12 @@ void graphics_render(Graphics *graphics, Input *input)
                   (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
-    tilemap_render(&tilemap, graphics, camera, render_pass);
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.tilemap);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
+                                      NULL);
+
+    for (int i = 0; i < tilemap.layers; i++)
+        tilemap_render(&tilemap, camera, i, render_pass);
 
     wgpuRenderPassEncoderEnd(render_pass);
     wgpuRenderPassEncoderRelease(render_pass);
@@ -245,7 +290,9 @@ void graphics_render(Graphics *graphics, Input *input)
     wgpuQueueSubmit(graphics->wgpu.queue, 1, &command_buffer);
     wgpuSurfacePresent(graphics->wgpu.surface);
 
-    wgpuBindGroupRelease(transform_bind_group);
+    wgpuBindGroupRelease(object_bind_group);
+    wgpuBindGroupRelease(light_bind_group);
+    wgpuBindGroupRelease(tilemap_bind_group);
 
     wgpuCommandBufferRelease(command_buffer);
     wgpuRenderPassEncoderRelease(render_pass);

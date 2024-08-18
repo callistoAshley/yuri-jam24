@@ -38,52 +38,25 @@ void tilemap_free(Tilemap *tilemap, Graphics *graphics)
     transform_manager_remove(&graphics->transform_manager, tilemap->transform);
 }
 
-void tilemap_render(Tilemap *tilemap, Graphics *graphics, mat4s camera,
+void tilemap_render(Tilemap *tilemap, mat4s camera, int layer,
                     WGPURenderPassEncoder pass)
 {
-    // FIXME it's a waste to create a new bind group every frame + this has the
-    // same layout as the regular object bind group
-    BindGroupBuilder builder;
-    bind_group_builder_init(&builder);
-
-    bind_group_builder_append_buffer(&builder,
-                                     graphics->transform_manager.buffer);
-    bind_group_builder_append_texture_view_array(
-        &builder,
-        (WGPUTextureView *)graphics->texture_manager.texture_views.data,
-        graphics->texture_manager.texture_views.len);
-    bind_group_builder_append_sampler(&builder, graphics->sampler);
-
-    WGPUBindGroup bind_group = bind_group_build(
-        &builder, graphics->wgpu.device, graphics->bind_group_layouts.tilemap,
-        "Tilemap Bind Group");
-
-    bind_group_builder_free(&builder);
-
-    wgpuRenderPassEncoderSetPipeline(pass, graphics->shaders.tilemap);
-
-    // bind pipeline and buffers
-    wgpuRenderPassEncoderSetBindGroup(pass, 0, bind_group, 0, 0);
-    u32 buffer_size = wgpuBufferGetSize(tilemap->instances);
-    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, tilemap->instances, 0,
-                                         buffer_size);
+    u64 layer_size = tilemap->map_w * tilemap->map_h * sizeof(u32);
+    wgpuRenderPassEncoderSetVertexBuffer(pass, 0, tilemap->instances,
+                                         layer_size * layer, layer_size);
 
     TilemapPushConstants constants = {
         .camera = camera,
         .transform_index = tilemap->transform,
         .texture_index = tilemap->tileset->index,
         .map_width = tilemap->map_w,
-        .map_height = tilemap->map_h,
     };
 
     wgpuRenderPassEncoderSetPushConstants(
         pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
         sizeof(TilemapPushConstants), &constants);
     wgpuRenderPassEncoderDraw(pass, VERTICES_PER_QUAD,
-                              tilemap->map_w * tilemap->map_h * tilemap->layers,
-                              0, 0);
-
-    // wgpuBindGroupRelease(bind_group);
+                              tilemap->map_w * tilemap->map_h, 0, 0);
 }
 
 void tilemap_set_tile(Tilemap *tilemap, Graphics *graphics, int x, int y,
