@@ -8,14 +8,16 @@
 #include "webgpu.h"
 
 void tilemap_new(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
-                 TransformEntry transform, int map_w, int map_h, u32 *map_data)
+                 TransformEntry transform, int map_w, int map_h, int layers,
+                 u32 *map_data)
 {
     tilemap->tileset = tileset;
     tilemap->transform = transform;
     tilemap->map_w = map_w;
     tilemap->map_h = map_h;
+    tilemap->layers = layers;
 
-    usize map_data_size = map_w * map_h * sizeof(u32);
+    usize map_data_size = map_w * map_h * layers * sizeof(u32);
     log_info("map data size: %lu", map_data_size);
 
     WGPUBufferDescriptor buffer_desc = {
@@ -71,21 +73,25 @@ void tilemap_render(Tilemap *tilemap, Graphics *graphics, mat4s camera,
         .transform_index = tilemap->transform,
         .texture_index = tilemap->tileset->index,
         .map_width = tilemap->map_w,
+        .map_height = tilemap->map_h,
     };
 
     wgpuRenderPassEncoderSetPushConstants(
         pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
         sizeof(TilemapPushConstants), &constants);
     wgpuRenderPassEncoderDraw(pass, VERTICES_PER_QUAD,
-                              tilemap->map_w * tilemap->map_h, 0, 0);
+                              tilemap->map_w * tilemap->map_h * tilemap->layers,
+                              0, 0);
 
     // wgpuBindGroupRelease(bind_group);
 }
 
 void tilemap_set_tile(Tilemap *tilemap, Graphics *graphics, int x, int y,
-                      u16 tile)
+                      int layer, u16 tile)
 {
-    u64 byte_offset = (y * tilemap->map_w + x) * sizeof(u16);
+    u64 byte_offset =
+        (y * tilemap->map_w + x + (tilemap->map_w * tilemap->map_h) * layer) *
+        sizeof(u16);
     wgpuQueueWriteBuffer(graphics->wgpu.queue, tilemap->instances, byte_offset,
                          &tile, sizeof(u16));
 }

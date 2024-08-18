@@ -79,12 +79,20 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     TextureEntry *tileset =
         texture_manager_load(&graphics->texture_manager,
                              "assets/textures/red_start.png", &graphics->wgpu);
-    u32 map_data[20 * 15];
-    for (int i = 0; i < 20 * 15; i++)
+    u32 map_data[8 * 15 * 3];
+    for (int i = 0; i < 8 * 15; i++)
     {
         map_data[i] = 1;
     }
-    tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 20, 15,
+    for (int i = 0; i < 8 * 15; i++)
+    {
+        map_data[8 * 15 + i] = i % 88;
+    }
+    for (int i = 0; i < 8 * 15; i++)
+    {
+        map_data[8 * 15 * 2 + i] = 0;
+    }
+    tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 8, 15, 3,
                 map_data);
 }
 
