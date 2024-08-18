@@ -56,6 +56,9 @@ file(CREATE_LINK ${WGPU_INCLUDE_DIR}/webgpu-headers ${CMAKE_SOURCE_DIR}/webgpu S
 set(IMGUI_STATIC ON)
 add_subdirectory(cimgui/)
 
+set(BUILD_SHARED_LIBS OFF)
+add_subdirectory(box2d/)
+
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
 add_subdirectory(cglm/)
@@ -67,6 +70,8 @@ include_directories(
     ${WGPU_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}
     ${WGPU_INCLUDE_DIR}/webgpu-headers
+    ${BOX2D_INCLUDE_DIR}
+
     stb/
     cimgui/
     cimgui/imgui/
@@ -132,6 +137,7 @@ target_link_libraries(
   ${FMOD_LIBRARY}
   ${FMOD_STUDIO_LIBRARY}
   ${WGPU_LIBRARY}
+  ${BOX2D_LIBRARY}
   cimgui
   m # link against math library (looks really stupid lol)
 )
