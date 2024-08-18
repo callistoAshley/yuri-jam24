@@ -4,7 +4,7 @@
 
 typedef struct
 {
-    // Tiles are 16x16
+    // Tiles are 8x8
     TextureEntry *tileset;
     TransformEntry transform;
     int map_w, map_h, layers;

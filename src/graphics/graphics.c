@@ -2,9 +2,12 @@
 #include <wgpu.h>
 
 #include "graphics.h"
+#include "cglm/types-struct.h"
 #include "core_types.h"
 #include "binding_helper.h"
 #include "graphics/layer.h"
+#include "graphics/quad_manager.h"
+#include "graphics/sprite.h"
 #include "graphics/tilemap.h"
 #include "imgui-wgpu.h"
 #include "input/input.h"
@@ -14,6 +17,7 @@
 int screen_quad_index;
 
 Tilemap tilemap;
+Sprite player_sprite;
 
 typedef struct
 {
@@ -27,6 +31,14 @@ void tilemap_layer_draw(void *layer, Graphics *graphics, mat4s camera,
     (void)graphics;
     TilemapLayer *tilemap_layer = layer;
     tilemap_render(tilemap_layer->tilemap, camera, tilemap_layer->layer, pass);
+}
+
+void sprite_draw(void *thing, Graphics *graphics, mat4s camera,
+                 WGPURenderPassEncoder pass)
+{
+    (void)graphics;
+    Sprite *sprite = thing;
+    sprite_render(sprite, camera, pass);
 }
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
@@ -46,9 +58,9 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     layer_init(&graphics->tilemap_layers.middle, tilemap_layer_draw, free);
     layer_init(&graphics->tilemap_layers.foreground, tilemap_layer_draw, free);
 
-    layer_init(&graphics->sprite_layers.background, NULL, NULL);
-    layer_init(&graphics->sprite_layers.middle, NULL, NULL);
-    layer_init(&graphics->sprite_layers.foreground, NULL, NULL);
+    layer_init(&graphics->sprite_layers.background, sprite_draw, NULL);
+    layer_init(&graphics->sprite_layers.middle, sprite_draw, NULL);
+    layer_init(&graphics->sprite_layers.foreground, sprite_draw, NULL);
 
     // load bearing molly
     // why do we need this? primarily to make sure that at least one texture is
@@ -96,24 +108,47 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         screen_quad_index = quad_manager_add(&graphics->quad_manager, quad);
     }
 
-    Transform transform = transform_from_xyz(0, 0, 0);
-    TransformEntry tilemap_transform =
-        transform_manager_add(&graphics->transform_manager, transform);
-    TextureEntry *tileset =
-        texture_manager_load(&graphics->texture_manager,
-                             "assets/textures/red_start.png", &graphics->wgpu);
-    u32 map_data[8 * 15];
-    for (int i = 0; i < 8 * 15; i++)
     {
-        map_data[i] = 1;
-    }
-    tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 8, 15, 1,
-                map_data);
+        Transform transform = transform_from_xyz(0, 0, 0);
+        TransformEntry tilemap_transform =
+            transform_manager_add(&graphics->transform_manager, transform);
+        TextureEntry *tileset = texture_manager_load(
+            &graphics->texture_manager, "assets/textures/red_start.png",
+            &graphics->wgpu);
+        u32 map_data[8 * 15];
+        for (int i = 0; i < 8 * 15; i++)
+        {
+            map_data[i] = 1;
+        }
+        tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 8, 15, 1,
+                    map_data);
 
-    TilemapLayer *background = malloc(sizeof(TilemapLayer));
-    background->tilemap = &tilemap;
-    background->layer = 0;
-    layer_add(&graphics->tilemap_layers.background, background);
+        TilemapLayer *background = malloc(sizeof(TilemapLayer));
+        background->tilemap = &tilemap;
+        background->layer = 0;
+        layer_add(&graphics->tilemap_layers.background, background);
+    }
+
+    {
+        Transform transform = transform_from_xyz(0, 0, 0);
+        TransformEntry player_transform =
+            transform_manager_add(&graphics->transform_manager, transform);
+        TextureEntry *texture =
+            texture_manager_load(&graphics->texture_manager,
+                                 "assets/textures/kitty.png", &graphics->wgpu);
+
+        Rect rect =
+            rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 32, .y = 32});
+        Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+        Quad quad = {
+            .rect = rect,
+            .tex_coords = tex_coords,
+        };
+        QuadEntry player_quad = quad_manager_add(&graphics->quad_manager, quad);
+
+        sprite_init(&player_sprite, texture, player_transform, player_quad);
+        layer_add(&graphics->sprite_layers.middle, &player_sprite);
+    }
 }
 
 int camera_x = 0;

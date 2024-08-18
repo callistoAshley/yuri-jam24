@@ -97,6 +97,7 @@ add_executable(game
     src/graphics/transform_manager.c
     src/graphics/tilemap.c
     src/graphics/layer.c
+    src/graphics/sprite.c
 
     src/input/input.c
 
