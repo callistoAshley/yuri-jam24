@@ -13,7 +13,7 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "Untitled.md",
+                "file": "the drabblezone/3.md",
                 "mode": "source",
                 "source": false
               }
@@ -85,7 +85,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "Untitled.md",
+                "file": "the drabblezone/3.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +102,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "Untitled.md",
+                "file": "the drabblezone/3.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +125,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "Untitled.md"
+                "file": "the drabblezone/3.md"
               }
             }
           }
@@ -148,11 +148,13 @@
   },
   "active": "6ff3038ed05721ac",
   "lastOpenFiles": [
+    "the drabblezone/1.md",
+    "the drabblezone/2.md",
+    "the drabblezone/4.md",
+    "the drabblezone/3.md",
+    "Untitled.md",
     "The Sun.md",
     "The Angels.md",
-    "Untitled.md",
-    "the drabblezone/2.md",
-    "the drabblezone/1.md",
     "characters.md",
     "braindump.md",
     "the drabblezone",
