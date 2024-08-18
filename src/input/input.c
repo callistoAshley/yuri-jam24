@@ -1,5 +1,6 @@
 #include "input.h"
 #include <SDL3/SDL.h>
+#include <SDL3/SDL_events.h>
 
 void input_new(Input *input)
 {
@@ -7,42 +8,46 @@ void input_new(Input *input)
     input->curr = 0;
 }
 
-void input_start_frame(Input *input)
-{
-    input->prev = input->curr;
-    input->curr = 0;
-}
+void input_start_frame(Input *input) { input->prev = input->curr; }
 
 void input_process(SDL_Event *event, Input *input)
 {
+    bool key_is_down = event->type == SDL_EVENT_KEY_DOWN;
+#define TOGGLE_BUTTON_IF_DOWN(button)                                          \
+    if (key_is_down)                                                           \
+        input->curr |= button;                                                 \
+    else                                                                       \
+        input->curr &= ~button;
     switch (event->type)
     {
     case SDL_EVENT_QUIT:
         input->curr |= Button_Quit;
         break;
+    case SDL_EVENT_KEY_UP:
     case SDL_EVENT_KEY_DOWN:
         switch (event->key.key)
         {
         case SDLK_LEFT:
-            input->curr |= Button_Left;
+            TOGGLE_BUTTON_IF_DOWN(Button_Left);
             break;
         case SDLK_RIGHT:
-            input->curr |= Button_Right;
+            TOGGLE_BUTTON_IF_DOWN(Button_Right);
             break;
         case SDLK_UP:
-            input->curr |= Button_Up;
+            TOGGLE_BUTTON_IF_DOWN(Button_Up);
             break;
         case SDLK_DOWN:
-            input->curr |= Button_Down;
+            TOGGLE_BUTTON_IF_DOWN(Button_Down);
             break;
         case SDLK_SPACE:
-            input->curr |= Button_Jump;
+            TOGGLE_BUTTON_IF_DOWN(Button_Jump);
             break;
         case SDLK_C:
-            input->curr |= Button_Crouch;
+            TOGGLE_BUTTON_IF_DOWN(Button_Crouch);
             break;
         case SDLK_ESCAPE:
-            input->curr |= Button_Quit;
+            TOGGLE_BUTTON_IF_DOWN(Button_Quit);
+            break;
         default:
             break;
         }
