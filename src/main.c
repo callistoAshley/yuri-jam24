@@ -1,3 +1,4 @@
+#include "physics/physics.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
 #include <fmod_errors.h>
@@ -52,6 +53,9 @@ int main(int argc, char **argv)
     Input input;
     input_new(&input);
 
+    Physics physics;
+    physics_init(&physics);
+
     Player player = PLAYER_INIT;
 
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
@@ -90,10 +94,20 @@ int main(int argc, char **argv)
     ImGui_ImplSDL3_InitForOther(window);
     ImGui_ImplWGPU_Init(&imgui_init_info);
 
+    u64 last_frame = SDL_GetTicksNS();
+    u64 accumulator = 0;
+
+    const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / STEPS_PER_SEC;
+
     bool fullscreen = false;
     while (!input_is_down(&input, Button_Quit))
     {
         SDL_Event event;
+
+        u64 current_frame = SDL_GetTicksNS();
+        u64 delta_time = current_frame - last_frame;
+        last_frame = current_frame;
+        accumulator += delta_time;
 
         ImGui_ImplWGPU_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -130,9 +144,14 @@ int main(int argc, char **argv)
                 break;
         }
 
+        while (accumulator >= FIXED_TIME_STEP)
+        {
+            physics_update(&physics);
+            accumulator -= FIXED_TIME_STEP;
+        }
+
         igRender();
         graphics_render(&graphics, &input);
-        SDL_Delay(16); // this doesn't handle vsync properly
 
         if (first_frame)
         {

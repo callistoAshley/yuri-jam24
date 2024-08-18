@@ -70,7 +70,6 @@ include_directories(
     ${WGPU_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}
     ${WGPU_INCLUDE_DIR}/webgpu-headers
-    ${BOX2D_INCLUDE_DIR}
 
     stb/
     cimgui/
@@ -103,6 +102,8 @@ add_executable(game
     src/graphics/tilemap.c
     src/graphics/layer.c
     src/graphics/sprite.c
+
+    src/physics/physics.c
 
     src/input/input.c
 
@@ -137,7 +138,7 @@ target_link_libraries(
   ${FMOD_LIBRARY}
   ${FMOD_STUDIO_LIBRARY}
   ${WGPU_LIBRARY}
-  ${BOX2D_LIBRARY}
+  box2d
   cimgui
   m # link against math library (looks really stupid lol)
 )

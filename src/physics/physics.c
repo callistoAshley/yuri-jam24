@@ -1,0 +1,16 @@
+#include "physics.h"
+
+void physics_init(Physics *physics)
+{
+    b2WorldDef worldDef = b2DefaultWorldDef();
+    worldDef.gravity = (b2Vec2){0.0f, -9.81f};
+    physics->world = b2CreateWorld(&worldDef);
+}
+
+void physics_update(Physics *physics)
+{
+    f32 timestep = 1.0f / STEPS_PER_SEC;
+    i32 substeps = 5;
+
+    b2World_Step(physics->world, timestep, substeps);
+}
