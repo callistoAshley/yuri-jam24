@@ -14,7 +14,7 @@ typedef union
     Vertex vertex[VERTICES_PER_QUAD];
     struct
     {
-        // will be ENTRY_FREE if the entry is free
+        // will be QUAD_ENTRY_FREE if the entry is free
         u32 is_free;
         QuadEntry next;
     } next;
@@ -57,7 +57,7 @@ QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
     {
         QuadEntryData entry;
         memcpy(entry.vertex, vertices, sizeof(vertices));
-        assert(entry.next.is_free != ENTRY_FREE);
+        assert(entry.next.is_free != QUAD_ENTRY_FREE);
         vec_push(&manager->entries, &entry);
         manager->next++;
     }
@@ -65,7 +65,7 @@ QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
     {
         QuadEntryData *entry = vec_get(&manager->entries, manager->next);
         assert(entry != NULL);
-        assert(entry->next.is_free == ENTRY_FREE);
+        assert(entry->next.is_free == QUAD_ENTRY_FREE);
         manager->next = entry->next.next;
         memcpy(entry->vertex, vertices, sizeof(vertices));
     }
@@ -77,9 +77,9 @@ void quad_manager_remove(QuadManager *manager, QuadEntry entry)
 {
     QuadEntryData *data = vec_get(&manager->entries, entry);
     assert(data != NULL);
-    assert(data->next.is_free != ENTRY_FREE);
+    assert(data->next.is_free != QUAD_ENTRY_FREE);
 
-    data->next.is_free = ENTRY_FREE;
+    data->next.is_free = QUAD_ENTRY_FREE;
     data->next.next = manager->next;
     manager->next = entry;
 
@@ -91,7 +91,7 @@ void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad)
 {
     QuadEntryData *data = vec_get(&manager->entries, entry);
     assert(data != NULL);
-    assert(data->next.is_free != ENTRY_FREE);
+    assert(data->next.is_free != QUAD_ENTRY_FREE);
 
     Vertex vertices[VERTICES_PER_QUAD];
     quad_into_vertices(quad, vertices);

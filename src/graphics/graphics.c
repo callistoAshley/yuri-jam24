@@ -34,6 +34,11 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                          "assets/textures/load_bearing_molly.png",
                          &graphics->wgpu);
 
+    layer_init(&graphics->layers.background);
+    layer_init(&graphics->layers.middle);
+    layer_init(&graphics->layers.foreground);
+    layer_init(&graphics->layers.lighting);
+
     WGPUExtent3D extents = {
         .width = INTERNAL_SCREEN_WIDTH,
         .height = INTERNAL_SCREEN_HEIGHT,
@@ -79,20 +84,12 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     TextureEntry *tileset =
         texture_manager_load(&graphics->texture_manager,
                              "assets/textures/red_start.png", &graphics->wgpu);
-    u32 map_data[8 * 15 * 3];
+    u32 map_data[8 * 15];
     for (int i = 0; i < 8 * 15; i++)
     {
         map_data[i] = 1;
     }
-    for (int i = 0; i < 8 * 15; i++)
-    {
-        map_data[8 * 15 + i] = i % 88;
-    }
-    for (int i = 0; i < 8 * 15; i++)
-    {
-        map_data[8 * 15 * 2 + i] = 0;
-    }
-    tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 8, 15, 3,
+    tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 8, 15, 1,
                 map_data);
 }
 

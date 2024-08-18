@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/layer.h"
 #include "graphics/tex_manager.h"
 #include "input/input.h"
 #include "transform_manager.h"
@@ -32,6 +33,14 @@ typedef struct Graphics
     WGPUTextureView color_view;
     WGPUTexture normal;
     WGPUTextureView normal_view;
+
+    struct
+    {
+        Layer background;
+        Layer middle;
+        Layer foreground;
+        Layer lighting;
+    } layers;
 } Graphics;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);

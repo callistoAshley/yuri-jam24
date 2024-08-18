@@ -14,7 +14,7 @@ typedef union
     mat4s transform;
     struct
     {
-        // will be ENTRY_FREE if the entry is free
+        // will be TRANSFORM_ENTRY_FREE if the entry is free
         u32 is_free;
         TransformEntry next;
     } next;
@@ -57,7 +57,7 @@ TransformEntry transform_manager_add(TransformManager *manager,
     {
         TransformEntryData entry;
         entry.transform = matrix;
-        assert(entry.next.is_free != ENTRY_FREE);
+        assert(entry.next.is_free != TRANSFORM_ENTRY_FREE);
         vec_push(&manager->entries, &entry);
         manager->next++;
     }
@@ -65,7 +65,7 @@ TransformEntry transform_manager_add(TransformManager *manager,
     {
         TransformEntryData *entry = vec_get(&manager->entries, manager->next);
         assert(entry != NULL);
-        assert(entry->next.is_free == ENTRY_FREE);
+        assert(entry->next.is_free == TRANSFORM_ENTRY_FREE);
         manager->next = entry->next.next;
         entry->transform = matrix;
     }
@@ -77,9 +77,9 @@ void transform_manager_remove(TransformManager *manager, TransformEntry entry)
 {
     TransformEntryData *data = vec_get(&manager->entries, entry);
     assert(data != NULL);
-    assert(data->next.is_free != ENTRY_FREE);
+    assert(data->next.is_free != TRANSFORM_ENTRY_FREE);
 
-    data->next.is_free = ENTRY_FREE;
+    data->next.is_free = TRANSFORM_ENTRY_FREE;
     data->next.next = manager->next;
     manager->next = entry;
 
@@ -92,7 +92,7 @@ void transform_manager_update(TransformManager *manager, TransformEntry entry,
 {
     TransformEntryData *data = vec_get(&manager->entries, entry);
     assert(data != NULL);
-    assert(data->next.is_free != ENTRY_FREE);
+    assert(data->next.is_free != TRANSFORM_ENTRY_FREE);
 
     mat4s matrix = transform_into_matrix(Transform);
     data->transform = matrix;
