@@ -18,6 +18,7 @@ int screen_quad_index;
 
 Tilemap tilemap;
 Sprite player_sprite;
+Transform player_transform;
 
 typedef struct
 {
@@ -130,9 +131,9 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     }
 
     {
-        Transform transform = transform_from_xyz(0, 0, 0);
-        TransformEntry player_transform =
-            transform_manager_add(&graphics->transform_manager, transform);
+        player_transform = transform_from_xyz(0, 0, 0);
+        TransformEntry transform_entry = transform_manager_add(
+            &graphics->transform_manager, player_transform);
         TextureEntry *texture =
             texture_manager_load(&graphics->texture_manager,
                                  "assets/textures/kitty.png", &graphics->wgpu);
@@ -146,7 +147,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         };
         QuadEntry player_quad = quad_manager_add(&graphics->quad_manager, quad);
 
-        sprite_init(&player_sprite, texture, player_transform, player_quad);
+        sprite_init(&player_sprite, texture, transform_entry, player_quad);
         layer_add(&graphics->sprite_layers.middle, &player_sprite);
     }
 }
@@ -217,13 +218,16 @@ void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
 void graphics_render(Graphics *graphics, Input *input)
 {
     if (input_is_down(input, Button_Down))
-        camera_y--;
+        player_transform.position.y++;
     if (input_is_down(input, Button_Up))
-        camera_y++;
+        player_transform.position.y--;
     if (input_is_down(input, Button_Left))
-        camera_x++;
+        player_transform.position.x--;
     if (input_is_down(input, Button_Right))
-        camera_x--;
+        player_transform.position.x++;
+
+    transform_manager_update(&graphics->transform_manager,
+                             player_sprite.transform, player_transform);
 
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
