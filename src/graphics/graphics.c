@@ -8,16 +8,20 @@
 #include "graphics/layer.h"
 #include "graphics/quad_manager.h"
 #include "graphics/sprite.h"
+#include "graphics/tex_manager.h"
 #include "graphics/tilemap.h"
 #include "imgui-wgpu.h"
 #include "input/input.h"
+#include "utility/log.h"
 #include "utility/macros.h"
 #include "webgpu.h"
 
 int screen_quad_index;
 
 Tilemap tilemap;
+
 Sprite player_sprite;
+int player_tex_width, player_tex_height;
 Transform player_transform;
 
 typedef struct
@@ -134,20 +138,28 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         player_transform = transform_from_xyz(0, 0, 0);
         TransformEntry transform_entry = transform_manager_add(
             &graphics->transform_manager, player_transform);
-        TextureEntry *texture =
+
+        TextureEntry *texture_entry =
             texture_manager_load(&graphics->texture_manager,
                                  "assets/textures/kitty.png", &graphics->wgpu);
+        WGPUTexture texture = texture_manager_get_texture(
+            &graphics->texture_manager, texture_entry);
+        player_tex_width = wgpuTextureGetWidth(texture);
+        player_tex_height = wgpuTextureGetHeight(texture);
 
         Rect rect =
             rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 32, .y = 32});
-        Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+        Rect tex_coords =
+            rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 32.0, .y = 32.0});
         Quad quad = {
             .rect = rect,
             .tex_coords = tex_coords,
         };
+        quad = quad_norm_tex_coords(quad, player_tex_width, player_tex_height);
         QuadEntry player_quad = quad_manager_add(&graphics->quad_manager, quad);
 
-        sprite_init(&player_sprite, texture, transform_entry, player_quad);
+        sprite_init(&player_sprite, texture_entry, transform_entry,
+                    player_quad);
         layer_add(&graphics->sprite_layers.middle, &player_sprite);
     }
 }
@@ -215,16 +227,177 @@ void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_free(&builder);
 }
 
+typedef enum
+{
+    idle,
+    alert,
+    scratchself,
+    scratchwallN,
+    scratchwallS,
+    scratchwallE,
+    scratchwallW,
+    tired,
+    sleeping,
+    N,
+    NE,
+    E,
+    SE,
+    S,
+    SW,
+    W,
+    NW,
+} sprite_set;
+typedef enum
+{
+    Dir_None = 0,
+    Dir_N = 1 << 1,
+    Dir_W = 1 << 2,
+    Dir_S = 1 << 3,
+    Dir_E = 1 << 4,
+} Direction;
+const int sprite_sets[][2][2] = {
+    {
+        {-3, -3},
+        {-3, -3},
+    },
+    {
+        {-7, -3},
+        {-7, -3},
+    },
+    {
+        {-5, 0},
+        {-6, 0},
+    },
+    {
+        {0, 0},
+        {0, -1},
+    },
+    {
+        {-7, -1},
+        {-6, -2},
+    },
+    {
+        {-2, -2},
+        {-2, -3},
+    },
+    {
+        {-4, 0},
+        {-4, -1},
+    },
+    {
+        {-3, -2},
+        {-3, -2},
+    },
+    {
+        {-2, 0},
+        {-2, -1},
+    },
+    {
+        {-1, -2},
+        {-1, -3},
+    },
+    {
+        {0, -2},
+        {0, -3},
+    },
+    {
+        {-3, 0},
+        {-3, -1},
+    },
+    {
+        {-5, -1},
+        {-5, -2},
+    },
+    {
+        {-6, -3},
+        {-7, -2},
+    },
+    {
+        {-5, -3},
+        {-6, -1},
+    },
+    {
+        {-4, -2},
+        {-4, -3},
+    },
+    {
+        {-1, 0},
+        {-1, -1},
+    },
+};
+
 void graphics_render(Graphics *graphics, Input *input)
 {
+    Direction direction = Dir_None;
     if (input_is_down(input, Button_Down))
+    {
+        direction |= Dir_S;
         player_transform.position.y++;
+    }
     if (input_is_down(input, Button_Up))
+    {
+        direction |= Dir_N;
         player_transform.position.y--;
+    }
     if (input_is_down(input, Button_Left))
+    {
+        direction |= Dir_W;
         player_transform.position.x--;
+    }
     if (input_is_down(input, Button_Right))
+    {
+        direction |= Dir_E;
         player_transform.position.x++;
+    }
+
+    if (direction & Dir_S && direction & Dir_N)
+    {
+        direction ^= Dir_S | Dir_N;
+    }
+    if (direction & Dir_W && direction & Dir_E)
+    {
+        direction ^= Dir_W | Dir_E;
+    }
+
+    sprite_set set = idle;
+    if (direction & Dir_N && direction & Dir_W)
+        set = NW;
+    else if (direction & Dir_N && direction & Dir_E)
+        set = NE;
+    else if (direction & Dir_S && direction & Dir_W)
+        set = SW;
+    else if (direction & Dir_S && direction & Dir_E)
+        set = SE;
+    else if (direction & Dir_N)
+        set = N;
+    else if (direction & Dir_W)
+        set = W;
+    else if (direction & Dir_S)
+        set = S;
+    else if (direction & Dir_E)
+        set = E;
+
+    int animation_frame = SDL_GetTicks() / 100 % 2;
+    log_info("set: %d, frame: %d", set, animation_frame);
+
+    const int(*sprite_set)[2][2] = &sprite_sets[set];
+    const int(*sprite)[2] = &(*sprite_set)[animation_frame];
+
+    int tex_x = -(*sprite)[0];
+    int tex_y = -(*sprite)[1];
+    log_info("tex_x: %d, tex_y: %d", tex_x, tex_y);
+
+    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 32, .y = 32});
+    Rect tex_coords =
+        rect_from_min_size((vec2s){.x = tex_x * 32, .y = tex_y * 32},
+                           (vec2s){.x = 32.0, .y = 32.0});
+    Quad quad = {
+        .rect = rect,
+        .tex_coords = tex_coords,
+    };
+    quad = quad_norm_tex_coords(quad, player_tex_width, player_tex_height);
+
+    quad_manager_update(&graphics->quad_manager, player_sprite.quad, quad);
 
     transform_manager_update(&graphics->transform_manager,
                              player_sprite.transform, player_transform);

@@ -173,8 +173,9 @@ Quad quad_new(Rect rect, Rect tex_coords)
 Quad quad_norm_tex_coords(Quad quad, int tex_width, int tex_height)
 {
     Rect tex_coords = quad.tex_coords;
-    tex_coords.min = glms_vec2_divs(tex_coords.min, tex_width);
-    tex_coords.max = glms_vec2_divs(tex_coords.max, tex_height);
+    vec2s tex_size = (vec2s){.x = tex_width, .y = tex_height};
+    tex_coords.min = glms_vec2_div(tex_coords.min, tex_size);
+    tex_coords.max = glms_vec2_div(tex_coords.max, tex_size);
     return quad_new(quad.rect, tex_coords);
 }
 
