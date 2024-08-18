@@ -39,8 +39,17 @@ typedef struct Graphics
         Layer background;
         Layer middle;
         Layer foreground;
-        Layer lighting;
-    } layers;
+    } sprite_layers;
+
+    // why is this separate from the sprite layers? well, layers are set up to
+    // draw only ONE type of thing. why? because we want to minimize the amount
+    // of pipeline + bind group changes we have to do.
+    struct
+    {
+        Layer background;
+        Layer middle;
+        Layer foreground;
+    } tilemap_layers;
 } Graphics;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);

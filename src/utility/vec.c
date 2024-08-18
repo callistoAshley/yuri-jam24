@@ -120,3 +120,11 @@ void vec_remove(vec *v, usize index, void *elem)
 
 void vec_push(vec *v, void *elem) { vec_insert(v, v->len, elem); }
 void vec_pop(vec *v, void *elem) { vec_remove(v, v->len - 1, elem); }
+
+void vec_iter(vec *v, void *userdata, iter_fn fn)
+{
+    for (usize i = 0; i < v->len; i++)
+    {
+        fn(i, userdata, v->data + i * v->ele_size);
+    }
+}

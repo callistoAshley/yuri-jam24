@@ -1,58 +1,55 @@
 #include "layer.h"
+#include "sensible_nums.h"
+#include "utility/vec.h"
 #include <assert.h>
 
-typedef union
+typedef struct
 {
-    struct
-    {
-        void *thing;
-        thing_draw_fn draw;
-        thing_free_fn free;
-    } entry;
-
-    struct
-    {
-        size_t is_free;
-        LayerEntry next;
-    } next;
+    void *entry;
+    LayerEntry next;
 } LayerEntryData;
 
 #define INITIAL_BUFFER_CAP 32
 #define INITIAL_BUFFER_SIZE sizeof(TransformEntryData) * INITIAL_BUFFER_CAP
 
-void layer_init(Layer *layer)
+void layer_init(Layer *layer, prepare_fn prepare, thing_draw_fn draw,
+                thing_free_fn free)
 {
     vec_init_with_capacity(&layer->entries, sizeof(LayerEntryData),
                            INITIAL_BUFFER_CAP);
     layer->next = 0;
+
+    layer->prepare = prepare;
+    layer->draw = draw;
+    layer->free = free;
 }
 
-void layer_free_fn(usize index, void *this)
+void layer_free(Layer *layer)
 {
-    (void)index;
-
-    LayerEntryData *data = this;
-    if (data->next.is_free == LAYER_ENTRY_FREE)
-        return;
-
-    if (data->entry.free)
-        data->entry.free(data->entry.thing);
+    if (layer->free)
+    {
+        for (usize i = 0; i < layer->entries.len; i++)
+        {
+            LayerEntryData *data = vec_get(&layer->entries, i);
+            if ((usize)data->entry == LAYER_ENTRY_FREE)
+                continue;
+            layer->free(data->entry);
+        }
+    }
+    vec_free(&layer->entries);
 }
 
-void layer_free(Layer *layer) { vec_free_with(&layer->entries, layer_free_fn); }
-
-LayerEntry layer_add(Layer *layer, void *thing, thing_draw_fn draw,
-                     thing_free_fn free)
+LayerEntry layer_add(Layer *layer, void *thing)
 {
     LayerEntry key = layer->next;
 
     if (layer->next == layer->entries.len)
     {
         LayerEntryData entry = {
-            .entry = {.thing = thing, .draw = draw, .free = free},
+            .entry = thing,
         };
 
-        assert(entry.next.is_free != LAYER_ENTRY_FREE);
+        assert((usize)entry.entry != LAYER_ENTRY_FREE);
 
         vec_push(&layer->entries, &entry);
         layer->next++;
@@ -61,13 +58,11 @@ LayerEntry layer_add(Layer *layer, void *thing, thing_draw_fn draw,
     {
         LayerEntryData *entry = vec_get(&layer->entries, layer->next);
         assert(entry != NULL);
-        assert(entry->next.is_free == LAYER_ENTRY_FREE);
+        assert((usize)entry->entry == LAYER_ENTRY_FREE);
 
-        layer->next = entry->next.next;
+        layer->next = entry->next;
 
-        *entry = (LayerEntryData){
-            .entry = {.thing = thing, .draw = draw, .free = free},
-        };
+        entry->entry = thing;
     }
 
     return key;
@@ -77,24 +72,24 @@ void layer_remove(Layer *layer, LayerEntry entry)
 {
     LayerEntryData *data = vec_get(&layer->entries, entry);
     assert(data != NULL);
-    assert(data->next.is_free != LAYER_ENTRY_FREE);
+    assert((usize)data->entry != LAYER_ENTRY_FREE);
 
-    if (data->entry.free)
-        data->entry.free(data->entry.thing);
+    if (layer->free)
+        layer->free(data->entry);
 
-    data->next.is_free = LAYER_ENTRY_FREE;
-    data->next.next = layer->next;
+    data->entry = (void *)LAYER_ENTRY_FREE;
+    data->next = layer->next;
     layer->next = entry;
 }
 
 void layer_draw(Layer *layer, Graphics *graphics, WGPURenderPassEncoder pass)
 {
+    layer->prepare(layer, graphics, pass);
     for (usize i = 0; i < layer->entries.len; i++)
     {
         LayerEntryData *data = vec_get(&layer->entries, i);
-        if (data->next.is_free == LAYER_ENTRY_FREE)
+        if ((usize)data->entry == LAYER_ENTRY_FREE)
             continue;
-
-        data->entry.draw(data->entry.thing, graphics, pass);
+        layer->draw(data->entry, graphics, pass);
     }
 }

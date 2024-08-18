@@ -34,11 +34,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                          "assets/textures/load_bearing_molly.png",
                          &graphics->wgpu);
 
-    layer_init(&graphics->layers.background);
-    layer_init(&graphics->layers.middle);
-    layer_init(&graphics->layers.foreground);
-    layer_init(&graphics->layers.lighting);
-
     WGPUExtent3D extents = {
         .width = INTERNAL_SCREEN_WIDTH,
         .height = INTERNAL_SCREEN_HEIGHT,

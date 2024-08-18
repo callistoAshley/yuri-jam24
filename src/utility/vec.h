@@ -18,6 +18,7 @@ typedef struct
 } vec;
 
 typedef void (*vec_free_fn)(usize, void *);
+typedef void (*iter_fn)(usize, void *userdata, void *data);
 
 // initializes a vec with the given element size
 void vec_init(vec *v, usize ele_size);
@@ -34,6 +35,9 @@ void vec_free_with(vec *v, vec_free_fn free_fn);
 // returns a pointer to the element at the given index, or NULL if the index is
 // out of bounds
 void *vec_get(vec *v, usize index);
+
+// iterates over the vec, calling fn with the index and element at each index.
+void vec_iter(vec *v, void *userdata, iter_fn fn);
 
 void vec_clear(vec *v);
 void vec_clear_with(vec *v, vec_free_fn free_fn);
