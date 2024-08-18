@@ -80,13 +80,15 @@ void layer_remove(Layer *layer, LayerEntry entry)
     layer->next = entry;
 }
 
-void layer_draw(Layer *layer, Graphics *graphics, WGPURenderPassEncoder pass)
+void layer_draw(Layer *layer, Graphics *graphics, mat4s camera,
+                WGPURenderPassEncoder pass)
 {
     for (usize i = 0; i < layer->entries.len; i++)
     {
         LayerEntryData *data = vec_get(&layer->entries, i);
         if ((usize)data->entry == LAYER_ENTRY_FREE)
             continue;
-        layer->draw(data->entry, graphics, pass);
+        if (layer->draw)
+            layer->draw(data->entry, graphics, camera, pass);
     }
 }
