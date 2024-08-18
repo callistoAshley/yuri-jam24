@@ -29,8 +29,8 @@ void read_entire_file(const char *path, char **out, long *len)
     *len = length;
 }
 
-void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
-                  WGPUResources *resources)
+void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
+                          WGPUResources *resources)
 {
     char *buf;
     long buf_len;
@@ -40,38 +40,38 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     // this uses null-terminated strings, but read_entire_file returns something
     // null-terminated anyway, so it's fine (really wish this used a
     // length-based thing instead!!)
-    WGPUShaderModuleWGSLDescriptor object_wgsl_descriptor = {
+    WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
         .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
         .code = buf,
     };
-    WGPUShaderModuleDescriptor object_module_descriptor = {
+    WGPUShaderModuleDescriptor module_descriptor = {
         .label = "object",
-        .nextInChain = (WGPUChainedStruct *)&object_wgsl_descriptor,
+        .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
     };
 
-    WGPUShaderModule object_module = wgpuDeviceCreateShaderModule(
-        resources->device, &object_module_descriptor);
+    WGPUShaderModule module =
+        wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
 
-    WGPUPushConstantRange object_push_constant_ranges[] = {
+    WGPUPushConstantRange push_constant_ranges[] = {
         (WGPUPushConstantRange){
             .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
             .start = 0,
             .end = sizeof(ObjectPushConstants),
         },
     };
-    WGPUPipelineLayoutExtras object_extras = {
+    WGPUPipelineLayoutExtras extras = {
         .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
-        .pushConstantRanges = object_push_constant_ranges,
+        .pushConstantRanges = push_constant_ranges,
         .pushConstantRangeCount = 1,
     };
-    WGPUPipelineLayoutDescriptor object_layout_descriptor = {
-        .nextInChain = (WGPUChainedStruct *)&object_extras,
+    WGPUPipelineLayoutDescriptor layout_descriptor = {
+        .nextInChain = (WGPUChainedStruct *)&extras,
         .label = "basic",
         .bindGroupLayoutCount = 1,
         .bindGroupLayouts = &layouts->object,
     };
-    WGPUPipelineLayout object_layout = wgpuDeviceCreatePipelineLayout(
-        resources->device, &object_layout_descriptor);
+    WGPUPipelineLayout layout =
+        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
 
     WGPUVertexAttribute vertex_attributes[] = {
         (WGPUVertexAttribute){
@@ -90,12 +90,12 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .attributeCount = 2,
         .attributes = vertex_attributes};
 
-    WGPUVertexState vertex_state = {.module = object_module,
+    WGPUVertexState vertex_state = {.module = module,
                                     .entryPoint = "vs_main",
                                     .buffers = &vertex_buffer_layout,
                                     .bufferCount = 1};
 
-    WGPUColorTargetState object_color_targets[] = {
+    WGPUColorTargetState color_targets[] = {
         // color
         (WGPUColorTargetState){
             .format = WGPUTextureFormat_RGBA8Unorm,
@@ -106,10 +106,10 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
             .format = WGPUTextureFormat_RGBA32Float,
             .writeMask = WGPUColorWriteMask_All,
         }};
-    WGPUFragmentState fragment_state = {.module = object_module,
+    WGPUFragmentState fragment_state = {.module = module,
                                         .entryPoint = "fs_main",
                                         .targetCount = 2,
-                                        .targets = object_color_targets};
+                                        .targets = color_targets};
 
     WGPUPrimitiveState primitive = {
         .topology = WGPUPrimitiveTopology_TriangleList,
@@ -119,77 +119,221 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .mask = 0xFFFFFFFF,
     };
 
-    WGPURenderPipelineDescriptor object_descriptor = {
+    WGPURenderPipelineDescriptor descriptor = {
         .label = "object",
-        .layout = object_layout,
+        .layout = layout,
         .vertex = vertex_state,
         .fragment = &fragment_state,
         .primitive = primitive,
         .multisample = multisample,
     };
     shaders->object =
-        wgpuDeviceCreateRenderPipeline(resources->device, &object_descriptor);
+        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
     PTR_ERRCHK(shaders->object, "failed to create render pipeline");
 
     free(buf);
-    wgpuPipelineLayoutRelease(object_layout);
-    wgpuShaderModuleRelease(object_module);
+    wgpuPipelineLayoutRelease(layout);
+    wgpuShaderModuleRelease(module);
+}
+
+void create_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
+                         WGPUResources *resources)
+{
+    char *buf;
+    long buf_len;
 
     read_entire_file("assets/shaders/light.wgsl", &buf, &buf_len);
 
-    WGPUShaderModuleWGSLDescriptor lighting_wgsl_descriptor = {
+    WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
         .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
         .code = buf,
     };
-    WGPUShaderModuleDescriptor lighting_module_descriptor = {
+    WGPUShaderModuleDescriptor module_descriptor = {
         .label = "lighting",
-        .nextInChain = (WGPUChainedStruct *)&lighting_wgsl_descriptor,
+        .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
     };
 
-    WGPUShaderModule lighting_module = wgpuDeviceCreateShaderModule(
-        resources->device, &lighting_module_descriptor);
+    WGPUShaderModule module =
+        wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
 
-    WGPUPipelineLayoutDescriptor layout_descriptor_lighting = {
+    WGPUPipelineLayoutDescriptor layout_descriptor = {
         .label = "lighting",
         .bindGroupLayoutCount = 1,
         .bindGroupLayouts = &layouts->lighting,
     };
 
-    WGPUPipelineLayout layout_lighting = wgpuDeviceCreatePipelineLayout(
-        resources->device, &layout_descriptor_lighting);
+    WGPUPipelineLayout lighting =
+        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
 
-    WGPUVertexState vertex_state_lighting = {
-        .module = lighting_module,
+    WGPUVertexAttribute vertex_attributes[] = {
+        (WGPUVertexAttribute){
+            .format = WGPUVertexFormat_Float32x2,
+            .offset = 0,
+            .shaderLocation = 0,
+        },
+        (WGPUVertexAttribute){
+            .format = WGPUVertexFormat_Float32x2,
+            .offset = 2 * sizeof(float),
+            .shaderLocation = 1,
+        }};
+    WGPUVertexBufferLayout vertex_buffer_layout = {
+        .arrayStride = sizeof(Vertex),
+        .stepMode = WGPUVertexStepMode_Vertex,
+        .attributeCount = 2,
+        .attributes = vertex_attributes};
+
+    WGPUVertexState vertex_state = {
+        .module = module,
         .entryPoint = "vs_main",
         .buffers = &vertex_buffer_layout,
         .bufferCount = 1,
     };
 
-    WGPUColorTargetState lighting_color_targets[] = {(WGPUColorTargetState){
+    WGPUColorTargetState color_targets[] = {(WGPUColorTargetState){
         .format = resources->surface_config.format,
         .writeMask = WGPUColorWriteMask_All,
     }};
 
-    WGPUFragmentState fragment_state_lighting = {
-        .module = lighting_module,
+    WGPUFragmentState fragment_state = {
+        .module = module,
         .entryPoint = "fs_main",
         .targetCount = 1,
-        .targets = lighting_color_targets,
+        .targets = color_targets,
     };
 
-    WGPURenderPipelineDescriptor lighting_descriptor = {
+    WGPUPrimitiveState primitive = {
+        .topology = WGPUPrimitiveTopology_TriangleList,
+    };
+    WGPUMultisampleState multisample = {
+        .count = 1,
+        .mask = 0xFFFFFFFF,
+    };
+
+    WGPURenderPipelineDescriptor descriptor = {
         .label = "lighting",
-        .layout = layout_lighting,
-        .vertex = vertex_state_lighting,
-        .fragment = &fragment_state_lighting,
+        .layout = lighting,
+        .vertex = vertex_state,
+        .fragment = &fragment_state,
         .primitive = primitive,
         .multisample = multisample,
     };
 
     shaders->lighting =
-        wgpuDeviceCreateRenderPipeline(resources->device, &lighting_descriptor);
+        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
     free(buf);
-    wgpuPipelineLayoutRelease(layout_lighting);
-    wgpuShaderModuleRelease(lighting_module);
+    wgpuPipelineLayoutRelease(lighting);
+    wgpuShaderModuleRelease(module);
+}
+
+void create_tilemap_shader(Shaders *shaders, BindGroupLayouts *layouts,
+                           WGPUResources *resources)
+{
+    char *buf;
+    long buf_len;
+
+    read_entire_file("assets/shaders/tilemap.wgsl", &buf, &buf_len);
+
+    WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
+        .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
+        .code = buf,
+    };
+
+    WGPUShaderModuleDescriptor module_descriptor = {
+        .label = "tilemap",
+        .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
+    };
+
+    WGPUShaderModule module =
+        wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
+
+    WGPUPushConstantRange push_constant_ranges[] = {
+        (WGPUPushConstantRange){
+            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+            .start = 0,
+            .end = sizeof(TilemapPushConstants),
+        },
+    };
+    WGPUPipelineLayoutExtras extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
+        .pushConstantRanges = push_constant_ranges,
+        .pushConstantRangeCount = 1,
+    };
+    WGPUPipelineLayoutDescriptor layout_descriptor = {
+        .nextInChain = (WGPUChainedStruct *)&extras,
+        .label = "tilemap",
+        .bindGroupLayoutCount = 1,
+        .bindGroupLayouts = &layouts->tilemap,
+    };
+
+    WGPUPipelineLayout tilemap =
+        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
+
+    WGPUVertexAttribute vertex_attributes[] = {(WGPUVertexAttribute){
+        .format = WGPUVertexFormat_Uint32,
+        .offset = 0,
+        .shaderLocation = 0,
+    }};
+    WGPUVertexBufferLayout vertex_buffer_layout = {
+        .arrayStride = sizeof(u32),
+        .stepMode = WGPUVertexStepMode_Instance,
+        .attributeCount = 1,
+        .attributes = vertex_attributes,
+    };
+
+    WGPUVertexState vertex_state = {
+        .module = module,
+        .entryPoint = "vs_main",
+        .buffers = &vertex_buffer_layout,
+        .bufferCount = 1,
+    };
+
+    WGPUColorTargetState color_targets[] = {
+        // color
+        (WGPUColorTargetState){
+            .format = WGPUTextureFormat_RGBA8Unorm,
+            .writeMask = WGPUColorWriteMask_All,
+        },
+        // normal
+        (WGPUColorTargetState){
+            .format = WGPUTextureFormat_RGBA32Float,
+            .writeMask = WGPUColorWriteMask_All,
+        }};
+    WGPUFragmentState fragment_state = {.module = module,
+                                        .entryPoint = "fs_main",
+                                        .targetCount = 2,
+                                        .targets = color_targets};
+
+    WGPUPrimitiveState primitive = {
+        .topology = WGPUPrimitiveTopology_TriangleList,
+    };
+
+    WGPUMultisampleState multisample = {
+        .count = 1,
+        .mask = 0xFFFFFFFF,
+    };
+
+    WGPURenderPipelineDescriptor descriptor = {
+        .label = "tilemap",
+        .layout = tilemap,
+        .vertex = vertex_state,
+        .fragment = &fragment_state,
+        .primitive = primitive,
+        .multisample = multisample,
+    };
+
+    shaders->tilemap =
+        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
+
+    free(buf);
+    wgpuPipelineLayoutRelease(tilemap);
+    wgpuShaderModuleRelease(module);
+}
+
+void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
+                  WGPUResources *resources)
+{
+    create_object_shader(shaders, layouts, resources);
+    create_light_shader(shaders, layouts, resources);
+    create_tilemap_shader(shaders, layouts, resources);
 }

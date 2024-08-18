@@ -4,7 +4,7 @@
 #include "graphics.h"
 #include "core_types.h"
 #include "binding_helper.h"
-#include "graphics/tex_manager.h"
+#include "graphics/tilemap.h"
 #include "imgui-wgpu.h"
 #include "input/input.h"
 #include "utility/macros.h"
@@ -12,14 +12,12 @@
 
 int screen_quad_index;
 
-int hacky_quad_index;
-int hacky_transform_index;
-TextureEntry *hacky_texture;
+Tilemap tilemap;
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
     wgpu_resources_init(&graphics->wgpu, window);
-    bing_group_layouts_init(&graphics->bind_group_layouts, &graphics->wgpu);
+    bind_group_layouts_init(&graphics->bind_group_layouts, &graphics->wgpu);
     shaders_init(&graphics->shaders, &graphics->bind_group_layouts,
                  &graphics->wgpu);
 
@@ -75,22 +73,19 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         screen_quad_index = quad_manager_add(&graphics->quad_manager, quad);
     }
 
-    Rect rect = {
-        .min = {.x = 0.0, .y = 0.0},
-        .max = {.x = 64.0, .y = 92.0},
-    };
-    Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
-    Quad quad = {
-        .rect = rect,
-        .tex_coords = tex_coords,
-    };
-    hacky_quad_index = quad_manager_add(&graphics->quad_manager, quad);
     Transform transform = transform_from_xyz(0, 0, 0);
-    hacky_transform_index =
+    TransformEntry tilemap_transform =
         transform_manager_add(&graphics->transform_manager, transform);
-    hacky_texture =
+    TextureEntry *tileset =
         texture_manager_load(&graphics->texture_manager,
                              "assets/textures/red_start.png", &graphics->wgpu);
+    u32 map_data[20 * 15];
+    for (int i = 0; i < 20 * 15; i++)
+    {
+        map_data[i] = 1;
+    }
+    tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 20, 15,
+                map_data);
 }
 
 int camera_x = 0;
@@ -196,14 +191,6 @@ void graphics_render(Graphics *graphics, Input *input)
     WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
         command_encoder, &object_render_pass_desc);
 
-    // bind pipeline and buffers
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, transform_bind_group, 0,
-                                      0);
-    u32 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
-    wgpuRenderPassEncoderSetVertexBuffer(
-        render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
-
     mat4s camera_projection = glms_ortho(
         0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0, -1.0f, 1.0f);
     mat4s camera_transform =
@@ -211,16 +198,8 @@ void graphics_render(Graphics *graphics, Input *input)
                   (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
                   (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
-    ObjectPushConstants push_constants = {
-        .camera = camera,
-        .transform_index = hacky_transform_index,
-        .texture_index = hacky_texture->index,
-    };
-    wgpuRenderPassEncoderSetPushConstants(
-        render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-        sizeof(ObjectPushConstants), &push_constants);
-    wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
-                              QUAD_ENTRY_TO_VERTEX_INDEX(hacky_quad_index), 0);
+
+    tilemap_render(&tilemap, graphics, camera, render_pass);
 
     wgpuRenderPassEncoderEnd(render_pass);
     wgpuRenderPassEncoderRelease(render_pass);
@@ -241,6 +220,8 @@ void graphics_render(Graphics *graphics, Input *input)
                                                     &screen_render_pass_desc);
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.lighting);
     wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0, 0);
+
+    u64 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
 

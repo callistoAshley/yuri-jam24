@@ -29,15 +29,20 @@
         }                                                                      \
     }
 
-#define REALLOC_CHK(temp_ptr, assignee)                                  \
-    {                                                                    \
-        if (!temp_ptr)                                                   \
-        {                                                                \
-            if (assignee) free(assignee);                                \
-            FATAL("REALLOC_CHK failed at %s:%d.\n", __FILE__, __LINE__); \
-        }                                                                \
-        else                                                             \
-        {                                                                \
-            assignee = temp_ptr;                                         \
-        }                                                                \
-    } 
+#define REALLOC_CHK(temp_ptr, assignee)                                        \
+    {                                                                          \
+        if (!temp_ptr)                                                         \
+        {                                                                      \
+            if (assignee)                                                      \
+                free(assignee);                                                \
+            FATAL("REALLOC_CHK failed at %s:%d.\n", __FILE__, __LINE__);       \
+        }                                                                      \
+        else                                                                   \
+        {                                                                      \
+            assignee = temp_ptr;                                               \
+        }                                                                      \
+    }
+
+#define REMAINDER_OF(val, divisor) ((val) % (divisor))
+#define ALIGN_TO(val, align)                                                   \
+    REMAINDER_OF(val, align) == 0 ? val : val + align - REMAINDER_OF(val, align)

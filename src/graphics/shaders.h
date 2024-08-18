@@ -12,6 +12,7 @@ typedef struct Shaders
 {
     WGPURenderPipeline object;
     WGPURenderPipeline lighting;
+    WGPURenderPipeline tilemap;
 } Shaders;
 
 typedef struct
@@ -20,6 +21,14 @@ typedef struct
     u32 transform_index;
     u32 texture_index;
 } ObjectPushConstants;
+
+typedef struct
+{
+    mat4s camera;
+    u32 transform_index;
+    u32 texture_index;
+    u32 map_width;
+} TilemapPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources);

@@ -9,7 +9,8 @@ typedef struct
 {
     WGPUBindGroupLayout object;
     WGPUBindGroupLayout lighting;
+    WGPUBindGroupLayout tilemap;
 } BindGroupLayouts;
 
-void bing_group_layouts_init(BindGroupLayouts *layouts,
+void bind_group_layouts_init(BindGroupLayouts *layouts,
                              WGPUResources *resources);
