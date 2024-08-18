@@ -378,14 +378,12 @@ void graphics_render(Graphics *graphics, Input *input)
         set = E;
 
     int animation_frame = SDL_GetTicks() / 100 % 2;
-    log_info("set: %d, frame: %d", set, animation_frame);
 
     const int(*sprite_set)[2][2] = &sprite_sets[set];
     const int(*sprite)[2] = &(*sprite_set)[animation_frame];
 
     int tex_x = -(*sprite)[0];
     int tex_y = -(*sprite)[1];
-    log_info("tex_x: %d, tex_y: %d", tex_x, tex_y);
 
     Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 32, .y = 32});
     Rect tex_coords =
