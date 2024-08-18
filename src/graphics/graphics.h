@@ -55,3 +55,4 @@ typedef struct Graphics
 void graphics_init(Graphics *graphics, SDL_Window *window);
 void graphics_render(Graphics *graphics, Input *input);
 void graphics_free(Graphics *graphics);
+void graphics_resize(Graphics *graphics, int width, int height);

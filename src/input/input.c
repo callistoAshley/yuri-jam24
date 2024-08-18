@@ -48,6 +48,8 @@ void input_process(SDL_Event *event, Input *input)
         case SDLK_ESCAPE:
             TOGGLE_BUTTON_IF_DOWN(Button_Quit);
             break;
+        case SDLK_F11:
+            TOGGLE_BUTTON_IF_DOWN(Button_Fullscreen);
         default:
             break;
         }

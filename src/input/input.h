@@ -12,6 +12,8 @@ typedef enum
     Button_Jump = 1 << 4,
     Button_Crouch = 1 << 5,
     Button_Quit = 1 << 6,
+
+    Button_Fullscreen = 1 << 7,
 } Button;
 
 typedef struct

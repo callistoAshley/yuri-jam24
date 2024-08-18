@@ -412,3 +412,11 @@ void graphics_free(Graphics *graphics)
 
     wgpu_resources_free(&graphics->wgpu);
 }
+
+void graphics_resize(Graphics *graphics, int width, int height)
+{
+    graphics->wgpu.surface_config.width = width;
+    graphics->wgpu.surface_config.height = height;
+    wgpuSurfaceConfigure(graphics->wgpu.surface,
+                         &graphics->wgpu.surface_config);
+}

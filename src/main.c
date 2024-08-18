@@ -1,3 +1,4 @@
+#include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
 #include <fmod_errors.h>
 #include <fmod_studio.h>
@@ -62,7 +63,8 @@ int main(int argc, char **argv)
 
     graphics_init(&graphics, window);
 
-    if (init_level_editor) level_editor = lvledit_init(&graphics);
+    if (init_level_editor)
+        level_editor = lvledit_init(&graphics);
 
     char *files[] = {
         "assets/events.txt",
@@ -88,6 +90,7 @@ int main(int argc, char **argv)
     ImGui_ImplSDL3_InitForOther(window);
     ImGui_ImplWGPU_Init(&imgui_init_info);
 
+    bool fullscreen = false;
     while (!input_is_down(&input, Button_Quit))
     {
         SDL_Event event;
@@ -104,6 +107,18 @@ int main(int argc, char **argv)
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
             input_process(&event, &input);
+
+            if (event.type == SDL_EVENT_WINDOW_RESIZED)
+            {
+                graphics_resize(&graphics, event.window.data1,
+                                event.window.data2);
+            }
+        }
+
+        if (input_is_pressed(&input, Button_Fullscreen))
+        {
+            fullscreen = !fullscreen;
+            SDL_SetWindowFullscreen(window, fullscreen);
         }
 
         FMOD_Studio_System_Update(audio.system);
