@@ -12,14 +12,12 @@ typedef struct
 #define INITIAL_BUFFER_CAP 32
 #define INITIAL_BUFFER_SIZE sizeof(TransformEntryData) * INITIAL_BUFFER_CAP
 
-void layer_init(Layer *layer, prepare_fn prepare, thing_draw_fn draw,
-                thing_free_fn free)
+void layer_init(Layer *layer, thing_draw_fn draw, thing_free_fn free)
 {
     vec_init_with_capacity(&layer->entries, sizeof(LayerEntryData),
                            INITIAL_BUFFER_CAP);
     layer->next = 0;
 
-    layer->prepare = prepare;
     layer->draw = draw;
     layer->free = free;
 }
@@ -82,15 +80,13 @@ void layer_remove(Layer *layer, LayerEntry entry)
     layer->next = entry;
 }
 
-void layer_draw(Layer *layer, void *userdata, Graphics *graphics,
-                WGPURenderPassEncoder pass)
+void layer_draw(Layer *layer, Graphics *graphics, WGPURenderPassEncoder pass)
 {
-    layer->prepare(layer, userdata, graphics, pass);
     for (usize i = 0; i < layer->entries.len; i++)
     {
         LayerEntryData *data = vec_get(&layer->entries, i);
         if ((usize)data->entry == LAYER_ENTRY_FREE)
             continue;
-        layer->draw(data->entry, userdata, graphics, pass);
+        layer->draw(data->entry, graphics, pass);
     }
 }
