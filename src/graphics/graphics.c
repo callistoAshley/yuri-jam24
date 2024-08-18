@@ -395,6 +395,9 @@ void graphics_render(Graphics *graphics, Input *input)
     };
     quad = quad_norm_tex_coords(quad, player_tex_width, player_tex_height);
 
+    camera_x = player_transform.position.x + 16 - INTERNAL_SCREEN_WIDTH / 2.0;
+    camera_y = player_transform.position.y + 16 - INTERNAL_SCREEN_HEIGHT / 2.0;
+
     quad_manager_update(&graphics->quad_manager, player_sprite.quad, quad);
 
     transform_manager_update(&graphics->transform_manager,
