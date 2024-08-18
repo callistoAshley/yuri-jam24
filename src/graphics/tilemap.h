@@ -17,7 +17,7 @@ void tilemap_new(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
                  u32 *map_data);
 void tilemap_free(Tilemap *tilemap, Graphics *graphics);
 
-void tilemap_render(Tilemap *tilemap, Graphics *graphics, mat4s camera,
+void tilemap_render(Tilemap *tilemap, mat4s camera, int layer,
                     WGPURenderPassEncoder pass);
 void tilemap_set_tile(Tilemap *tilemap, Graphics *graphics, int x, int y,
                       int layer, u16 tile);

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/layer.h"
 #include "graphics/tex_manager.h"
 #include "input/input.h"
 #include "transform_manager.h"
@@ -9,10 +10,10 @@
 #include "bind_group_layouts.h"
 #include "player.h"
 
-#define INTERNAL_SCREEN_WIDTH 320
-#define INTERNAL_SCREEN_HEIGHT 240
+#define INTERNAL_SCREEN_WIDTH 160
+#define INTERNAL_SCREEN_HEIGHT 90
 
-#define WINDOW_SCALE 2
+#define WINDOW_SCALE 8
 #define WINDOW_WIDTH (INTERNAL_SCREEN_WIDTH * WINDOW_SCALE)
 #define WINDOW_HEIGHT (INTERNAL_SCREEN_HEIGHT * WINDOW_SCALE)
 
@@ -32,6 +33,23 @@ typedef struct Graphics
     WGPUTextureView color_view;
     WGPUTexture normal;
     WGPUTextureView normal_view;
+
+    struct
+    {
+        Layer background;
+        Layer middle;
+        Layer foreground;
+    } sprite_layers;
+
+    // why is this separate from the sprite layers? well, layers are set up to
+    // draw only ONE type of thing. why? because we want to minimize the amount
+    // of pipeline + bind group changes we have to do.
+    struct
+    {
+        Layer background;
+        Layer middle;
+        Layer foreground;
+    } tilemap_layers;
 } Graphics;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);

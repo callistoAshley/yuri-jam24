@@ -21,7 +21,6 @@ struct PushConstants {
   transform_index: u32,
   texture_index: i32,
   map_width: u32,
-  map_height: u32,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -54,10 +53,9 @@ fn vs_main(input: VertexInput) -> VertexOutput {
     return output;
   }
 
-  let layer_instance_index = input.instance_index % (push_constants.map_width * push_constants.map_height);
   let tile_position = vec2f(
-    f32(layer_instance_index % push_constants.map_width), 
-    f32(layer_instance_index / push_constants.map_width)
+    f32(input.instance_index % push_constants.map_width), 
+    f32(input.instance_index / push_constants.map_width)
   );
   var vertex_positions = VERTEX_POSITIONS;
   let vertex_position = vertex_positions[input.vertex_index] + (tile_position * 8.0);

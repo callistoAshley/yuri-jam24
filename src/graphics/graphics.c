@@ -4,6 +4,7 @@
 #include "graphics.h"
 #include "core_types.h"
 #include "binding_helper.h"
+#include "graphics/layer.h"
 #include "graphics/tilemap.h"
 #include "imgui-wgpu.h"
 #include "input/input.h"
@@ -13,6 +14,20 @@
 int screen_quad_index;
 
 Tilemap tilemap;
+
+typedef struct
+{
+    Tilemap *tilemap;
+    int layer;
+} TilemapLayer;
+
+void tilemap_layer_draw(void *layer, Graphics *graphics, mat4s camera,
+                        WGPURenderPassEncoder pass)
+{
+    (void)graphics;
+    TilemapLayer *tilemap_layer = layer;
+    tilemap_render(tilemap_layer->tilemap, camera, tilemap_layer->layer, pass);
+}
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
@@ -26,6 +41,14 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     // texture manager has no gpu side resources allocated initially so no need
     // to pass wgpu
     texture_manager_init(&graphics->texture_manager);
+
+    layer_init(&graphics->tilemap_layers.background, tilemap_layer_draw, free);
+    layer_init(&graphics->tilemap_layers.middle, tilemap_layer_draw, free);
+    layer_init(&graphics->tilemap_layers.foreground, tilemap_layer_draw, free);
+
+    layer_init(&graphics->sprite_layers.background, NULL, NULL);
+    layer_init(&graphics->sprite_layers.middle, NULL, NULL);
+    layer_init(&graphics->sprite_layers.foreground, NULL, NULL);
 
     // load bearing molly
     // why do we need this? primarily to make sure that at least one texture is
@@ -79,25 +102,82 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     TextureEntry *tileset =
         texture_manager_load(&graphics->texture_manager,
                              "assets/textures/red_start.png", &graphics->wgpu);
-    u32 map_data[8 * 15 * 3];
+    u32 map_data[8 * 15];
     for (int i = 0; i < 8 * 15; i++)
     {
         map_data[i] = 1;
     }
-    for (int i = 0; i < 8 * 15; i++)
-    {
-        map_data[8 * 15 + i] = i % 88;
-    }
-    for (int i = 0; i < 8 * 15; i++)
-    {
-        map_data[8 * 15 * 2 + i] = 0;
-    }
-    tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 8, 15, 3,
+    tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 8, 15, 1,
                 map_data);
+
+    TilemapLayer *background = malloc(sizeof(TilemapLayer));
+    background->tilemap = &tilemap;
+    background->layer = 0;
+    layer_add(&graphics->tilemap_layers.background, background);
 }
 
 int camera_x = 0;
 int camera_y = 0;
+
+void build_object_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+{
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+    bind_group_builder_append_texture_view_array(
+        &builder,
+        (WGPUTextureView *)graphics->texture_manager.texture_views.data,
+        graphics->texture_manager.texture_views.len);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
+                                   graphics->bind_group_layouts.object,
+                                   "Transform Bind Group");
+
+    bind_group_builder_free(&builder);
+}
+
+void build_light_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+{
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_texture_view(&builder, graphics->color_view);
+    bind_group_builder_append_texture_view(&builder, graphics->normal_view);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
+                                   graphics->bind_group_layouts.lighting,
+                                   "Light Bind Group");
+
+    bind_group_builder_free(&builder);
+}
+
+void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+{
+    // FIXME it's a waste to create a new bind group every frame + this has the
+    // same layout as the regular object bind group
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+    bind_group_builder_append_texture_view_array(
+        &builder,
+        (WGPUTextureView *)graphics->texture_manager.texture_views.data,
+        graphics->texture_manager.texture_views.len);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
+                                   graphics->bind_group_layouts.tilemap,
+                                   "Tilemap Bind Group");
+
+    bind_group_builder_free(&builder);
+}
 
 void graphics_render(Graphics *graphics, Input *input)
 {
@@ -114,34 +194,14 @@ void graphics_render(Graphics *graphics, Input *input)
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
 
-    BindGroupBuilder builder;
-    bind_group_builder_init(&builder);
+    WGPUBindGroup object_bind_group;
+    build_object_bind_group(graphics, &object_bind_group);
 
-    bind_group_builder_append_buffer(&builder,
-                                     graphics->transform_manager.buffer);
-    bind_group_builder_append_texture_view_array(
-        &builder,
-        (WGPUTextureView *)graphics->texture_manager.texture_views.data,
-        graphics->texture_manager.texture_views.len);
-    bind_group_builder_append_sampler(&builder, graphics->sampler);
+    WGPUBindGroup light_bind_group;
+    build_light_bind_group(graphics, &light_bind_group);
 
-    WGPUBindGroup transform_bind_group = bind_group_build(
-        &builder, graphics->wgpu.device, graphics->bind_group_layouts.object,
-        "Transform Bind Group");
-
-    bind_group_builder_free(&builder);
-
-    bind_group_builder_init(&builder);
-
-    bind_group_builder_append_texture_view(&builder, graphics->color_view);
-    bind_group_builder_append_texture_view(&builder, graphics->normal_view);
-    bind_group_builder_append_sampler(&builder, graphics->sampler);
-
-    WGPUBindGroup light_bind_group = bind_group_build(
-        &builder, graphics->wgpu.device, graphics->bind_group_layouts.lighting,
-        "Light Bind Group");
-
-    bind_group_builder_free(&builder);
+    WGPUBindGroup tilemap_bind_group;
+    build_tilemap_bind_group(graphics, &tilemap_bind_group);
 
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -206,8 +266,47 @@ void graphics_render(Graphics *graphics, Input *input)
                   (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
                   (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
+    u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
 
-    tilemap_render(&tilemap, graphics, camera, render_pass);
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.tilemap);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
+                                      NULL);
+    layer_draw(&graphics->tilemap_layers.background, graphics, camera,
+               render_pass);
+
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                      NULL);
+    wgpuRenderPassEncoderSetVertexBuffer(
+        render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+    layer_draw(&graphics->sprite_layers.background, graphics, camera,
+               render_pass);
+
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.tilemap);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
+                                      NULL);
+    layer_draw(&graphics->tilemap_layers.middle, graphics, camera, render_pass);
+
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                      NULL);
+    wgpuRenderPassEncoderSetVertexBuffer(
+        render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+    layer_draw(&graphics->sprite_layers.middle, graphics, camera, render_pass);
+
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.tilemap);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
+                                      NULL);
+    layer_draw(&graphics->tilemap_layers.foreground, graphics, camera,
+               render_pass);
+
+    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                      NULL);
+    wgpuRenderPassEncoderSetVertexBuffer(
+        render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+    layer_draw(&graphics->sprite_layers.foreground, graphics, camera,
+               render_pass);
 
     wgpuRenderPassEncoderEnd(render_pass);
     wgpuRenderPassEncoderRelease(render_pass);
@@ -229,9 +328,8 @@ void graphics_render(Graphics *graphics, Input *input)
     wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.lighting);
     wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0, 0);
 
-    u64 buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     wgpuRenderPassEncoderSetVertexBuffer(
-        render_pass, 0, graphics->quad_manager.buffer, 0, buffer_size);
+        render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
 
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
                               QUAD_ENTRY_TO_VERTEX_INDEX(screen_quad_index), 0);
@@ -245,7 +343,9 @@ void graphics_render(Graphics *graphics, Input *input)
     wgpuQueueSubmit(graphics->wgpu.queue, 1, &command_buffer);
     wgpuSurfacePresent(graphics->wgpu.surface);
 
-    wgpuBindGroupRelease(transform_bind_group);
+    wgpuBindGroupRelease(object_bind_group);
+    wgpuBindGroupRelease(light_bind_group);
+    wgpuBindGroupRelease(tilemap_bind_group);
 
     wgpuCommandBufferRelease(command_buffer);
     wgpuRenderPassEncoderRelease(render_pass);
@@ -259,6 +359,14 @@ void graphics_free(Graphics *graphics)
     quad_manager_free(&graphics->quad_manager);
     transform_manager_free(&graphics->transform_manager);
     texture_manager_free(&graphics->texture_manager);
+
+    layer_free(&graphics->tilemap_layers.background);
+    layer_free(&graphics->tilemap_layers.middle);
+    layer_free(&graphics->tilemap_layers.foreground);
+
+    layer_free(&graphics->sprite_layers.background);
+    layer_free(&graphics->sprite_layers.middle);
+    layer_free(&graphics->sprite_layers.foreground);
 
     wgpuRenderPipelineRelease(graphics->shaders.object);
     wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.object);

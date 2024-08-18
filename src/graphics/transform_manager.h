@@ -16,7 +16,7 @@ typedef struct
     u32 next;
 } TransformManager;
 
-#define ENTRY_FREE UINT32_MAX
+#define TRANSFORM_ENTRY_FREE UINT32_MAX
 typedef u32 TransformEntry;
 
 void transform_manager_init(TransformManager *manager,

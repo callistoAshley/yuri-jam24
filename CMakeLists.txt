@@ -96,6 +96,7 @@ add_executable(game
     src/graphics/binding_helper.c
     src/graphics/transform_manager.c
     src/graphics/tilemap.c
+    src/graphics/layer.c
 
     src/input/input.c
 
