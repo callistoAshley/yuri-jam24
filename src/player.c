@@ -29,17 +29,15 @@ void player_init(Player *player, Graphics *graphics, Physics *physics)
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position = (b2Vec2){1, 2};
-    // 45 degrees
-    // bodyDef.rotation = (b2Rot){.c = 0.70710678118, .s = 0.70710678118};
+    bodyDef.position = (b2Vec2){1, 4};
     player->body_id = b2CreateBody(physics->world, &bodyDef);
 
     b2Polygon dynamicBox =
         b2MakeBox(rect.max.x / PX_PER_M, rect.max.y / PX_PER_M);
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
-    shapeDef.friction = 0.3f;
-    shapeDef.restitution = 0.5f;
+    shapeDef.friction = 0.0f;
+    shapeDef.restitution = 1.0f;
     b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
 
     // hacky ground box
@@ -72,7 +70,7 @@ void player_update(Player *player, Graphics *graphics, Input *input)
     player->transform.position.x = body_position.x * PX_PER_M;
     player->transform.position.y = -body_position.y * PX_PER_M;
     // we need to convert the rotation to a quaternion
-    player->transform.rotation = glms_quatv(angle, GLMS_ZUP);
+    player->transform.rotation = glms_quatv(-angle, GLMS_ZUP);
 
     player->camera.x =
         player->transform.position.x - INTERNAL_SCREEN_WIDTH / 2.0;
