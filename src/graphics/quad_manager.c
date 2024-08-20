@@ -99,6 +99,17 @@ void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad)
     manager->dirty = true;
 }
 
+Quad quad_manager_get(QuadManager *manager, QuadEntry entry)
+{
+    QuadEntryData *data = vec_get(&manager->entries, entry);
+    assert(data != NULL);
+    assert(data->next.is_free != QUAD_ENTRY_FREE);
+
+    Vertex vertices[VERTICES_PER_QUAD];
+    memcpy(vertices, data->vertex, sizeof(vertices));
+    return quad_from_vertices(vertices);
+}
+
 // ---  ---
 
 void quad_manager_upload_dirty(QuadManager *manager, WGPUResources *resources)

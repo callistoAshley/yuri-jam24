@@ -28,6 +28,10 @@ TransformEntry transform_manager_add(TransformManager *manager,
 void transform_manager_remove(TransformManager *manager, TransformEntry entry);
 void transform_manager_update(TransformManager *manager, TransformEntry entry,
                               Transform transform);
+// WARNING: this is SLOW! only use for debugging. store transforms if you plan
+// to update them!
+Transform transform_manager_get(TransformManager *manager,
+                                TransformEntry entry);
 
 // call before using for rendering
 // returns true if the buffer was regenerated

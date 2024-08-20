@@ -24,6 +24,9 @@ void quad_manager_free(QuadManager *manager);
 QuadEntry quad_manager_add(QuadManager *manager, Quad quad);
 void quad_manager_remove(QuadManager *manager, QuadEntry entry);
 void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad);
+// WARNING: this is not slow, but it's not very fast either! store quads if you
+// plan to update them!
+Quad quad_manager_get(QuadManager *manager, QuadEntry entry);
 
 // call before using for rendering
 void quad_manager_upload_dirty(QuadManager *manager, WGPUResources *resources);

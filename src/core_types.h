@@ -42,6 +42,7 @@ vec3s transform_forward(Transform transform);
 vec3s transform_backward(Transform transform);
 
 mat4s transform_into_matrix(Transform transform);
+Transform transform_from_matrix(mat4s matrix);
 
 typedef struct
 {
@@ -110,3 +111,4 @@ void quad_into_corners(Quad quad, Vertex corners[4]);
 // |    \.
 // BL-----BR
 void quad_into_vertices(Quad quad, Vertex vertices[VERTICES_PER_QUAD]);
+Quad quad_from_vertices(Vertex vertices[VERTICES_PER_QUAD]);

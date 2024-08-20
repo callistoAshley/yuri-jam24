@@ -99,6 +99,15 @@ void transform_manager_update(TransformManager *manager, TransformEntry entry,
     manager->dirty = true;
 }
 
+Transform transform_manager_get(TransformManager *manager, TransformEntry entry)
+{
+    TransformEntryData *data = vec_get(&manager->entries, entry);
+    assert(data != NULL);
+    assert(data->next.is_free != TRANSFORM_ENTRY_FREE);
+
+    return transform_from_matrix(data->transform);
+}
+
 // ---  ---
 
 bool transform_manager_upload_dirty(TransformManager *manager,

@@ -99,6 +99,81 @@ mat4s transform_into_matrix(Transform transform)
     return matrix;
 }
 
+// good luck telling me how this works.
+// i found it on stackoverflow.
+// who fucking knows.
+versors mat3_to_quat(mat3s m)
+{
+    versors q;
+    float trace = m.raw[0][0] + m.raw[1][1] + m.raw[2][2];
+    if (trace > 0.0f)
+    {
+        float s = 0.5f / sqrtf(trace + 1.0f);
+        q.w = 0.25f / s;
+        q.x = (m.raw[2][1] - m.raw[1][2]) * s;
+        q.y = (m.raw[0][2] - m.raw[2][0]) * s;
+        q.z = (m.raw[1][0] - m.raw[0][1]) * s;
+    }
+    else
+    {
+        if (m.raw[0][0] > m.raw[1][1] && m.raw[0][0] > m.raw[2][2])
+        {
+            float s =
+                2.0f * sqrtf(1.0f + m.raw[0][0] - m.raw[1][1] - m.raw[2][2]);
+            q.w = (m.raw[2][1] - m.raw[1][2]) / s;
+            q.x = 0.25f * s;
+            q.y = (m.raw[0][1] + m.raw[1][0]) / s;
+            q.z = (m.raw[0][2] + m.raw[2][0]) / s;
+        }
+        else if (m.raw[1][1] > m.raw[2][2])
+        {
+            float s =
+                2.0f * sqrtf(1.0f + m.raw[1][1] - m.raw[0][0] - m.raw[2][2]);
+            q.w = (m.raw[0][2] - m.raw[2][0]) / s;
+            q.x = (m.raw[0][1] + m.raw[1][0]) / s;
+            q.y = 0.25f * s;
+            q.z = (m.raw[1][2] + m.raw[2][1]) / s;
+        }
+        else
+        {
+            float s =
+                2.0f * sqrtf(1.0f + m.raw[2][2] - m.raw[0][0] - m.raw[1][1]);
+            q.w = (m.raw[1][0] - m.raw[0][1]) / s;
+            q.x = (m.raw[0][2] + m.raw[2][0]) / s;
+            q.y = (m.raw[1][2] + m.raw[2][1]) / s;
+            q.z = 0.25f * s;
+        }
+    }
+    return q;
+}
+
+Transform transform_from_matrix(mat4s matrix)
+{
+    Transform transform;
+
+    // Extract translation
+    transform.position = glms_vec3(matrix.col[3]);
+
+    // Extract scale from the upper-left 3x3 matrix
+    transform.scale.x = glms_vec3_norm(glms_vec3(matrix.col[0]));
+    transform.scale.y = glms_vec3_norm(glms_vec3(matrix.col[1]));
+    transform.scale.z = glms_vec3_norm(glms_vec3(matrix.col[2]));
+
+    // Remove the scale from the matrix by normalizing the columns
+    mat3s rotationMatrix;
+    rotationMatrix.col[0] =
+        glms_vec3_scale(glms_vec3(matrix.col[0]), 1.0f / transform.scale.x);
+    rotationMatrix.col[1] =
+        glms_vec3_scale(glms_vec3(matrix.col[1]), 1.0f / transform.scale.y);
+    rotationMatrix.col[2] =
+        glms_vec3_scale(glms_vec3(matrix.col[2]), 1.0f / transform.scale.z);
+
+    // Extract rotation quaternion from the rotation matrix using mat3_to_quat
+    transform.rotation = mat3_to_quat(rotationMatrix);
+
+    return transform;
+}
+
 // ----
 
 Rect rect_new(vec2s min, vec2s max)
@@ -216,7 +291,7 @@ void quad_into_vertices(Quad quad, Vertex vertices[6])
     vertices[0] = corners[0];
     // top right
     vertices[1] = corners[1];
-    // bottom right
+    // bottom left
     vertices[2] = corners[3];
 
     // top right
@@ -225,4 +300,11 @@ void quad_into_vertices(Quad quad, Vertex vertices[6])
     vertices[4] = corners[3];
     // bottom right
     vertices[5] = corners[2];
+}
+
+Quad quad_from_vertices(Vertex *vertices)
+{
+    Rect rect = rect_new(vertices[0].position, vertices[5].position);
+    Rect tex_coords = rect_new(vertices[0].tex_coords, vertices[5].tex_coords);
+    return quad_new(rect, tex_coords);
 }
