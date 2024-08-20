@@ -1,5 +1,4 @@
 #include "player.h"
-#include "cglm/struct/vec2.h"
 #include "core_types.h"
 #include "utility/common_defines.h"
 
@@ -26,24 +25,46 @@ void player_init(Player *player, Graphics *graphics, Physics *physics)
 
     player->layer_entry =
         layer_add(&graphics->sprite_layers.middle, &player->sprite);
+
+    b2BodyDef bodyDef = b2DefaultBodyDef();
+    bodyDef.type = b2_dynamicBody;
+    bodyDef.position = (b2Vec2){0, 5};
+    // 45 degrees
+    bodyDef.rotation = (b2Rot){.c = 0.70710678118, .s = 0.70710678118};
+    player->body_id = b2CreateBody(physics->world, &bodyDef);
+
+    b2Polygon dynamicBox =
+        b2MakeBox(rect.max.x / PX_PER_M, rect.max.y / PX_PER_M);
+    b2ShapeDef shapeDef = b2DefaultShapeDef();
+    shapeDef.density = 1.0f;
+    shapeDef.friction = 0.3f;
+    shapeDef.restitution = 0.5f;
+    b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
+
+    // hacky ground box
+    b2BodyDef groundBodyDef = b2DefaultBodyDef();
+    groundBodyDef.position = (b2Vec2){50, -5.0};
+
+    b2BodyId groundId = b2CreateBody(physics->world, &groundBodyDef);
+    b2Polygon groundBox = b2MakeBox(50.0f, 5.0f);
+    b2ShapeDef groundShapeDef = b2DefaultShapeDef();
+    b2CreatePolygonShape(groundId, &groundShapeDef, &groundBox);
 }
 
 #define WALK_SPEED_MPS 6
 #define WALK_SEED_PXPS M_TO_PX(WALK_SPEED_MPS)
 void player_update(Player *player, Graphics *graphics, Input *input)
 {
-
-    if (input_is_down(input, Button_Down))
-        player->transform.position.y += WALK_SEED_PXPS * input->delta_seconds;
-
-    if (input_is_down(input, Button_Up))
-        player->transform.position.y -= WALK_SEED_PXPS * input->delta_seconds;
-
-    if (input_is_down(input, Button_Left))
-        player->transform.position.x -= WALK_SEED_PXPS * input->delta_seconds;
-
-    if (input_is_down(input, Button_Right))
-        player->transform.position.x += WALK_SEED_PXPS * input->delta_seconds;
+    b2Vec2 body_position = b2Body_GetPosition(player->body_id);
+    b2Rot rotation = b2Body_GetRotation(player->body_id);
+    float angle = b2Rot_GetAngle(rotation);
+    // box2d has a different coordinate system than us
+    // +y is up for box2d, down for us
+    // so we need to negate the y component
+    player->transform.position.x = body_position.x * PX_PER_M;
+    player->transform.position.y = -body_position.y * PX_PER_M;
+    // we need to convert the rotation to a quaternion
+    player->transform.rotation = glms_quatv(angle, GLMS_ZUP);
 
     player->camera.x =
         player->transform.position.x + 4 - INTERNAL_SCREEN_WIDTH / 2.0;
