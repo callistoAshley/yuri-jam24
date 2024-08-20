@@ -1,6 +1,7 @@
 #include "player.h"
 #include "cglm/struct/vec2.h"
 #include "core_types.h"
+#include "utility/common_defines.h"
 
 void player_init(Player *player, Graphics *graphics, Physics *physics)
 {
@@ -27,7 +28,7 @@ void player_init(Player *player, Graphics *graphics, Physics *physics)
         layer_add(&graphics->sprite_layers.middle, &player->sprite);
 }
 
-#define WALK_SPEED_MPS 3
+#define WALK_SPEED_MPS 6
 #define WALK_SEED_PXPS M_TO_PX(WALK_SPEED_MPS)
 void player_update(Player *player, Graphics *graphics, Input *input)
 {

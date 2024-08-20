@@ -14,6 +14,7 @@
 #include "input/input.h"
 #include "utility/log.h"
 #include "utility/macros.h"
+#include "utility/common_defines.h"
 #include "webgpu.h"
 
 int screen_quad_index;

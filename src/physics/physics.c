@@ -1,4 +1,5 @@
 #include "physics.h"
+#include "utility/common_defines.h"
 
 void physics_init(Physics *physics)
 {
@@ -9,7 +10,7 @@ void physics_init(Physics *physics)
 
 void physics_update(Physics *physics)
 {
-    f32 timestep = 1.0f / STEPS_PER_SEC;
+    f32 timestep = 1.0f / FIXED_STEPS_PER_SEC;
     i32 substeps = 5;
 
     b2World_Step(physics->world, timestep, substeps);

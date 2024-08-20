@@ -19,6 +19,7 @@
 #include "input/input.h"
 #include "utility/log.h"
 #include "utility/macros.h"
+#include "utility/common_defines.h"
 #include "events/interpreter.h"
 #include "player.h"
 
@@ -97,7 +98,7 @@ int main(int argc, char **argv)
 
     u64 accumulator = 0;
 
-    const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / STEPS_PER_SEC;
+    const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;
 
     bool fullscreen = false;
     while (!input_is_down(&input, Button_Quit))

@@ -9,13 +9,6 @@
 #include "shaders.h"
 #include "bind_group_layouts.h"
 
-#define INTERNAL_SCREEN_WIDTH 160
-#define INTERNAL_SCREEN_HEIGHT 90
-
-#define WINDOW_SCALE 8
-#define WINDOW_WIDTH (INTERNAL_SCREEN_WIDTH * WINDOW_SCALE)
-#define WINDOW_HEIGHT (INTERNAL_SCREEN_HEIGHT * WINDOW_SCALE)
-
 typedef struct Graphics
 {
     WGPUResources wgpu;
