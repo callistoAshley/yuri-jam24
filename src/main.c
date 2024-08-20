@@ -56,8 +56,6 @@ int main(int argc, char **argv)
     Physics physics;
     physics_init(&physics);
 
-    Player player = PLAYER_INIT;
-
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
 
@@ -66,6 +64,9 @@ int main(int argc, char **argv)
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
+
+    Player player;
+    player_init(&player, &graphics, &physics);
 
     if (init_level_editor)
         level_editor = lvledit_init(&graphics);
@@ -94,7 +95,6 @@ int main(int argc, char **argv)
     ImGui_ImplSDL3_InitForOther(window);
     ImGui_ImplWGPU_Init(&imgui_init_info);
 
-    u64 last_frame = SDL_GetTicksNS();
     u64 accumulator = 0;
 
     const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / STEPS_PER_SEC;
@@ -104,10 +104,8 @@ int main(int argc, char **argv)
     {
         SDL_Event event;
 
-        u64 current_frame = SDL_GetTicksNS();
-        u64 delta_time = current_frame - last_frame;
-        last_frame = current_frame;
-        accumulator += delta_time;
+        input_start_frame(&input);
+        accumulator += input.delta;
 
         ImGui_ImplWGPU_NewFrame();
         ImGui_ImplSDL3_NewFrame();
@@ -116,7 +114,6 @@ int main(int argc, char **argv)
         if (imgui_demo)
             igShowDemoWindow(NULL);
 
-        input_start_frame(&input);
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
@@ -144,6 +141,8 @@ int main(int argc, char **argv)
                 break;
         }
 
+        player_update(&player, &graphics, &input);
+
         while (accumulator >= FIXED_TIME_STEP)
         {
             physics_update(&physics);
@@ -151,7 +150,7 @@ int main(int argc, char **argv)
         }
 
         igRender();
-        graphics_render(&graphics, &input);
+        graphics_render(&graphics, player.camera);
 
         if (first_frame)
         {
@@ -160,6 +159,7 @@ int main(int argc, char **argv)
         }
     }
 
+    player_free(&player, &graphics);
     graphics_free(&graphics);
     audio_free(&audio);
     interpreter_free(interpreter);

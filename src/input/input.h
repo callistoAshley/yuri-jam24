@@ -1,4 +1,5 @@
 #pragma once
+#include "sensible_nums.h"
 #include <SDL3/SDL_events.h>
 #include <stdbool.h>
 
@@ -20,6 +21,10 @@ typedef struct
 {
     Button prev;
     Button curr;
+
+    u64 last_frame;
+    u64 delta;
+    f32 delta_seconds;
 } Input;
 
 void input_new(Input *input);

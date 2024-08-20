@@ -20,10 +20,6 @@ int screen_quad_index;
 
 Tilemap tilemap;
 
-Sprite player_sprite;
-int player_tex_width, player_tex_height;
-Transform player_transform;
-
 typedef struct
 {
     Tilemap *tilemap;
@@ -133,38 +129,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         background->layer = 0;
         layer_add(&graphics->tilemap_layers.background, background);
     }
-
-    {
-        player_transform = transform_from_xyz(0, 0, 0);
-        TransformEntry transform_entry = transform_manager_add(
-            &graphics->transform_manager, player_transform);
-
-        TextureEntry *texture_entry =
-            texture_manager_load(&graphics->texture_manager,
-                                 "assets/textures/player.png", &graphics->wgpu);
-        WGPUTexture texture = texture_manager_get_texture(
-            &graphics->texture_manager, texture_entry);
-        player_tex_width = wgpuTextureGetWidth(texture);
-        player_tex_height = wgpuTextureGetHeight(texture);
-
-        Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 8, .y = 8});
-        Rect tex_coords =
-            rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 8.0, .y = 8.0});
-        Quad quad = {
-            .rect = rect,
-            .tex_coords = tex_coords,
-        };
-        quad = quad_norm_tex_coords(quad, player_tex_width, player_tex_height);
-        QuadEntry player_quad = quad_manager_add(&graphics->quad_manager, quad);
-
-        sprite_init(&player_sprite, texture_entry, transform_entry,
-                    player_quad);
-        layer_add(&graphics->sprite_layers.middle, &player_sprite);
-    }
 }
-
-int camera_x = 0;
-int camera_y = 0;
 
 void build_object_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
 {
@@ -226,27 +191,8 @@ void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_free(&builder);
 }
 
-void graphics_render(Graphics *graphics, Input *input)
+void graphics_render(Graphics *graphics, Camera raw_camera)
 {
-
-    if (input_is_down(input, Button_Down))
-        player_transform.position.y += 2;
-
-    if (input_is_down(input, Button_Up))
-        player_transform.position.y -= 2;
-
-    if (input_is_down(input, Button_Left))
-        player_transform.position.x -= 2;
-
-    if (input_is_down(input, Button_Right))
-        player_transform.position.x += 2;
-
-    camera_x = player_transform.position.x + 4 - INTERNAL_SCREEN_WIDTH / 2.0;
-    camera_y = player_transform.position.y + 4 - INTERNAL_SCREEN_HEIGHT / 2.0;
-
-    transform_manager_update(&graphics->transform_manager,
-                             player_sprite.transform, player_transform);
-
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
@@ -318,10 +264,10 @@ void graphics_render(Graphics *graphics, Input *input)
 
     mat4s camera_projection = glms_ortho(
         0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0, -1.0f, 1.0f);
-    mat4s camera_transform =
-        glms_look((vec3s){.x = camera_x, .y = camera_y, .z = 0},
-                  (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
-                  (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
+    mat4s camera_transform = glms_look(
+        (vec3s){.x = raw_camera.x, .y = raw_camera.y, .z = raw_camera.z},
+        (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+        (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
 

@@ -8,7 +8,6 @@
 #include "quad_manager.h"
 #include "shaders.h"
 #include "bind_group_layouts.h"
-#include "player.h"
 
 #define INTERNAL_SCREEN_WIDTH 160
 #define INTERNAL_SCREEN_HEIGHT 90
@@ -52,7 +51,14 @@ typedef struct Graphics
     } tilemap_layers;
 } Graphics;
 
+typedef struct
+{
+    f32 x, y, z;
+} Camera;
+
 void graphics_init(Graphics *graphics, SDL_Window *window);
-void graphics_render(Graphics *graphics, Input *input);
+void graphics_render(Graphics *graphics, Camera camera);
 void graphics_free(Graphics *graphics);
 void graphics_resize(Graphics *graphics, int width, int height);
+
+// TODO add convenience functions that forward to the appropriate manager

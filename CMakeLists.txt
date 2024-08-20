@@ -105,6 +105,8 @@ add_executable(game
 
     src/physics/physics.c
 
+    src/player.c
+
     src/input/input.c
 
     src/utility/linked-list.c
