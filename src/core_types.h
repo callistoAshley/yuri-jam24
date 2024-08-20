@@ -51,6 +51,9 @@ typedef struct
 
 Rect rect_new(vec2s min, vec2s max);
 Rect rect_from_min_size(vec2s min, vec2s size);
+// creates a rect centered at half the size
+// THIS SHOULD ALWAYS BE PREFERED WHEN CREATING A QUAD!
+Rect rect_centered_from_size(vec2s size);
 
 // c is weird with arrays so we need to pass a pointer
 float rect_area(Rect rect);

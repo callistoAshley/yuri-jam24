@@ -117,6 +117,12 @@ Rect rect_from_min_size(vec2s min, vec2s size)
     return rect;
 }
 
+Rect rect_centered_from_size(vec2s size)
+{
+    vec2s half_size = glms_vec2_scale(size, 0.5f);
+    return rect_from_min_size(glms_vec2_negate(half_size), size);
+}
+
 // ----
 
 float rect_area(Rect rect)

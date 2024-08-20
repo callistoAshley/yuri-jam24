@@ -1,5 +1,6 @@
 #include "player.h"
 #include "core_types.h"
+#include "input/input.h"
 #include "utility/common_defines.h"
 
 void player_init(Player *player, Graphics *graphics, Physics *physics)
@@ -11,7 +12,7 @@ void player_init(Player *player, Graphics *graphics, Physics *physics)
         transform_manager_add(&graphics->transform_manager, player->transform);
 
     // player is 8x16px (1x2 tiles/meters)
-    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 8, .y = 16});
+    Rect rect = rect_centered_from_size((vec2s){.x = 8, .y = 16});
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     player->quad = (Quad){rect, tex_coords};
     QuadEntry quad_entry =
@@ -28,9 +29,9 @@ void player_init(Player *player, Graphics *graphics, Physics *physics)
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position = (b2Vec2){0, 5};
+    bodyDef.position = (b2Vec2){1, 2};
     // 45 degrees
-    bodyDef.rotation = (b2Rot){.c = 0.70710678118, .s = 0.70710678118};
+    // bodyDef.rotation = (b2Rot){.c = 0.70710678118, .s = 0.70710678118};
     player->body_id = b2CreateBody(physics->world, &bodyDef);
 
     b2Polygon dynamicBox =
@@ -43,10 +44,10 @@ void player_init(Player *player, Graphics *graphics, Physics *physics)
 
     // hacky ground box
     b2BodyDef groundBodyDef = b2DefaultBodyDef();
-    groundBodyDef.position = (b2Vec2){50, -5.0};
+    groundBodyDef.position = (b2Vec2){25, -2.5};
 
     b2BodyId groundId = b2CreateBody(physics->world, &groundBodyDef);
-    b2Polygon groundBox = b2MakeBox(50.0f, 5.0f);
+    b2Polygon groundBox = b2MakeBox(25.0f, 2.5f);
     b2ShapeDef groundShapeDef = b2DefaultShapeDef();
     b2CreatePolygonShape(groundId, &groundShapeDef, &groundBox);
 }
@@ -55,6 +56,13 @@ void player_init(Player *player, Graphics *graphics, Physics *physics)
 #define WALK_SEED_PXPS M_TO_PX(WALK_SPEED_MPS)
 void player_update(Player *player, Graphics *graphics, Input *input)
 {
+    if (input_is_down(input, Button_Left))
+        b2Body_ApplyForceToCenter(player->body_id, (b2Vec2){-WALK_SPEED_MPS, 0},
+                                  true);
+    if (input_is_down(input, Button_Right))
+        b2Body_ApplyForceToCenter(player->body_id, (b2Vec2){WALK_SPEED_MPS, 0},
+                                  true);
+
     b2Vec2 body_position = b2Body_GetPosition(player->body_id);
     b2Rot rotation = b2Body_GetRotation(player->body_id);
     float angle = b2Rot_GetAngle(rotation);
@@ -67,9 +75,9 @@ void player_update(Player *player, Graphics *graphics, Input *input)
     player->transform.rotation = glms_quatv(angle, GLMS_ZUP);
 
     player->camera.x =
-        player->transform.position.x + 4 - INTERNAL_SCREEN_WIDTH / 2.0;
+        player->transform.position.x - INTERNAL_SCREEN_WIDTH / 2.0;
     player->camera.y =
-        player->transform.position.y + 8 - INTERNAL_SCREEN_HEIGHT / 2.0;
+        player->transform.position.y - INTERNAL_SCREEN_HEIGHT / 2.0;
 
     transform_manager_update(&graphics->transform_manager,
                              player->sprite.transform, player->transform);
