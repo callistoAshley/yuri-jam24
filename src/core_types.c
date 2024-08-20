@@ -99,54 +99,6 @@ mat4s transform_into_matrix(Transform transform)
     return matrix;
 }
 
-// good luck telling me how this works.
-// i found it on stackoverflow.
-// who fucking knows.
-versors mat3_to_quat(mat3s m)
-{
-    versors q;
-    float trace = m.raw[0][0] + m.raw[1][1] + m.raw[2][2];
-    if (trace > 0.0f)
-    {
-        float s = 0.5f / sqrtf(trace + 1.0f);
-        q.w = 0.25f / s;
-        q.x = (m.raw[2][1] - m.raw[1][2]) * s;
-        q.y = (m.raw[0][2] - m.raw[2][0]) * s;
-        q.z = (m.raw[1][0] - m.raw[0][1]) * s;
-    }
-    else
-    {
-        if (m.raw[0][0] > m.raw[1][1] && m.raw[0][0] > m.raw[2][2])
-        {
-            float s =
-                2.0f * sqrtf(1.0f + m.raw[0][0] - m.raw[1][1] - m.raw[2][2]);
-            q.w = (m.raw[2][1] - m.raw[1][2]) / s;
-            q.x = 0.25f * s;
-            q.y = (m.raw[0][1] + m.raw[1][0]) / s;
-            q.z = (m.raw[0][2] + m.raw[2][0]) / s;
-        }
-        else if (m.raw[1][1] > m.raw[2][2])
-        {
-            float s =
-                2.0f * sqrtf(1.0f + m.raw[1][1] - m.raw[0][0] - m.raw[2][2]);
-            q.w = (m.raw[0][2] - m.raw[2][0]) / s;
-            q.x = (m.raw[0][1] + m.raw[1][0]) / s;
-            q.y = 0.25f * s;
-            q.z = (m.raw[1][2] + m.raw[2][1]) / s;
-        }
-        else
-        {
-            float s =
-                2.0f * sqrtf(1.0f + m.raw[2][2] - m.raw[0][0] - m.raw[1][1]);
-            q.w = (m.raw[1][0] - m.raw[0][1]) / s;
-            q.x = (m.raw[0][2] + m.raw[2][0]) / s;
-            q.y = (m.raw[1][2] + m.raw[2][1]) / s;
-            q.z = 0.25f * s;
-        }
-    }
-    return q;
-}
-
 Transform transform_from_matrix(mat4s matrix)
 {
     Transform transform;
@@ -168,8 +120,8 @@ Transform transform_from_matrix(mat4s matrix)
     rotationMatrix.col[2] =
         glms_vec3_scale(glms_vec3(matrix.col[2]), 1.0f / transform.scale.z);
 
-    // Extract rotation quaternion from the rotation matrix using mat3_to_quat
-    transform.rotation = mat3_to_quat(rotationMatrix);
+    // Extract rotation quaternion from the rotation matrix
+    transform.rotation = glms_mat3_quat(rotationMatrix);
 
     return transform;
 }
