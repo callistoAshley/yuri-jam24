@@ -22,12 +22,8 @@ vec3s vec3_from_hex(b2HexColor color)
     };
 }
 
-void draw_circle(b2Vec2 center, float radius, b2HexColor color, void *context)
-{
-    DebugCtx *ctx = context;
-}
-
-void draw_point(b2Vec2 center, float size, b2HexColor color, void *context)
+void draw_maybe_solid_circle(b2Vec2 center, float radius, b2HexColor color,
+                             void *context, bool solid)
 {
     DebugCtx *ctx = context;
 
@@ -43,10 +39,10 @@ void draw_point(b2Vec2 center, float size, b2HexColor color, void *context)
     B2DCirclePushConstants push_constants = {
         .color = vec3_from_hex(color),
         .camera_position = {.x = ctx->raw_camera.x, .y = ctx->raw_camera.y},
-        .position = {.x = center.x, .y = center.y},
-        .radius = size,
+        .position = {.x = center.x, .y = -center.y},
+        .radius = radius,
         .internal_scale = scale,
-        .solid = 0,
+        .solid = solid,
     };
     wgpuRenderPassEncoderSetPushConstants(
         ctx->pass, WGPUShaderStage_Fragment | WGPUShaderStage_Vertex, 0,
@@ -59,6 +55,23 @@ void draw_point(b2Vec2 center, float size, b2HexColor color, void *context)
         QUAD_ENTRY_TO_VERTEX_INDEX(graphics_screen_quad_entry()), 0);
 }
 
+// FIXME we should be drawing a line to indicate the rotation of the circle
+void draw_solid_circle(b2Transform transform, float radius, b2HexColor color,
+                       void *context)
+{
+    draw_maybe_solid_circle(transform.p, radius, color, context, 1);
+}
+
+void draw_circle(b2Vec2 center, float radius, b2HexColor color, void *context)
+{
+    draw_maybe_solid_circle(center, radius, color, context, 0);
+}
+
+void draw_point(b2Vec2 center, float size, b2HexColor color, void *context)
+{
+    draw_maybe_solid_circle(center, size, color, context, 1);
+}
+
 void physics_debug_draw(Physics *physics, Graphics *graphics, Camera raw_camera,
                         WGPURenderPassEncoder pass)
 {
@@ -66,6 +79,7 @@ void physics_debug_draw(Physics *physics, Graphics *graphics, Camera raw_camera,
     b2DebugDraw debug_draw = {.context = &ctx,
                               .DrawCircle = draw_circle,
                               .DrawPoint = draw_point,
+                              .DrawSolidCircle = draw_solid_circle,
                               .drawContacts = true};
 
     b2World_Draw(physics->world, &debug_draw);
