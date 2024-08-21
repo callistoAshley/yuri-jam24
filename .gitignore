@@ -8,5 +8,6 @@ build/
 lua/luac
 lua/lua
 webgpu
+vgcore.*
 
 imgui.ini
