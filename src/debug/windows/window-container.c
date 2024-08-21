@@ -2,9 +2,12 @@
 
 static void window_free_fn(usize sz, void *elem)
 {
-    Window *window = elem;
     (void)sz;
+
+    Window *window = elem;
+    puts("calling free_fn");
     window->free_fn(window);
+    wndcont_free(window->children);
     free(window);
 }
 
@@ -27,6 +30,7 @@ Window *wndcont_add(WindowContainer *cont, Window window)
     PTR_ERRCHK(result, "wndcont_add: malloc failure.");
     memcpy(result, &window, sizeof(Window));
 
+    result->children = wndcont_init(cont->owner, cont->graphics);
     result->wnd_cont = cont;
     result->init_fn(result);
 
@@ -38,18 +42,24 @@ Window *wndcont_add(WindowContainer *cont, Window window)
 void wndcont_remove(WindowContainer *cont, Window *window)
 {
     usize index;
+    bool found = false;
 
     for (usize i = 0; i < cont->windows.len; i++)
     {
         if (vec_get(&cont->windows, i) == window)
         {
             index = i;
+            found = true;
             break;
         }
     }
 
-    window->free_fn(window);
+    if (!found) return;
+
+    puts("calling vec_remove");
     vec_remove(&cont->windows, index, NULL);
+    puts("calling window_free_fn");
+    window_free_fn(0, window);
 }
 
 void wndcont_update(WindowContainer *cont)
@@ -58,9 +68,11 @@ void wndcont_update(WindowContainer *cont)
     {
         Window *window = vec_get(&cont->windows, i);
         window->update_fn(window);
+        if (window->children) wndcont_update(window->children);
 
         if (window->remove)
         {
+            printf("removing %p\n", (void *)window);
             wndcont_remove(cont, window);
             i--;
         }

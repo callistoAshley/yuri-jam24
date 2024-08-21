@@ -11,7 +11,7 @@ typedef struct
 {
     bool request_quit;
 
-    Window *tmap_edit;
+    Window *brush_wnd;
 
     WindowContainer *container;
     Graphics *graphics;

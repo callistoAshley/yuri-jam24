@@ -62,7 +62,7 @@ void wnd_new_map_update(Window *self)
             // no spaces and no empty strings
             if (strspn(state->info.input_name, " ") == strlen(state->info.input_name))
             {
-                puts("bad map name");
+                log_warn("bad map name");
             }
             else
             {
@@ -79,5 +79,6 @@ void wnd_new_map_update(Window *self)
 
 void wnd_new_map_free(Window *self)
 {
+    puts("calling wnd_new_map_free");
     free(self->userdata);
 }

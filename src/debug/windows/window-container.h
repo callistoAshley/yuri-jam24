@@ -8,9 +8,11 @@
 #include "utility/macros.h"
 #include "utility/vec.h"
 
-typedef struct
+typedef struct WindowContainer
 {
-    void *owner; // a pointer to the structure that created this window container
+    // FIXME: give this variable a better name
+    void *owner; // a pointer to the top-level structure that created this window container, for example the LevelEditor structure
+                 // meaning this will never be a pointer to another WindowContainer
     Graphics *graphics;
     vec windows;
 } WindowContainer;

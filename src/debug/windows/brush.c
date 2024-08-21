@@ -1,4 +1,5 @@
 #include "brush.h"
+#include "tilemap-editor.h"
 #include "window-container.h"
 
 typedef struct
@@ -18,6 +19,8 @@ Window brush_window = {
 void wnd_brush_init(Window *self)
 {
     self->userdata = calloc(1, sizeof(BrushWndState));
+
+    wndcont_add(self->children, tmap_edit_window);
 
     wnd_brush_set_tileset(self, "./assets/textures/tileset_test.png");
 }
@@ -55,7 +58,6 @@ void wnd_brush_update(Window *self)
     igSetNextWindowSize(wnd_size, ImGuiCond_Once);
     if (igBegin("Brush", NULL, 0))
     {
-
         ImVec2 tset_view_size = {96, 16};
         static const ImVec2 uv0 = {0.0, 0.0}, uv1 = {1.0, 1.0};
         static const ImVec4 tint_col = {1, 1, 1, 1}, border_col = {0, 0, 0, 0};

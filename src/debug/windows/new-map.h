@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "window.h"
+#include "utility/log.h"
 #include "utility/macros.h"
 
 typedef struct

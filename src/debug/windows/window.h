@@ -3,6 +3,8 @@
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS 
 #include <cimgui.h>
 
+struct WindowContainer;
+
 typedef struct Window
 {
     bool remove;
@@ -11,6 +13,7 @@ typedef struct Window
     void (*update_fn)(struct Window *self);
     void (*free_fn)  (struct Window *self);
 
-    void *wnd_cont;
+    struct WindowContainer *children; 
+    struct WindowContainer *wnd_cont; // the window container to which this window belongs
     void *userdata;
 } Window;

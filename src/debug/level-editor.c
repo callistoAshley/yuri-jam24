@@ -6,7 +6,9 @@
 static void new_map_callback(void *wnd_cont, NewMapInfo info)
 {
     LevelEditor *editor = ((WindowContainer *)wnd_cont)->owner;
-    wnd_tmap_edit_init_tilemap(editor->tmap_edit, info.input_width, info.input_height);
+    WindowContainer *brush_children = editor->brush_wnd->children;
+    Window *tmap_edit = vec_get(&brush_children->windows, 0);
+    wnd_tmap_edit_init_tilemap(tmap_edit, info.input_width, info.input_height);
 }
 
 LevelEditor *lvledit_init(Graphics *graphics)
@@ -15,8 +17,7 @@ LevelEditor *lvledit_init(Graphics *graphics)
     PTR_ERRCHK(editor, "lvledit_init: calloc failure.");
 
     editor->container = wndcont_init(editor, graphics);
-    editor->tmap_edit = wndcont_add(editor->container, tmap_edit_window);
-    wndcont_add(editor->container, brush_window);
+    editor->brush_wnd = wndcont_add(editor->container, brush_window);
 
     return editor;
 }
