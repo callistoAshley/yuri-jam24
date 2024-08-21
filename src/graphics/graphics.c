@@ -12,14 +12,16 @@
 #include "graphics/tilemap.h"
 #include "imgui-wgpu.h"
 #include "input/input.h"
+#include "physics/debug_draw.h"
 #include "utility/log.h"
 #include "utility/macros.h"
 #include "utility/common_defines.h"
 #include "webgpu.h"
 
-int screen_quad_index;
-
 Tilemap tilemap;
+
+QuadEntry screen_quad_index;
+QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 
 typedef struct
 {
@@ -192,7 +194,7 @@ void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_free(&builder);
 }
 
-void graphics_render(Graphics *graphics, Camera raw_camera)
+void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 {
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
@@ -334,9 +336,10 @@ void graphics_render(Graphics *graphics, Camera raw_camera)
 
     wgpuRenderPassEncoderSetVertexBuffer(
         render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
-
     wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
                               QUAD_ENTRY_TO_VERTEX_INDEX(screen_quad_index), 0);
+
+    physics_debug_draw(physics, graphics, raw_camera, render_pass);
 
     ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 

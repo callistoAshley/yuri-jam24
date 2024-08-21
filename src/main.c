@@ -151,7 +151,7 @@ int main(int argc, char **argv)
         }
 
         igRender();
-        graphics_render(&graphics, player.camera);
+        graphics_render(&graphics, &physics, player.camera);
 
         if (first_frame)
         {

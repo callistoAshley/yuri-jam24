@@ -3,6 +3,7 @@
 #include "graphics/layer.h"
 #include "graphics/tex_manager.h"
 #include "input/input.h"
+#include "physics/physics.h"
 #include "transform_manager.h"
 #include "wgpu_resources.h"
 #include "quad_manager.h"
@@ -50,8 +51,9 @@ typedef struct
 } Camera;
 
 void graphics_init(Graphics *graphics, SDL_Window *window);
-void graphics_render(Graphics *graphics, Camera camera);
+void graphics_render(Graphics *graphics, Physics *physics, Camera camera);
 void graphics_free(Graphics *graphics);
 void graphics_resize(Graphics *graphics, int width, int height);
+QuadEntry graphics_screen_quad_entry(void);
 
 // TODO add convenience functions that forward to the appropriate manager

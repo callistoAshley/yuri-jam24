@@ -37,7 +37,6 @@ void player_init(Player *player, Graphics *graphics, Physics *physics)
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
     shapeDef.friction = 0.0f;
-    shapeDef.restitution = 1.0f;
     b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
 
     // hacky ground box

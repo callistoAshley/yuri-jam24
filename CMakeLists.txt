@@ -104,6 +104,7 @@ add_executable(game
     src/graphics/sprite.c
 
     src/physics/physics.c
+    src/physics/debug_draw.c
 
     src/player.c
 
