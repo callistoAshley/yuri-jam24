@@ -30,6 +30,18 @@ void linked_list_append(LinkedList *list, void *elem)
     list->len++;
 }
 
+void linked_list_remove(LinkedList *list, void *elem)
+{
+    for (LinkedListNode *node = list->first; node; node = node->next)
+    {
+        if (node == elem)
+        {
+            node->next = ((LinkedListNode *)elem)->next;
+            return;
+        }
+    }
+}
+
 void *linked_list_at(LinkedList *list, int index)
 {
     LinkedListNode *node = list->first;

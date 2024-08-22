@@ -16,5 +16,6 @@ typedef struct
 
 LinkedList *linked_list_init(void);
 void linked_list_append(LinkedList *list, void *elem);
+void linked_list_remove(LinkedList *list, void *elem);
 void *linked_list_at(LinkedList *list, int index);
 void linked_list_free(LinkedList *list);
