@@ -34,7 +34,7 @@ void linked_list_remove(LinkedList *list, void *elem)
 {
     for (LinkedListNode *node = list->first; node; node = node->next)
     {
-        if (node == elem)
+        if (node->data == elem->data)
         {
             node->next = ((LinkedListNode *)elem)->next;
             return;
