@@ -48,19 +48,30 @@ int linked_list_index_of(LinkedList *list, void *elem)
 
 void *linked_list_remove(LinkedList *list, int index)
 {
-    LinkedListNode *node = list->first;
-    for (int i = 0; i < index - 1; i++)
+    LinkedListNode *node = list->first, *last_node;
+    void *result;
+
+    for (int i = 0; i < index; i++)
     {
         assert(node);
+        last_node = node;
         node = node->next;
     }
 
-    LinkedListNode *next = node->next;
-    void *data = next->data;
-    node->next = next->next;
-    free(next);
+    if (node == list->first)
+    {
+        list->first = list->first->next;
+    }
+    else
+    {
+        last_node->next = node->next;
+    }
+
+    result = node->data;
+    free(node);
     list->len--;
-    return data;
+
+    return result;
 }
 
 void *linked_list_at(LinkedList *list, int index)

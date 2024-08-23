@@ -47,7 +47,6 @@ static Event construct_event(char *name, char *text)
         realloc_temp = realloc(event.tokens, ++event.num_tokens * sizeof(Token)); 
         REALLOC_CHK(realloc_temp, event.tokens);
         event.tokens[event.num_tokens - 1] = token;
-        //memcpy(event.tokens + (event.num_tokens - 1), &token, sizeof(Token)); // FIXME: is the memcpy really necessary?
     }
 
     return event;
