@@ -8,6 +8,8 @@ typedef struct
 
 Window new_map_window =
 {
+    .id = "new_map",
+
     .init_fn = wnd_new_map_init,
     .update_fn = wnd_new_map_update,
     .free_fn = wnd_new_map_free,
@@ -79,6 +81,5 @@ void wnd_new_map_update(Window *self)
 
 void wnd_new_map_free(Window *self)
 {
-    puts("calling wnd_new_map_free");
     free(self->userdata);
 }

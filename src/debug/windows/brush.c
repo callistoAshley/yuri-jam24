@@ -11,6 +11,8 @@ typedef struct
 } BrushWndState;
 
 Window brush_window = {
+    .id = "brush",
+
     .init_fn = wnd_brush_init,
     .update_fn = wnd_brush_update,
     .free_fn = wnd_brush_free,

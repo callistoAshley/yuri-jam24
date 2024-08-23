@@ -7,7 +7,7 @@ static void new_map_callback(void *wnd_cont, NewMapInfo info)
 {
     LevelEditor *editor = ((WindowContainer *)wnd_cont)->owner;
     WindowContainer *brush_children = editor->brush_wnd->children;
-    Window *tmap_edit = vec_get(&brush_children->windows, 0);
+    Window *tmap_edit = linked_list_at(brush_children->windows, 0);
     wnd_tmap_edit_init_tilemap(tmap_edit, info.input_width, info.input_height);
 }
 

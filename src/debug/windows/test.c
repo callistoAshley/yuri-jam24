@@ -7,6 +7,8 @@ typedef struct
 
 Window test_window =
 {
+    .id = "test",
+
     .init_fn = wnd_test_init,
     .update_fn = wnd_test_update,
     .free_fn = wnd_test_free,

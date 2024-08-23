@@ -7,6 +7,8 @@ typedef struct
 } TmapEditWndState;
 
 Window tmap_edit_window = {
+    .id = "tmap_edit", 
+
     .init_fn = wnd_tmap_edit_init,
     .update_fn = wnd_tmap_edit_update,
     .free_fn = wnd_tmap_edit_free,

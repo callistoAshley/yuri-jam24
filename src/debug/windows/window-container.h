@@ -6,7 +6,7 @@
 #include "window.h"
 #include "graphics/graphics.h"
 #include "utility/macros.h"
-#include "utility/vec.h"
+#include "utility/linked-list.h"
 
 typedef struct WindowContainer
 {
@@ -14,7 +14,7 @@ typedef struct WindowContainer
     void *owner; // a pointer to the top-level structure that created this window container, for example the LevelEditor structure
                  // meaning this will never be a pointer to another WindowContainer
     Graphics *graphics;
-    vec windows;
+    LinkedList *windows;
 } WindowContainer;
 
 WindowContainer *wndcont_init(void *owner, Graphics *graphics);

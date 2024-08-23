@@ -7,12 +7,13 @@ struct WindowContainer;
 
 typedef struct Window
 {
-    bool remove;
+    volatile char *id; // has no purpose other than debugging
 
     void (*init_fn)  (struct Window *self); 
     void (*update_fn)(struct Window *self);
     void (*free_fn)  (struct Window *self);
 
+    bool remove;
     struct WindowContainer *children; 
     struct WindowContainer *wnd_cont; // the window container to which this window belongs
     void *userdata;

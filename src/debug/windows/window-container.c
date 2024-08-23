@@ -1,11 +1,7 @@
 #include "window-container.h"
 
-static void window_free_fn(usize sz, void *elem)
+static void free_window(Window *window)
 {
-    (void)sz;
-
-    Window *window = elem;
-    puts("calling free_fn");
     window->free_fn(window);
     wndcont_free(window->children);
     free(window);
@@ -18,8 +14,7 @@ WindowContainer *wndcont_init(void *owner, Graphics *graphics)
 
     cont->owner = owner;
     cont->graphics = graphics;
-
-    vec_init(&cont->windows, sizeof(Window));
+    cont->windows = linked_list_init();
 
     return cont;
 }
@@ -34,53 +29,46 @@ Window *wndcont_add(WindowContainer *cont, Window window)
     result->wnd_cont = cont;
     result->init_fn(result);
 
-    vec_push(&cont->windows, result);
+    linked_list_append(cont->windows, result);
 
     return result;
 }
 
 void wndcont_remove(WindowContainer *cont, Window *window)
 {
-    usize index;
-    bool found = false;
-
-    for (usize i = 0; i < cont->windows.len; i++)
+    for (LinkedListNode *node = cont->windows->first; node; node = node->next)
     {
-        if (vec_get(&cont->windows, i) == window)
+        if (node->data == window)
         {
-            index = i;
-            found = true;
-            break;
+            free_window(window);
+            linked_list_remove(cont->windows, linked_list_index_of(cont->windows, window));
+            return;            
         }
     }
-
-    if (!found) return;
-
-    puts("calling vec_remove");
-    vec_remove(&cont->windows, index, NULL);
-    puts("calling window_free_fn");
-    window_free_fn(0, window);
 }
 
 void wndcont_update(WindowContainer *cont)
 {
-    for (usize i = 0; i < cont->windows.len; i++)
+    for (LinkedListNode *node = cont->windows->first; node; node = node->next)
     {
-        Window *window = vec_get(&cont->windows, i);
+        Window *window = node->data;
         window->update_fn(window);
         if (window->children) wndcont_update(window->children);
 
         if (window->remove)
         {
-            printf("removing %p\n", (void *)window);
             wndcont_remove(cont, window);
-            i--;
+            node = cont->windows->first; // hack: just begin the iteration again lol
         }
     }
 }
 
 void wndcont_free(WindowContainer *cont)
 {
-    vec_free_with(&cont->windows, window_free_fn);
+    for (LinkedListNode *node = cont->windows->first; node; node = node->next)
+    {
+        free_window(node->data);
+    }
+    linked_list_free(cont->windows);
     free(cont);
 }
