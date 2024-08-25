@@ -59,6 +59,10 @@ add_subdirectory(cimgui/)
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(box2d/)
 
+set(SDLTTF_VENDORED ON)
+set(SDLTTF_BUILD_SHARED_LIBS OFF)
+add_subdirectory(SDL_ttf)
+
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
 add_subdirectory(cglm/)
@@ -139,6 +143,7 @@ target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic -fpermissive)
 target_link_libraries(
   game 
   ${SDL3_LIBRARIES}
+  ${SDLTTF_LIBRARIES}
   cglm
   ${FMOD_LIBRARY}
   ${FMOD_STUDIO_LIBRARY}

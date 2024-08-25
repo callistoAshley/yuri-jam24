@@ -7,3 +7,6 @@
 [submodule "box2d"]
 	path = box2d
 	url = https://github.com/erincatto/box2d
+[submodule "SDL_ttf"]
+	path = SDL_ttf
+	url = https://github.com/libsdl-org/SDL_ttf
