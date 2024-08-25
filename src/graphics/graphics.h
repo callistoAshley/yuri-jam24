@@ -10,6 +10,13 @@
 #include "shaders.h"
 #include "bind_group_layouts.h"
 
+typedef struct
+{
+    Layer background;
+    Layer middle;
+    Layer foreground;
+} StandardLayers;
+
 typedef struct Graphics
 {
     WGPUResources wgpu;
@@ -27,22 +34,14 @@ typedef struct Graphics
     WGPUTexture normal;
     WGPUTextureView normal_view;
 
-    struct
-    {
-        Layer background;
-        Layer middle;
-        Layer foreground;
-    } sprite_layers;
+    StandardLayers sprite_layers;
 
     // why is this separate from the sprite layers? well, layers are set up to
     // draw only ONE type of thing. why? because we want to minimize the amount
     // of pipeline + bind group changes we have to do.
-    struct
-    {
-        Layer background;
-        Layer middle;
-        Layer foreground;
-    } tilemap_layers;
+    StandardLayers tilemap_layers;
+
+    StandardLayers ui_layers;
 } Graphics;
 
 typedef struct

@@ -448,12 +448,116 @@ void create_b2d_circle_shader(Shaders *shaders, WGPUResources *resources)
     wgpuShaderModuleRelease(module);
 }
 
+void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
+                             WGPUResources *resources)
+{
+    char *buf;
+    long buf_len;
+
+    read_entire_file("assets/shaders/ui_object.wgsl", &buf, &buf_len);
+
+    // this uses null-terminated strings, but read_entire_file returns something
+    // null-terminated anyway, so it's fine (really wish this used a
+    // length-based thing instead!!)
+    WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
+        .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
+        .code = buf,
+    };
+    WGPUShaderModuleDescriptor module_descriptor = {
+        .label = "ui_object",
+        .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
+    };
+
+    WGPUShaderModule module =
+        wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
+
+    WGPUPushConstantRange push_constant_ranges[] = {
+        (WGPUPushConstantRange){
+            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+            .start = 0,
+            .end = sizeof(ObjectPushConstants),
+        },
+    };
+    WGPUPipelineLayoutExtras extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
+        .pushConstantRanges = push_constant_ranges,
+        .pushConstantRangeCount = 1,
+    };
+    WGPUPipelineLayoutDescriptor layout_descriptor = {
+        .nextInChain = (WGPUChainedStruct *)&extras,
+        .label = "basic",
+        .bindGroupLayoutCount = 1,
+        .bindGroupLayouts = &layouts->object,
+    };
+    WGPUPipelineLayout layout =
+        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
+
+    WGPUVertexAttribute vertex_attributes[] = {
+        (WGPUVertexAttribute){
+            .format = WGPUVertexFormat_Float32x2,
+            .offset = 0,
+            .shaderLocation = 0,
+        },
+        (WGPUVertexAttribute){
+            .format = WGPUVertexFormat_Float32x2,
+            .offset = 2 * sizeof(float),
+            .shaderLocation = 1,
+        }};
+    WGPUVertexBufferLayout vertex_buffer_layout = {
+        .arrayStride = sizeof(Vertex),
+        .stepMode = WGPUVertexStepMode_Vertex,
+        .attributeCount = 2,
+        .attributes = vertex_attributes};
+
+    WGPUVertexState vertex_state = {.module = module,
+                                    .entryPoint = "vs_main",
+                                    .buffers = &vertex_buffer_layout,
+                                    .bufferCount = 1};
+
+    WGPUColorTargetState color_targets[] = {
+        (WGPUColorTargetState){
+            .format = resources->surface_config.format,
+            .writeMask = WGPUColorWriteMask_All,
+        },
+    };
+    WGPUFragmentState fragment_state = {.module = module,
+                                        .entryPoint = "fs_main",
+                                        .targetCount = 1,
+                                        .targets = color_targets};
+
+    WGPUPrimitiveState primitive = {
+        .topology = WGPUPrimitiveTopology_TriangleList,
+    };
+    WGPUMultisampleState multisample = {
+        .count = 1,
+        .mask = 0xFFFFFFFF,
+    };
+
+    WGPURenderPipelineDescriptor descriptor = {
+        .label = "ui_object",
+        .layout = layout,
+        .vertex = vertex_state,
+        .fragment = &fragment_state,
+        .primitive = primitive,
+        .multisample = multisample,
+    };
+    shaders->ui_object =
+        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
+    PTR_ERRCHK(shaders->object, "failed to create render pipeline");
+
+    free(buf);
+    wgpuPipelineLayoutRelease(layout);
+    wgpuShaderModuleRelease(module);
+}
+
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources)
 {
     create_object_shader(shaders, layouts, resources);
     create_light_shader(shaders, layouts, resources);
     create_tilemap_shader(shaders, layouts, resources);
+
+    create_ui_object_shader(shaders, layouts, resources);
 
     create_b2d_circle_shader(shaders, resources);
 }

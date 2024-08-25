@@ -2,6 +2,7 @@
 #include <wgpu.h>
 
 #include "graphics.h"
+#include "cglm/struct/vec3.h"
 #include "cglm/types-struct.h"
 #include "core_types.h"
 #include "binding_helper.h"
@@ -70,6 +71,10 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     layer_init(&graphics->sprite_layers.middle, sprite_draw, NULL);
     layer_init(&graphics->sprite_layers.foreground, sprite_draw, NULL);
 
+    layer_init(&graphics->ui_layers.background, sprite_draw, NULL);
+    layer_init(&graphics->ui_layers.middle, sprite_draw, NULL);
+    layer_init(&graphics->ui_layers.foreground, sprite_draw, NULL);
+
     // load bearing molly
     // why do we need this? primarily to make sure that at least one texture is
     // loaded, because you can't bind an empty texture array
@@ -78,7 +83,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                          &graphics->wgpu);
 
     {
-        font_init(&font, "assets/fonts/Mx437_Compaq_Port3.ttf", 16);
+        font_init(&font, "assets/fonts/Mx437_Compaq_Port3.ttf", 32);
         SDL_Color color = {
             .r = 255,
             .g = 255,
@@ -103,12 +108,12 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         QuadEntry text_quad_index =
             quad_manager_add(&graphics->quad_manager, quad);
 
-        Transform transform = transform_from_xyz(0, 0, 0);
+        Transform transform = transform_from_xyz(100, 100, 0);
         TransformEntry text_transform =
             transform_manager_add(&graphics->transform_manager, transform);
 
         sprite_init(&text_sprite, text_entry, text_transform, text_quad_index);
-        layer_add(&graphics->sprite_layers.foreground, &text_sprite);
+        layer_add(&graphics->ui_layers.foreground, &text_sprite);
     }
 
     WGPUExtent3D extents = {
@@ -280,108 +285,143 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     WGPUCommandEncoder command_encoder =
         wgpuDeviceCreateCommandEncoder(graphics->wgpu.device, NULL);
 
-    WGPURenderPassColorAttachment object_attachments[] = {
-        {
-            .view = graphics->color_view,
-            .loadOp = WGPULoadOp_Clear,
-            .storeOp = WGPUStoreOp_Store,
-            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
-            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
-        },
-        {
-            .view = graphics->normal_view,
-            .loadOp = WGPULoadOp_Clear,
-            .storeOp = WGPUStoreOp_Store,
-            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
-            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
-        }};
-    WGPURenderPassDescriptor object_render_pass_desc = {
-        .label = "object render pass encoder",
-        .colorAttachmentCount = 2,
-        .colorAttachments = object_attachments,
-    };
-    WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
-        command_encoder, &object_render_pass_desc);
-
-    mat4s camera_projection = glms_ortho(
-        0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0, -1.0f, 1.0f);
-    mat4s camera_transform = glms_look(
-        (vec3s){.x = raw_camera.x, .y = raw_camera.y, .z = raw_camera.z},
-        (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
-        (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
-    mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
+    {
+        WGPURenderPassColorAttachment object_attachments[] = {
+            {
+                .view = graphics->color_view,
+                .loadOp = WGPULoadOp_Clear,
+                .storeOp = WGPUStoreOp_Store,
+                .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+                .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
+            },
+            {
+                .view = graphics->normal_view,
+                .loadOp = WGPULoadOp_Clear,
+                .storeOp = WGPUStoreOp_Store,
+                .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+                .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
+            }};
+        WGPURenderPassDescriptor object_render_pass_desc = {
+            .label = "object render pass encoder",
+            .colorAttachmentCount = 2,
+            .colorAttachments = object_attachments,
+        };
+        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
+            command_encoder, &object_render_pass_desc);
 
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.tilemap);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
-                                      NULL);
-    layer_draw(&graphics->tilemap_layers.background, graphics, camera,
-               render_pass);
+        mat4s camera_projection =
+            glms_ortho(0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0,
+                       -1.0f, 1.0f);
+        mat4s camera_transform = glms_look(
+            (vec3s){.x = raw_camera.x, .y = raw_camera.y, .z = raw_camera.z},
+            (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+            (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
+        mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
-                                      NULL);
-    wgpuRenderPassEncoderSetVertexBuffer(
-        render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
-    layer_draw(&graphics->sprite_layers.background, graphics, camera,
-               render_pass);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.tilemap);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
+                                          NULL);
+        layer_draw(&graphics->tilemap_layers.background, graphics, camera,
+                   render_pass);
 
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.tilemap);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
-                                      NULL);
-    layer_draw(&graphics->tilemap_layers.middle, graphics, camera, render_pass);
+        wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                          NULL);
+        wgpuRenderPassEncoderSetVertexBuffer(
+            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        layer_draw(&graphics->sprite_layers.background, graphics, camera,
+                   render_pass);
 
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
-                                      NULL);
-    wgpuRenderPassEncoderSetVertexBuffer(
-        render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
-    layer_draw(&graphics->sprite_layers.middle, graphics, camera, render_pass);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.tilemap);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
+                                          NULL);
+        layer_draw(&graphics->tilemap_layers.middle, graphics, camera,
+                   render_pass);
 
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.tilemap);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
-                                      NULL);
-    layer_draw(&graphics->tilemap_layers.foreground, graphics, camera,
-               render_pass);
+        wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                          NULL);
+        wgpuRenderPassEncoderSetVertexBuffer(
+            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        layer_draw(&graphics->sprite_layers.middle, graphics, camera,
+                   render_pass);
 
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
-                                      NULL);
-    wgpuRenderPassEncoderSetVertexBuffer(
-        render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
-    layer_draw(&graphics->sprite_layers.foreground, graphics, camera,
-               render_pass);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.tilemap);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
+                                          NULL);
+        layer_draw(&graphics->tilemap_layers.foreground, graphics, camera,
+                   render_pass);
 
-    wgpuRenderPassEncoderEnd(render_pass);
-    wgpuRenderPassEncoderRelease(render_pass);
+        wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                          NULL);
+        wgpuRenderPassEncoderSetVertexBuffer(
+            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        layer_draw(&graphics->sprite_layers.foreground, graphics, camera,
+                   render_pass);
 
-    WGPURenderPassColorAttachment screen_attachments[] = {{
-        .view = frame,
-        .loadOp = WGPULoadOp_Clear,
-        .storeOp = WGPUStoreOp_Store,
-        .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f},
-        .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
-    }};
-    WGPURenderPassDescriptor screen_render_pass_desc = {
-        .label = "screen render pass encoder",
-        .colorAttachmentCount = 1,
-        .colorAttachments = screen_attachments,
-    };
-    render_pass = wgpuCommandEncoderBeginRenderPass(command_encoder,
-                                                    &screen_render_pass_desc);
-    wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.lighting);
-    wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0, 0);
+        wgpuRenderPassEncoderEnd(render_pass);
+        wgpuRenderPassEncoderRelease(render_pass);
+    }
 
-    wgpuRenderPassEncoderSetVertexBuffer(
-        render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
-    wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
-                              QUAD_ENTRY_TO_VERTEX_INDEX(screen_quad_index), 0);
+    {
+        WGPURenderPassColorAttachment screen_attachments[] = {{
+            .view = frame,
+            .loadOp = WGPULoadOp_Clear,
+            .storeOp = WGPUStoreOp_Store,
+            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f},
+            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+        }};
+        WGPURenderPassDescriptor screen_render_pass_desc = {
+            .label = "screen render pass encoder",
+            .colorAttachmentCount = 1,
+            .colorAttachments = screen_attachments,
+        };
+        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
+            command_encoder, &screen_render_pass_desc);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.lighting);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0,
+                                          0);
 
-    physics_debug_draw(physics, graphics, raw_camera, render_pass);
+        wgpuRenderPassEncoderSetVertexBuffer(
+            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
+                                  QUAD_ENTRY_TO_VERTEX_INDEX(screen_quad_index),
+                                  0);
 
-    ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
+        mat4s camera_projection =
+            glms_ortho(0.0, graphics->wgpu.surface_config.width,
+                       graphics->wgpu.surface_config.height, 0.0, -1.0f, 1.0f);
+        mat4s camera_transform =
+            glms_look(GLMS_VEC3_ZERO, (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+                      (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
+        mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
-    wgpuRenderPassEncoderEnd(render_pass);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.ui_object);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                          NULL);
+        wgpuRenderPassEncoderSetVertexBuffer(
+            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+
+        layer_draw(&graphics->ui_layers.background, graphics, camera,
+                   render_pass);
+        layer_draw(&graphics->ui_layers.middle, graphics, camera, render_pass);
+        layer_draw(&graphics->ui_layers.foreground, graphics, camera,
+                   render_pass);
+
+        physics_debug_draw(physics, graphics, raw_camera, render_pass);
+
+        ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
+
+        wgpuRenderPassEncoderEnd(render_pass);
+        wgpuRenderPassEncoderRelease(render_pass);
+    }
 
     WGPUCommandBuffer command_buffer =
         wgpuCommandEncoderFinish(command_encoder, NULL);
@@ -393,7 +433,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     wgpuBindGroupRelease(tilemap_bind_group);
 
     wgpuCommandBufferRelease(command_buffer);
-    wgpuRenderPassEncoderRelease(render_pass);
     wgpuCommandEncoderRelease(command_encoder);
     wgpuTextureViewRelease(frame);
     wgpuTextureRelease(surface_texture.texture);

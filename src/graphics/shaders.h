@@ -13,6 +13,7 @@ typedef struct Shaders
     WGPURenderPipeline object;
     WGPURenderPipeline lighting;
     WGPURenderPipeline tilemap;
+    WGPURenderPipeline ui_object;
 
     struct
     {
