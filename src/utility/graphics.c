@@ -1,5 +1,4 @@
-#include "utils.h"
-#include "SDL3/SDL_pixels.h"
+#include "graphics.h"
 #include "sensible_nums.h"
 #include "webgpu.h"
 #include <assert.h>

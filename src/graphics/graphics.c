@@ -17,8 +17,12 @@
 #include "utility/macros.h"
 #include "utility/common_defines.h"
 #include "webgpu.h"
+#include "fonts/font.h"
 
 Tilemap tilemap;
+
+Font font;
+Sprite text_sprite;
 
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
@@ -72,6 +76,40 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     texture_manager_load(&graphics->texture_manager,
                          "assets/textures/load_bearing_molly.png",
                          &graphics->wgpu);
+
+    {
+        font_init(&font, "assets/fonts/Mx437_Compaq_Port3.ttf", 16);
+        SDL_Color color = {
+            .r = 255,
+            .g = 255,
+            .b = 255,
+            .a = 255,
+        };
+        WGPUTexture texture = font_render_text(&font, "Woah! I am transgender",
+                                               color, &graphics->wgpu);
+        TextureEntry *text_entry = texture_manager_register(
+            &graphics->texture_manager, texture, "i am transgender btw");
+
+        u32 width = wgpuTextureGetWidth(texture);
+        u32 height = wgpuTextureGetHeight(texture);
+
+        Rect rect = rect_from_min_size(GLMS_VEC2_ZERO,
+                                       (vec2s){.x = width, .y = height});
+        Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+        Quad quad = {
+            .rect = rect,
+            .tex_coords = tex_coords,
+        };
+        QuadEntry text_quad_index =
+            quad_manager_add(&graphics->quad_manager, quad);
+
+        Transform transform = transform_from_xyz(0, 0, 0);
+        TransformEntry text_transform =
+            transform_manager_add(&graphics->transform_manager, transform);
+
+        sprite_init(&text_sprite, text_entry, text_transform, text_quad_index);
+        layer_add(&graphics->sprite_layers.foreground, &text_sprite);
+    }
 
     WGPUExtent3D extents = {
         .width = INTERNAL_SCREEN_WIDTH,

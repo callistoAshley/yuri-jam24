@@ -108,7 +108,6 @@ add_executable(game
     src/graphics/tilemap.c
     src/graphics/layer.c
     src/graphics/sprite.c
-    src/graphics/utils.c
 
     src/fonts/font.c
 
@@ -123,6 +122,7 @@ add_executable(game
     src/utility/list.c
     src/utility/log.c
     src/utility/vec.c
+    src/utility/graphics.c
 
     stb/stb_impl.c
 

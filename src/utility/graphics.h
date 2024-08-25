@@ -2,7 +2,7 @@
 
 #include <SDL3/SDL.h>
 #include <wgpu.h>
-#include "wgpu_resources.h"
+#include "graphics/wgpu_resources.h"
 
 WGPUTexture texture_from_surface(SDL_Surface *surface, WGPUTextureUsage usage,
                                  WGPUResources *wgpu);
