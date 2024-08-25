@@ -4,8 +4,6 @@ project(game)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd
 set(CMAKE_BUILD_TYPE Debug) # force debug build for now
 
-find_package(SDL3 REQUIRED)
-
 # FMOD
 find_library(
     FMOD_LIBRARY 
@@ -58,6 +56,10 @@ add_subdirectory(cimgui/)
 
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(box2d/)
+
+set(SDL_SHARED OFF)
+set(SDL_STATIC ON)
+add_subdirectory(SDL)
 
 set(SDLTTF_VENDORED ON)
 set(SDLTTF_BUILD_SHARED_LIBS OFF)
@@ -142,7 +144,8 @@ target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic -fpermissive)
 
 target_link_libraries(
   game 
-  ${SDL3_LIBRARIES}
+  SDL3::SDL3
+  SDL3::Headers
   ${SDLTTF_LIBRARIES}
   cglm
   ${FMOD_LIBRARY}
