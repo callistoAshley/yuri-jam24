@@ -4,7 +4,14 @@ typedef struct
 {
     NewMapInfo info;
     NewMapDoneFn done_callback;
+    char warn_msg[256]; // used as a label when validating map info
 } NewMapWndState;
+
+static void set_warn_msg(NewMapWndState *state, char *str)
+{
+    strcpy(state->warn_msg, str);
+    log_warn(str);
+}
 
 Window new_map_window =
 {
@@ -29,7 +36,7 @@ void wnd_new_map_set_done_callback(Window *self, NewMapDoneFn fn)
 void wnd_new_map_update(Window *self)
 {
     NewMapWndState *state = self->userdata;
-    static const ImVec2 wnd_size = {200, 150};
+    static const ImVec2 wnd_size = {350, 135};
 
     igSetNextWindowSize(wnd_size, ImGuiCond_Once);
     if (igBegin("New Map", NULL, 0))
@@ -64,13 +71,23 @@ void wnd_new_map_update(Window *self)
             // no spaces and no empty strings
             if (strspn(state->info.input_name, " ") == strlen(state->info.input_name))
             {
-                log_warn("bad map name");
+                set_warn_msg(state, "Bad map name.");
+            }
+            else if (state->info.input_width < 1 || state->info.input_height < 1)
+            {
+                set_warn_msg(state, "Map width and height must be greater than 0.");
             }
             else
             {
                 state->done_callback(self->wnd_cont, state->info);
                 self->remove = true;
             }
+        }
+
+        if (*state->warn_msg)
+        {
+            ImVec4 col = {255, 255, 0, 255};
+            igTextColored(col, state->warn_msg);
         }
 
         if (state->info.input_width < 0) state->info.input_width = 0;
