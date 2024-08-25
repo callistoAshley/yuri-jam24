@@ -33,18 +33,18 @@ find_path(
 
 add_custom_target(wgpu-native ALL
     COMMAND make lib-native-release EXTRA_BUILD_ARGS=--quiet
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/wgpu-native
+    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/wgpu-native
 )
 find_library(
   WGPU_LIBRARY
   NAMES wgpu_native
-  PATHS ${CMAKE_SOURCE_DIR}/wgpu-native/target/release
+  PATHS ${CMAKE_SOURCE_DIR}/vendor/wgpu-native/target/release
   REQUIRED
 )
 find_path(
   WGPU_INCLUDE_DIR
   NAMES wgpu.h
-  PATHS ${CMAKE_SOURCE_DIR}/wgpu-native/ffi
+  PATHS ${CMAKE_SOURCE_DIR}/vendor/wgpu-native/ffi
   REQUIRED
 )
 
@@ -52,22 +52,22 @@ find_path(
 # goofy hack: some internal imgui sources rely on "webgpu/webgpu.h", so create a symlink to it
 file(CREATE_LINK ${WGPU_INCLUDE_DIR}/webgpu-headers ${CMAKE_SOURCE_DIR}/webgpu SYMBOLIC)
 set(IMGUI_STATIC ON)
-add_subdirectory(cimgui/)
+add_subdirectory(vendor/cimgui/)
 
 set(BUILD_SHARED_LIBS OFF)
-add_subdirectory(box2d/)
+add_subdirectory(vendor/box2d/)
 
 set(SDL_SHARED OFF)
 set(SDL_STATIC ON)
-add_subdirectory(SDL)
+add_subdirectory(vendor/SDL)
 
 set(SDLTTF_VENDORED ON)
 set(SDLTTF_BUILD_SHARED_LIBS OFF)
-add_subdirectory(SDL_ttf)
+add_subdirectory(vendor/SDL_ttf)
 
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
-add_subdirectory(cglm/)
+add_subdirectory(vendor/cglm/)
 
 include_directories(
     include/
@@ -128,8 +128,8 @@ add_executable(game
 
     src/main.c
 
-    cimgui/imgui/backends/imgui_impl_wgpu.cpp
-    cimgui/imgui/backends/imgui_impl_sdl3.cpp
+    vendor/cimgui/imgui/backends/imgui_impl_wgpu.cpp
+    vendor/cimgui/imgui/backends/imgui_impl_sdl3.cpp
 )
 
 enable_testing()
