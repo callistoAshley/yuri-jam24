@@ -108,6 +108,9 @@ add_executable(game
     src/graphics/tilemap.c
     src/graphics/layer.c
     src/graphics/sprite.c
+    src/graphics/utils.c
+
+    src/fonts/font.c
 
     src/physics/physics.c
     src/physics/debug_draw.c
@@ -146,7 +149,7 @@ target_link_libraries(
   game 
   SDL3::SDL3
   SDL3::Headers
-  ${SDLTTF_LIBRARIES}
+  SDL3_ttf::SDL3_ttf
   cglm
   ${FMOD_LIBRARY}
   ${FMOD_STUDIO_LIBRARY}
