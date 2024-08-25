@@ -1,15 +1,15 @@
 [submodule "wgpu-native"]
-	path = wgpu-native
+	path = vendor/wgpu-native
 	url = https://github.com/gfx-rs/wgpu-native
 [submodule "cimgui"]
-	path = cimgui
+	path = vendor/cimgui
 	url = https://github.com/cimgui/cimgui
 [submodule "box2d"]
-	path = box2d
+	path = vendor/box2d
 	url = https://github.com/erincatto/box2d
 [submodule "SDL_ttf"]
-	path = SDL_ttf
+	path = vendor/SDL_ttf
 	url = https://github.com/libsdl-org/SDL_ttf
 [submodule "SDL"]
-	path = SDL
+	path = vendor/SDL
 	url = https://github.com/libsdl-org/SDL
