@@ -69,6 +69,8 @@ option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
 add_subdirectory(vendor/cglm/)
 
+add_subdirectory(vendor/accesskit-c)
+
 include_directories(
     include/
     ${FMOD_INCLUDE_DIR}
@@ -157,6 +159,7 @@ target_link_libraries(
   box2d
   cimgui
   m # link against math library (looks really stupid lol)
+  accesskit
 )
 
 include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
