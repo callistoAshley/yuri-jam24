@@ -1,8 +1,9 @@
 #include "tex_manager.h"
 #include "sensible_nums.h"
+#include "utility/graphics.h"
 #include "utility/macros.h"
 #include "webgpu.h"
-#include <stb_image.h>
+#include <SDL3_image/SDL_image.h>
 
 // we don't need a union here, because we already have something that keeps
 // track of if an entry is free: the reference count!
@@ -60,44 +61,12 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
     }
 
     // load texture
-    int width, height, channels;
-    stbi_uc *data = stbi_load(path, &width, &height, &channels, 4);
-    PTR_ERRCHK(data, "Failed to load texture!");
-    printf("Loaded texture %s: %dx%d %d\n", path, width, height, channels);
-
-    WGPUExtent3D extents = {
-        .width = width,
-        .height = height,
-        .depthOrArrayLayers = 1,
-    };
-    WGPUTextureFormat view_formats[] = {WGPUTextureFormat_RGBA8Unorm,
-                                        WGPUTextureFormat_RGBA8UnormSrgb};
-    WGPUTextureDescriptor desc = {
-        .label = path,
-        .size = extents,
-        .dimension = WGPUTextureDimension_2D,
-        .format = WGPUTextureFormat_RGBA8UnormSrgb,
-        .mipLevelCount = 1,
-        .sampleCount = 1,
-        .usage = WGPUTextureUsage_CopyDst | WGPUTextureUsage_TextureBinding,
-        .viewFormats = view_formats,
-        .viewFormatCount = 2,
-    };
-
-    WGPUTexture texture = wgpuDeviceCreateTexture(resources->device, &desc);
-    WGPUImageCopyTexture copy = {
-        .texture = texture,
-        .mipLevel = 0,
-        .origin = {0, 0, 0},
-    };
-    WGPUTextureDataLayout layout = {
-        .offset = 0,
-        .bytesPerRow = width * 4,
-        .rowsPerImage = height,
-    };
-    wgpuQueueWriteTexture(resources->queue, &copy, data, width * height * 4,
-                          &layout, &extents);
-    free(data);
+    SDL_Surface *surface = IMG_Load(path);
+    SDL_PTR_ERRCHK(surface, "failed to load image");
+    WGPUTexture texture = texture_from_surface(
+        surface, WGPUTextureUsage_TextureBinding | WGPUTextureUsage_CopyDst,
+        resources);
+    SDL_DestroySurface(surface);
 
     return texture_manager_register(manager, texture, path);
 }

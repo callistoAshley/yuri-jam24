@@ -4,7 +4,6 @@
 #include "utility/common_defines.h"
 #include "webgpu.h"
 #include "wgpu.h"
-#include <stb/stb_easy_font.h>
 
 typedef struct
 {

@@ -6,6 +6,8 @@
 WGPUTexture texture_from_surface(SDL_Surface *surface, WGPUTextureUsage usage,
                                  WGPUResources *wgpu)
 {
+    WGPUTextureFormat view_formats[] = {WGPUTextureFormat_RGBA8Unorm,
+                                        WGPUTextureFormat_RGBA8UnormSrgb};
     WGPUTextureDescriptor descriptor = {
         .size =
             (WGPUExtent3D){
@@ -16,8 +18,10 @@ WGPUTexture texture_from_surface(SDL_Surface *surface, WGPUTextureUsage usage,
         .mipLevelCount = 1,
         .sampleCount = 1,
         .dimension = WGPUTextureDimension_2D,
-        .format = WGPUTextureFormat_RGBA8Unorm,
+        .format = WGPUTextureFormat_RGBA8UnormSrgb,
         .usage = usage | WGPUTextureUsage_CopyDst,
+        .viewFormats = view_formats,
+        .viewFormatCount = 2,
     };
     WGPUTexture texture = wgpuDeviceCreateTexture(wgpu->device, &descriptor);
 
@@ -40,7 +44,7 @@ void write_surface_to_texture(SDL_Surface *surface, WGPUTexture texture,
     WGPUTextureFormat format = wgpuTextureGetFormat(texture);
     assert(converted->w == texture_width);
     assert(converted->h == texture_height);
-    assert(format == WGPUTextureFormat_RGBA8Unorm);
+    assert(format == WGPUTextureFormat_RGBA8UnormSrgb);
 
     WGPUImageCopyTexture copy_texture = {
         .texture = texture,
@@ -61,4 +65,7 @@ void write_surface_to_texture(SDL_Surface *surface, WGPUTexture texture,
     wgpuQueueWriteTexture(wgpu->queue, &copy_texture, converted->pixels,
                           4 * texture_width * texture_height, &layout,
                           &write_size);
+
+    if (converted != surface)
+        SDL_DestroySurface(converted);
 }

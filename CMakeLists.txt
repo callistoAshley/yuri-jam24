@@ -65,6 +65,19 @@ set(SDLTTF_VENDORED ON)
 set(SDLTTF_BUILD_SHARED_LIBS OFF)
 add_subdirectory(vendor/SDL_ttf)
 
+set(SDLIMAGE_VENDORED ON)
+set(BUILD_SHARED_LIBS OFF)
+set(SDLIMAGE_AVIF OFF)
+set(SDLIMAGE_LBM  OFF)
+set(SDLIMAGE_PCX  OFF)
+set(SDLIMAGE_PNM  OFF)
+set(SDLIMAGE_TGA  OFF)
+set(SDLIMAGE_WEBP OFF)
+set(SDLIMAGE_XCF  OFF)
+set(SDLIMAGE_XPM  OFF)
+set(SDLIMAGE_XV   OFF)
+add_subdirectory(vendor/SDL_image)
+
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
 add_subdirectory(vendor/cglm/)
@@ -79,7 +92,6 @@ include_directories(
     ${CMAKE_SOURCE_DIR}
     ${WGPU_INCLUDE_DIR}/webgpu-headers
 
-    stb/
     cimgui/
     cimgui/imgui/
 
@@ -126,8 +138,6 @@ add_executable(game
     src/utility/vec.c
     src/utility/graphics.c
 
-    stb/stb_impl.c
-
     src/core_types.c
     src/lvl-parser.c
 
@@ -145,13 +155,14 @@ add_test(NAME linked_list_test COMMAND $<TARGET_FILE:linked_list_test>)
 
 add_dependencies(game wgpu-native)
 
-target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic -fpermissive)
+target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic -fpermissive -Wno-error)
 
 target_link_libraries(
   game 
   SDL3::SDL3
   SDL3::Headers
   SDL3_ttf::SDL3_ttf
+  SDL3_image::SDL3_image
   cglm
   ${FMOD_LIBRARY}
   ${FMOD_STUDIO_LIBRARY}

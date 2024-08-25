@@ -1,3 +1,4 @@
+#include "SDL3_image/SDL_image.h"
 #include "physics/physics.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
