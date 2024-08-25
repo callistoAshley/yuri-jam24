@@ -37,6 +37,9 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
 // reaches 0
 void texture_manager_unload(TextureManager *manager, TextureEntry *entry);
 
+TextureEntry *texture_manager_register(TextureManager *manager,
+                                       WGPUTexture texture, const char *path);
+
 WGPUTexture texture_manager_get_texture(TextureManager *manager,
                                         TextureEntry *entry);
 WGPUTextureView texture_manager_get_texture_view(TextureManager *manager,

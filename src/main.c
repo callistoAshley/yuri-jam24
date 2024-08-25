@@ -5,6 +5,7 @@
 #include <fmod_studio.h>
 
 #include <SDL3/SDL.h>
+#include <SDL3_ttf/SDL_ttf.h>
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
 #include "graphics/imgui-wgpu.h"
@@ -59,6 +60,8 @@ int main(int argc, char **argv)
 
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
+
+    SDL_ERRCHK(TTF_Init(), "TTF initialization failure");
 
     window = SDL_CreateWindow("i am the window", WINDOW_WIDTH, WINDOW_HEIGHT,
                               SDL_WINDOW_HIDDEN);
@@ -165,6 +168,7 @@ int main(int argc, char **argv)
     audio_free(&audio);
     interpreter_free(interpreter);
     SDL_Quit();
+    TTF_Quit();
     ImGui_ImplSDL3_Shutdown();
     ImGui_ImplWGPU_Shutdown();
     igDestroyContext(imgui);

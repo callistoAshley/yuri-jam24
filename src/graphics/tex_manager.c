@@ -97,9 +97,15 @@ TextureEntry *texture_manager_load(TextureManager *manager, const char *path,
     };
     wgpuQueueWriteTexture(resources->queue, &copy, data, width * height * 4,
                           &layout, &extents);
-    WGPUTextureView view = wgpuTextureCreateView(texture, NULL);
-
     free(data);
+
+    return texture_manager_register(manager, texture, path);
+}
+
+TextureEntry *texture_manager_register(TextureManager *manager,
+                                       WGPUTexture texture, const char *path)
+{
+    WGPUTextureView view = wgpuTextureCreateView(texture, NULL);
 
     const char *new_path = strdup(path);
     TextureEntry entry = {
