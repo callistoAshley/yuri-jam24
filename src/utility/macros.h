@@ -46,3 +46,11 @@
 #define REMAINDER_OF(val, divisor) ((val) % (divisor))
 #define ALIGN_TO(val, align)                                                   \
     REMAINDER_OF(val, align) == 0 ? val : val + align - REMAINDER_OF(val, align)
+
+// NOTE: If neither of these are present, the parameter is required to be
+// initialized, and non-NULL!
+
+// indicates that this function parameter can be NULL
+#define NULLABLE
+// indicates that this function parameter can be uninitialized
+#define UNINIT
