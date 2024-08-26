@@ -18,8 +18,8 @@ typedef struct
     LayerEntry layer_entry;
 
     b2BodyId body_id;
-    b2ShapeId foot_sensor_id;
     b2ShapeId shape_id;
+    f32 jump_timeout;
 } Player;
 
 void player_init(Player *player, Resources *resources);

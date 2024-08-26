@@ -2,6 +2,7 @@
 #include "core_types.h"
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
+#include "utility/log.h"
 
 void player_init(Player *player, Resources *resources)
 {
@@ -39,15 +40,6 @@ void player_init(Player *player, Resources *resources)
     player->shape_id =
         b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
 
-    b2Polygon footSensorBox =
-        b2MakeOffsetBox(0.3f, 0.1f, (b2Vec2){0.0, -1.0}, 0.0);
-    b2ShapeDef footSensorDef = b2DefaultShapeDef();
-    footSensorDef.isSensor = true;
-    footSensorDef.density = 0.0f;
-    footSensorDef.friction = 0.0f;
-    player->foot_sensor_id =
-        b2CreatePolygonShape(player->body_id, &footSensorDef, &footSensorBox);
-
     // hacky ground box
     b2BodyDef groundBodyDef = b2DefaultBodyDef();
     groundBodyDef.position = (b2Vec2){25, -2.5};
@@ -56,6 +48,8 @@ void player_init(Player *player, Resources *resources)
     b2Polygon groundBox = b2MakeBox(25.0f, 2.5f);
     b2ShapeDef groundShapeDef = b2DefaultShapeDef();
     b2CreatePolygonShape(groundId, &groundShapeDef, &groundBox);
+
+    player->jump_timeout = 0;
 }
 
 #define WALK_SPEED_MPS 6
@@ -75,6 +69,41 @@ void player_update(Player *player, Resources *resources)
         b2Shape_SetFriction(player->shape_id, 0.0f);
     else
         b2Shape_SetFriction(player->shape_id, 0.5f);
+
+    // check if we're on the ground
+    b2ContactData contact_data[8];
+    int contact_count =
+        b2Shape_GetContactData(player->shape_id, contact_data, 8);
+    if (player->jump_timeout > 0)
+        player->jump_timeout -= resources->input->delta_seconds;
+
+    if (contact_count > 0 && player->jump_timeout <= 0)
+    {
+        bool contact_is_ground = false;
+        for (int i = 0; i < contact_count; i++)
+        {
+            // figure out what direction the normal is in (player->ground or
+            // ground->player)
+            b2ContactData contact = contact_data[i];
+            bool player_is_a =
+                contact.shapeIdA.index1 == player->shape_id.index1;
+            b2Vec2 normal = player_is_a ? contact.manifold.normal
+                                        : b2Neg(contact.manifold.normal);
+            // normal is facing down, which means we're on the ground
+            if (normal.y < 0.0)
+            {
+                contact_is_ground = true;
+                break;
+            }
+        }
+        // we're on the ground
+        if (input_is_down(resources->input, Button_Up) && contact_is_ground)
+        {
+            b2Body_ApplyLinearImpulseToCenter(player->body_id,
+                                              (b2Vec2){0.0, 15.0}, true);
+            player->jump_timeout = 0.1;
+        }
+    }
 
     b2Vec2 body_position = b2Body_GetPosition(player->body_id);
     // box2d has a different coordinate system than us

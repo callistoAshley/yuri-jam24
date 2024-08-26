@@ -6,6 +6,7 @@ void physics_init(Physics *physics)
     b2WorldDef worldDef = b2DefaultWorldDef();
     worldDef.gravity = (b2Vec2){0.0f, -9.81f};
     physics->world = b2CreateWorld(&worldDef);
+    physics->debug_draw = false;
 }
 
 void physics_update(Physics *physics)

@@ -6,6 +6,7 @@
 typedef struct
 {
     b2WorldId world;
+    bool debug_draw;
 } Physics;
 
 void physics_init(Physics *physics);
