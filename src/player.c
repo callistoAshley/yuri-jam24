@@ -42,7 +42,7 @@ void player_init(Player *player, Resources *resources)
     b2Polygon footSensorBox =
         b2MakeOffsetBox(0.3f, 0.1f, (b2Vec2){0.0, -1.0}, 0.0);
     b2ShapeDef footSensorDef = b2DefaultShapeDef();
-    // footSensorDef.isSensor = true;
+    footSensorDef.isSensor = true;
     footSensorDef.density = 0.0f;
     footSensorDef.friction = 0.0f;
     player->foot_sensor_id =

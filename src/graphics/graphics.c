@@ -302,6 +302,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderRelease(render_pass);
     }
 
+    Box2DDebugCtx debug_ctx;
+    physics_debug_draw_init(&debug_ctx, graphics, raw_camera);
+
     {
         WGPURenderPassColorAttachment screen_attachments[] = {{
             .view = frame,
@@ -349,7 +352,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         layer_draw(&graphics->ui_layers.foreground, graphics, camera,
                    render_pass);
 
-        physics_debug_draw(physics, graphics, raw_camera, render_pass);
+        physics_debug_draw(&debug_ctx, physics, render_pass);
 
         ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 
@@ -361,6 +364,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuCommandEncoderFinish(command_encoder, NULL);
     wgpuQueueSubmit(graphics->wgpu.queue, 1, &command_buffer);
     wgpuSurfacePresent(graphics->wgpu.surface);
+
+    physics_debug_draw_free(&debug_ctx);
 
     wgpuBindGroupRelease(object_bind_group);
     wgpuBindGroupRelease(light_bind_group);
