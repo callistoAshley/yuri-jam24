@@ -18,6 +18,7 @@ typedef struct
     LayerEntry layer_entry;
 
     b2BodyId body_id;
+    b2ShapeId shape_id;
 } Player;
 
 void player_init(Player *player, Resources *resources);

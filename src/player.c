@@ -36,7 +36,8 @@ void player_init(Player *player, Resources *resources)
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
     shapeDef.friction = 0.0f;
-    b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
+    player->shape_id =
+        b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
 
     // hacky ground box
     b2BodyDef groundBodyDef = b2DefaultBodyDef();
@@ -52,12 +53,19 @@ void player_init(Player *player, Resources *resources)
 #define WALK_SEED_PXPS M_TO_PX(WALK_SPEED_MPS)
 void player_update(Player *player, Resources *resources)
 {
-    if (input_is_down(resources->input, Button_Left))
+    bool left_down = input_is_down(resources->input, Button_Left);
+    bool right_down = input_is_down(resources->input, Button_Right);
+    if (left_down)
         b2Body_ApplyForceToCenter(player->body_id, (b2Vec2){-WALK_SPEED_MPS, 0},
                                   true);
-    if (input_is_down(resources->input, Button_Right))
+    if (right_down)
         b2Body_ApplyForceToCenter(player->body_id, (b2Vec2){WALK_SPEED_MPS, 0},
                                   true);
+    // if we're not moving, we want to stop quickly
+    if (left_down || right_down)
+        b2Shape_SetFriction(player->shape_id, 0.0f);
+    else
+        b2Shape_SetFriction(player->shape_id, 0.5f);
 
     b2Vec2 body_position = b2Body_GetPosition(player->body_id);
     // box2d has a different coordinate system than us
