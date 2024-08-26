@@ -39,6 +39,15 @@ void player_init(Player *player, Resources *resources)
     player->shape_id =
         b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
 
+    b2Polygon footSensorBox =
+        b2MakeOffsetBox(0.3f, 0.1f, (b2Vec2){0.0, -1.0}, 0.0);
+    b2ShapeDef footSensorDef = b2DefaultShapeDef();
+    // footSensorDef.isSensor = true;
+    footSensorDef.density = 0.0f;
+    footSensorDef.friction = 0.0f;
+    player->foot_sensor_id =
+        b2CreatePolygonShape(player->body_id, &footSensorDef, &footSensorBox);
+
     // hacky ground box
     b2BodyDef groundBodyDef = b2DefaultBodyDef();
     groundBodyDef.position = (b2Vec2){25, -2.5};

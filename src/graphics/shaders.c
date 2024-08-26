@@ -448,6 +448,118 @@ void create_b2d_circle_shader(Shaders *shaders, WGPUResources *resources)
     wgpuShaderModuleRelease(module);
 }
 
+void create_b2d_polygon_shader(Shaders *shaders, WGPUResources *resources)
+{
+    char *buf;
+    long buf_len;
+
+    read_entire_file("assets/shaders/b2d_polygon.wgsl", &buf, &buf_len);
+
+    WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
+        .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
+        .code = buf,
+    };
+
+    WGPUShaderModuleDescriptor module_descriptor = {
+        .label = "b2d_polygon",
+        .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
+    };
+
+    WGPUShaderModule module =
+        wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
+
+    WGPUPushConstantRange push_constant_ranges[] = {
+        (WGPUPushConstantRange){
+            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+            .start = 0,
+            .end = sizeof(B2DDrawPolygonPushConstants),
+        },
+    };
+    WGPUPipelineLayoutExtras extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
+        .pushConstantRanges = push_constant_ranges,
+        .pushConstantRangeCount = 1,
+    };
+    WGPUPipelineLayoutDescriptor layout_descriptor = {
+        .nextInChain = (WGPUChainedStruct *)&extras,
+        .label = "b2d_polygon",
+    };
+
+    WGPUPipelineLayout layout =
+        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
+
+    WGPUVertexAttribute vertex_attributes[] = {(WGPUVertexAttribute){
+        .format = WGPUVertexFormat_Float32x2,
+        .offset = 0,
+        .shaderLocation = 0,
+    }};
+    WGPUVertexBufferLayout vertex_buffer_layout = {
+        .arrayStride = sizeof(f32) * 2,
+        .stepMode = WGPUVertexStepMode_Vertex,
+        .attributeCount = 1,
+        .attributes = vertex_attributes};
+
+    WGPUVertexState vertex_state = {
+        .module = module,
+        .entryPoint = "vs_main",
+        .buffers = &vertex_buffer_layout,
+        .bufferCount = 1,
+    };
+
+    WGPUBlendState blend = {
+        .color =
+            {
+                .srcFactor = WGPUBlendFactor_SrcAlpha,
+                .dstFactor = WGPUBlendFactor_OneMinusSrcAlpha,
+                .operation = WGPUBlendOperation_Add,
+            },
+        .alpha =
+            {
+                .srcFactor = WGPUBlendFactor_One,
+                .dstFactor = WGPUBlendFactor_OneMinusSrcAlpha,
+                .operation = WGPUBlendOperation_Add,
+            },
+    };
+
+    WGPUColorTargetState color_targets[] = {
+        // color
+        (WGPUColorTargetState){
+            .format = resources->surface_config.format,
+            .writeMask = WGPUColorWriteMask_All,
+            .blend = &blend,
+        },
+    };
+    WGPUFragmentState fragment_state = {.module = module,
+                                        .entryPoint = "fs_main",
+                                        .targetCount = 1,
+                                        .targets = color_targets};
+
+    WGPUPrimitiveState primitive = {
+        .topology = WGPUPrimitiveTopology_TriangleList,
+    };
+
+    WGPUMultisampleState multisample = {
+        .count = 1,
+        .mask = 0xFFFFFFFF,
+    };
+
+    WGPURenderPipelineDescriptor descriptor = {
+        .label = "b2d_polygon",
+        .layout = layout,
+        .vertex = vertex_state,
+        .fragment = &fragment_state,
+        .primitive = primitive,
+        .multisample = multisample,
+    };
+
+    shaders->box2d_debug.polygon =
+        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
+
+    free(buf);
+    wgpuPipelineLayoutRelease(layout);
+    wgpuShaderModuleRelease(module);
+}
+
 void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
                              WGPUResources *resources)
 {
@@ -560,4 +672,5 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     create_ui_object_shader(shaders, layouts, resources);
 
     create_b2d_circle_shader(shaders, resources);
+    create_b2d_polygon_shader(shaders, resources);
 }

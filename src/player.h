@@ -18,6 +18,7 @@ typedef struct
     LayerEntry layer_entry;
 
     b2BodyId body_id;
+    b2ShapeId foot_sensor_id;
     b2ShapeId shape_id;
 } Player;
 

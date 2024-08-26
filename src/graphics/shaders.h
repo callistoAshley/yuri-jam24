@@ -40,6 +40,17 @@ typedef struct
 
 typedef struct
 {
+    vec3s color;
+    // you'd think we should put this alignas on the color field, but it doesn't
+    // work for some reason?
+    alignas(16) vec2s camera_position;
+    vec2s position;
+    f32 internal_scale;
+    u32 solid;
+} B2DDrawPolygonPushConstants;
+
+typedef struct
+{
     mat4s camera;
     u32 transform_index;
     u32 texture_index;
