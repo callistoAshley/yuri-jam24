@@ -1,14 +1,9 @@
-#include "SDL3_image/SDL_image.h"
-#include "physics/physics.h"
-#include "scenes/map.h"
-#include "scenes/scene.h"
-#include <SDL3/SDL_events.h>
-#include <SDL3/SDL_video.h>
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
 #include <SDL3/SDL.h>
 #include <SDL3_ttf/SDL_ttf.h>
+#include <SDL3_image/SDL_image.h>
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
 #include "graphics/imgui-wgpu.h"
@@ -26,6 +21,9 @@
 #include "utility/common_defines.h"
 #include "events/interpreter.h"
 #include "player.h"
+#include "physics/physics.h"
+#include "scenes/map.h"
+#include "scenes/scene.h"
 
 int main(int argc, char **argv)
 {
@@ -82,7 +80,30 @@ int main(int argc, char **argv)
                               SDL_WINDOW_HIDDEN);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
+    // SDL_SetWindowRelativeMouseMode(window, true);
+
     graphics_init(&graphics, window);
+
+    Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 32., .y = 32.});
+    Quad quad = {.rect = rect, .tex_coords = tex_coords};
+
+    QuadEntry quad_entry = quad_manager_add(&graphics.quad_manager, quad);
+
+    f32 mouse_x, mouse_y;
+    SDL_GetMouseState(&mouse_x, &mouse_y);
+    Transform transform =
+        transform_from_pos((vec3s){.x = mouse_x, .y = mouse_y, .z = 0});
+    TransformEntry transform_entry =
+        transform_manager_add(&graphics.transform_manager, transform);
+
+    TextureEntry *texture_entry =
+        texture_manager_load(&graphics.texture_manager,
+                             "assets/textures/cursor.png", &graphics.wgpu);
+
+    Sprite sprite;
+    sprite_init(&sprite, texture_entry, transform_entry, quad_entry);
+    layer_add(&graphics.ui_layers.foreground, &sprite);
 
     if (init_level_editor)
         level_editor = lvledit_init(&graphics);
@@ -177,6 +198,12 @@ int main(int argc, char **argv)
         }
 
         scene.update(scene_data, &resources);
+
+        SDL_GetMouseState(&mouse_x, &mouse_y);
+        transform.position.x = mouse_x;
+        transform.position.y = mouse_y;
+        transform_manager_update(&graphics.transform_manager, transform_entry,
+                                 transform);
 
         igRender();
         graphics_render(&graphics, &physics, raw_camera);
