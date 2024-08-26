@@ -20,19 +20,8 @@
 #include "webgpu.h"
 #include "fonts/font.h"
 
-Tilemap tilemap;
-
-Font font;
-Sprite text_sprite;
-
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
-
-typedef struct
-{
-    Tilemap *tilemap;
-    int layer;
-} TilemapLayer;
 
 void tilemap_layer_draw(void *layer, Graphics *graphics, mat4s camera,
                         WGPURenderPassEncoder pass)
@@ -82,40 +71,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                          "assets/textures/load_bearing_molly.png",
                          &graphics->wgpu);
 
-    {
-        font_init(&font, "assets/fonts/Mx437_Compaq_Port3.ttf", 32);
-        SDL_Color color = {
-            .r = 255,
-            .g = 255,
-            .b = 255,
-            .a = 255,
-        };
-        WGPUTexture texture = font_render_text(&font, "Woah! I am transgender",
-                                               color, &graphics->wgpu);
-        TextureEntry *text_entry = texture_manager_register(
-            &graphics->texture_manager, texture, "i am transgender btw");
-
-        u32 width = wgpuTextureGetWidth(texture);
-        u32 height = wgpuTextureGetHeight(texture);
-
-        Rect rect = rect_from_min_size(GLMS_VEC2_ZERO,
-                                       (vec2s){.x = width, .y = height});
-        Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
-        Quad quad = {
-            .rect = rect,
-            .tex_coords = tex_coords,
-        };
-        QuadEntry text_quad_index =
-            quad_manager_add(&graphics->quad_manager, quad);
-
-        Transform transform = transform_from_xyz(100, 100, 0);
-        TransformEntry text_transform =
-            transform_manager_add(&graphics->transform_manager, transform);
-
-        sprite_init(&text_sprite, text_entry, text_transform, text_quad_index);
-        layer_add(&graphics->ui_layers.foreground, &text_sprite);
-    }
-
     WGPUExtent3D extents = {
         .width = INTERNAL_SCREEN_WIDTH,
         .height = INTERNAL_SCREEN_HEIGHT,
@@ -153,27 +108,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
             .tex_coords = tex_coords,
         };
         screen_quad_index = quad_manager_add(&graphics->quad_manager, quad);
-    }
-
-    {
-        Transform transform = transform_from_xyz(0, 0, 0);
-        TransformEntry tilemap_transform =
-            transform_manager_add(&graphics->transform_manager, transform);
-        TextureEntry *tileset = texture_manager_load(
-            &graphics->texture_manager, "assets/textures/red_start.png",
-            &graphics->wgpu);
-        u32 map_data[50 * 5];
-        for (int i = 0; i < 50 * 5; i++)
-        {
-            map_data[i] = 1;
-        }
-        tilemap_new(&tilemap, graphics, tileset, tilemap_transform, 50, 5, 1,
-                    map_data);
-
-        TilemapLayer *background = malloc(sizeof(TilemapLayer));
-        background->tilemap = &tilemap;
-        background->layer = 0;
-        layer_add(&graphics->tilemap_layers.background, background);
     }
 }
 

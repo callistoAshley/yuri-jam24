@@ -12,6 +12,12 @@ typedef struct
     WGPUBuffer instances;
 } Tilemap;
 
+typedef struct
+{
+    Tilemap *tilemap;
+    int layer;
+} TilemapLayer;
+
 void tilemap_new(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
                  TransformEntry transform, int map_w, int map_h, int layers,
                  u32 *map_data);
