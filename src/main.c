@@ -1,3 +1,4 @@
+#include "SDL3/SDL_events.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -182,6 +183,11 @@ int main(int argc, char **argv)
                 window_width = event.window.data1;
                 window_height = event.window.data2;
             }
+            if (event.type == SDL_EVENT_WINDOW_MOVED)
+            {
+                window_x = event.window.data1;
+                window_y = event.window.data2;
+            }
         }
 
         if (input_is_pressed(&input, Button_Fullscreen))
@@ -209,7 +215,6 @@ int main(int argc, char **argv)
 
         scene.update(scene_data, &resources);
 
-        SDL_GetWindowPosition(window, &window_x, &window_y);
         SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
 
         mouse_x -= window_x;
