@@ -103,7 +103,6 @@ add_executable(game
 
     src/debug/windows/brush.c
     src/debug/windows/new-map.c
-    src/debug/windows/test.c
     src/debug/windows/tilemap-editor.c
     src/debug/windows/window-container.c
     src/debug/level-editor.c
