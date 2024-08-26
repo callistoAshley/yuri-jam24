@@ -1,18 +1,13 @@
 #pragma once
 
-#include "cglm/quat.h"
 #include "core_types.h"
-#include "graphics/graphics.h"
-#include "graphics/quad_manager.h"
 #include "graphics/sprite.h"
-#include "input/input.h"
-#include "physics/physics.h"
+#include "scenes/scene.h"
 
 // general player state should be kept here, like inventory and puzzle flags
 
 typedef struct
 {
-    Camera camera;
     Transform transform;
     Quad quad;
 
@@ -25,6 +20,6 @@ typedef struct
     b2BodyId body_id;
 } Player;
 
-void player_init(Player *player, Graphics *graphics, Physics *physics);
-void player_update(Player *player, Graphics *graphics, Input *input);
-void player_free(Player *player, Graphics *graphics);
+void player_init(Player *player, Resources *resources);
+void player_update(Player *player, Resources *resources);
+void player_free(Player *player, Resources *resources);

@@ -1,5 +1,7 @@
 #include "SDL3_image/SDL_image.h"
 #include "physics/physics.h"
+#include "scenes/map.h"
+#include "scenes/scene.h"
 #include <SDL3/SDL_events.h>
 #include <SDL3/SDL_video.h>
 #include <fmod_errors.h>
@@ -59,6 +61,12 @@ int main(int argc, char **argv)
     Physics physics;
     physics_init(&physics);
 
+    Camera raw_camera = {
+        .x = 0,
+        .y = 0,
+        .z = 0,
+    };
+
     SDL_ERRCHK(SDL_Init(SDL_INIT_TIMER | SDL_INIT_VIDEO | SDL_INIT_EVENTS),
                "SDL initialization failure");
 
@@ -69,9 +77,6 @@ int main(int argc, char **argv)
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
-
-    Player player;
-    player_init(&player, &graphics, &physics);
 
     if (init_level_editor)
         level_editor = lvledit_init(&graphics);
@@ -100,8 +105,19 @@ int main(int argc, char **argv)
     ImGui_ImplSDL3_InitForOther(window);
     ImGui_ImplWGPU_Init(&imgui_init_info);
 
-    u64 accumulator = 0;
+    Resources resources = {
+        .graphics = &graphics,
+        .physics = &physics,
+        .audio = &audio,
+        .input = &input,
+        .raw_camera = &raw_camera,
+    };
 
+    void *scene_data;
+    SceneInterface scene = MAP_SCENE;
+    scene.init(&scene_data, &resources);
+
+    u64 accumulator = 0;
     const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;
 
     bool fullscreen = false;
@@ -146,16 +162,18 @@ int main(int argc, char **argv)
                 break;
         }
 
-        player_update(&player, &graphics, &input);
-
         while (accumulator >= FIXED_TIME_STEP)
         {
             physics_update(&physics);
+            if (scene.fixed_update)
+                scene.fixed_update(scene_data, &resources);
             accumulator -= FIXED_TIME_STEP;
         }
 
+        scene.update(scene_data, &resources);
+
         igRender();
-        graphics_render(&graphics, &physics, player.camera);
+        graphics_render(&graphics, &physics, raw_camera);
 
         if (first_frame)
         {
@@ -164,7 +182,6 @@ int main(int argc, char **argv)
         }
     }
 
-    player_free(&player, &graphics);
     graphics_free(&graphics);
     audio_free(&audio);
     interpreter_free(interpreter);

@@ -5,6 +5,7 @@
 #include "audio/audio.h"
 #include "input/input.h"
 #include "sensible_nums.h"
+#include "utility/macros.h"
 
 // FIXME: move to a more appropriate location?
 typedef struct
@@ -13,20 +14,25 @@ typedef struct
     Physics *physics;
     Audio *audio;
     Input *input;
+    Camera *raw_camera;
 } Resources;
 
-typedef void (*SceneInit)(void *scene_data, Resources *update_state);
-// dt is in seconds
-typedef void (*SceneUpdate)(void *scene_data, Resources *update_state, f32 dt);
+typedef void (*SceneInit)(void **scene_data, Resources *resources);
+// there is no delta passed in directly here- that is on the Input struct!
+// use this for handling input, updating game state, etc.
+typedef void (*SceneUpdate)(void *scene_data, Resources *resources);
 // run once every fixed update (64hz interval)
-typedef void (*SceneFixedUpdate)(void *scene_data, Resources *update_state);
-typedef void (*SceneFree)(void *scene_data, Resources *update_state);
+// this is run after physics updates- use this for things you want to always run
+// at a fixed rate, and in-sync with physics
+typedef void (*SceneFixedUpdate)(void *scene_data, Resources *resources);
+typedef void (*SceneFree)(void *scene_data, Resources *resources);
 
-typedef struct Scene
+// other files are expected to provide a constant of this type
+typedef struct
 {
+    SceneInit init;
     SceneUpdate update;
-    SceneFixedUpdate fixed_update;
+    // this is optional
+    NULLABLE SceneFixedUpdate fixed_update;
     SceneFree free;
-
-    void *scene_data;
-} Scene;
+} SceneInterface;

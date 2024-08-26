@@ -128,6 +128,8 @@ add_executable(game
     src/physics/physics.c
     src/physics/debug_draw.c
 
+    src/scenes/map.c
+
     src/player.c
 
     src/input/input.c
