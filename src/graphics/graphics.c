@@ -332,6 +332,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                   QUAD_ENTRY_TO_VERTEX_INDEX(screen_quad_index),
                                   0);
 
+        if (physics->debug_draw)
+            physics_debug_draw(&debug_ctx, physics, render_pass);
+
         mat4s camera_projection =
             glms_ortho(0.0, graphics->wgpu.surface_config.width,
                        graphics->wgpu.surface_config.height, 0.0, -1.0f, 1.0f);
@@ -349,14 +352,32 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
         layer_draw(&graphics->ui_layers.background, graphics, camera,
                    render_pass);
+
         layer_draw(&graphics->ui_layers.middle, graphics, camera, render_pass);
+
+        // imgui is used for debug tools, so we want that to be on top of most
+        // of the game's ui
+        ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
+
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.ui_object);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                          NULL);
+        wgpuRenderPassEncoderSetVertexBuffer(
+            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+
+        // imgui might set weird viewport and scissor rect values, so we need to
+        // reset
+        wgpuRenderPassEncoderSetViewport(
+            render_pass, 0, 0, graphics->wgpu.surface_config.width,
+            graphics->wgpu.surface_config.height, 0, 1);
+        wgpuRenderPassEncoderSetScissorRect(
+            render_pass, 0, 0, graphics->wgpu.surface_config.width,
+            graphics->wgpu.surface_config.height);
+
+        // however... we do want the foreground ui to be on top of imgui
         layer_draw(&graphics->ui_layers.foreground, graphics, camera,
                    render_pass);
-
-        if (physics->debug_draw)
-            physics_debug_draw(&debug_ctx, physics, render_pass);
-
-        ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);

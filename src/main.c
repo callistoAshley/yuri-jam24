@@ -85,13 +85,21 @@ int main(int argc, char **argv)
     graphics_init(&graphics, window);
 
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
-    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 32., .y = 32.});
+    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 24., .y = 24.});
     Quad quad = {.rect = rect, .tex_coords = tex_coords};
 
     QuadEntry quad_entry = quad_manager_add(&graphics.quad_manager, quad);
 
     f32 mouse_x, mouse_y;
-    SDL_GetMouseState(&mouse_x, &mouse_y);
+    i32 window_x, window_y;
+    i32 window_width, window_height;
+    SDL_GetWindowPosition(window, &window_x, &window_y);
+    SDL_GetWindowSize(window, &window_width, &window_height);
+    SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
+
+    mouse_x -= window_x;
+    mouse_y -= window_y;
+
     Transform transform =
         transform_from_pos((vec3s){.x = mouse_x, .y = mouse_y, .z = 0});
     TransformEntry transform_entry =
@@ -171,6 +179,8 @@ int main(int argc, char **argv)
             {
                 graphics_resize(&graphics, event.window.data1,
                                 event.window.data2);
+                window_width = event.window.data1;
+                window_height = event.window.data2;
             }
         }
 
@@ -199,7 +209,19 @@ int main(int argc, char **argv)
 
         scene.update(scene_data, &resources);
 
-        SDL_GetMouseState(&mouse_x, &mouse_y);
+        SDL_GetWindowPosition(window, &window_x, &window_y);
+        SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
+
+        mouse_x -= window_x;
+        mouse_y -= window_y;
+
+        // if mouse is inside of window, hide it
+        if (mouse_x < 0 || mouse_x > window_width || mouse_y < 0 ||
+            mouse_y > window_height)
+            SDL_ShowCursor();
+        else
+            SDL_HideCursor();
+
         transform.position.x = mouse_x;
         transform.position.y = mouse_y;
         transform_manager_update(&graphics.transform_manager, transform_entry,
