@@ -32,6 +32,7 @@ int main(int argc, char **argv)
     LevelEditor *level_editor = NULL;
     bool init_level_editor = false;
     bool imgui_demo = false;
+    bool physics_debug_draw = false;
 
     for (int i = 0; i < argc; i++)
     {
@@ -42,6 +43,10 @@ int main(int argc, char **argv)
         else if (!strcmp(argv[i], "--imgui-demo"))
         {
             imgui_demo = true;
+        }
+        else if (!strcmp(argv[i], "--physics-debug-draw"))
+        {
+            physics_debug_draw = true;
         }
     }
 
@@ -60,6 +65,7 @@ int main(int argc, char **argv)
 
     Physics physics;
     physics_init(&physics);
+    physics.debug_draw = physics_debug_draw;
 
     Camera raw_camera = {
         .x = 0,
