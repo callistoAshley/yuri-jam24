@@ -6,12 +6,12 @@ set(CMAKE_BUILD_TYPE Debug) # force debug build for now
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
-find_package(FMOD) # creates FMOD_LIBRARY, FMOD_INCLUDE_DIR, FMOD_STUDIO_LIBRARY and FMOD_STUDIO_INCLUDE_DIR
-
 add_custom_target(wgpu-native ALL
     COMMAND make lib-native-release EXTRA_BUILD_ARGS=--quiet
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/wgpu-native
 )
+
+find_package(FMOD) # creates FMOD_LIBRARY, FMOD_INCLUDE_DIR, FMOD_STUDIO_LIBRARY and FMOD_STUDIO_INCLUDE_DIR
 find_package(WGPU) # creates WGPU_LIBRARY and WGPU_INCLUDE_DIR
 
 # cimgui
@@ -24,6 +24,8 @@ set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(vendor/box2d/)
 
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/tests.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
 
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
@@ -52,9 +54,6 @@ add_executable(${EXECUTABLE_NAME}
     vendor/cimgui/imgui/backends/imgui_impl_wgpu.cpp
     vendor/cimgui/imgui/backends/imgui_impl_sdl3.cpp
 )
-
-include(${CMAKE_SOURCE_DIR}/cmake/tests.cmake)
-include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
 
 add_dependencies(${EXECUTABLE_NAME} wgpu-native)
 
