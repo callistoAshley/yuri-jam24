@@ -10,6 +10,7 @@ typedef struct
 
     TextureEntry *tileset_tex;
     WGPUTextureView non_srgb_view;
+    uint8_t tileset_tex_width, tileset_tex_height;
 } BrushWndState;
 
 Window brush_window = {
@@ -52,6 +53,9 @@ void wnd_brush_set_tileset(Window *self, char *tileset)
         .arrayLayerCount = 1,
     };
     state->non_srgb_view = wgpuTextureCreateView(tileset_texture, &view_desc);
+
+    state->tileset_tex_width = wgpuTextureGetWidth(tileset_texture);
+    state->tileset_tex_height = wgpuTextureGetHeight(tileset_texture);
 }
 
 void wnd_brush_init_tilemap(
@@ -72,7 +76,7 @@ void wnd_brush_update(Window *self)
     igSetNextWindowSize(wnd_size, ImGuiCond_Once);
     if (igBegin("Brush", NULL, 0))
     {
-        ImVec2 tset_view_size = {96, 16};
+        ImVec2 tset_view_size = {state->tileset_tex_width, state->tileset_tex_height};
         static const ImVec2 uv0 = {0.0, 0.0}, uv1 = {1.0, 1.0};
         static const ImVec4 tint_col = {1, 1, 1, 1}, border_col = {0, 0, 0, 0};
 
