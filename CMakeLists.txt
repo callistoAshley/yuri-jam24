@@ -4,49 +4,15 @@ project(game)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd
 set(CMAKE_BUILD_TYPE Debug) # force debug build for now
 
-# FMOD
-find_library(
-    FMOD_LIBRARY 
-    NAMES fmod 
-    PATHS ${CMAKE_SOURCE_DIR}/vendor/fmod/api/core/lib/x86_64 
-    REQUIRED
-)
-find_path(
-    FMOD_INCLUDE_DIR
-    NAMES fmod.h
-    PATHS ${CMAKE_SOURCE_DIR}/vendor/fmod/api/core/inc 
-    REQUIRED
-)
-# FMOD Studio
-find_library(
-    FMOD_STUDIO_LIBRARY 
-    NAMES fmodstudio 
-    PATHS ${CMAKE_SOURCE_DIR}/vendor/fmod/api/studio/lib/x86_64 
-    REQUIRED
-)
-find_path(
-    FMOD_STUDIO_INCLUDE_DIR
-    NAMES fmod_studio.h
-    PATHS ${CMAKE_SOURCE_DIR}/vendor/fmod/api/studio/inc 
-    REQUIRED
-)
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
+
+find_package(FMOD) # creates FMOD_LIBRARY, FMOD_INCLUDE_DIR, FMOD_STUDIO_LIBRARY and FMOD_STUDIO_INCLUDE_DIR
 
 add_custom_target(wgpu-native ALL
     COMMAND make lib-native-release EXTRA_BUILD_ARGS=--quiet
     WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/wgpu-native
 )
-find_library(
-  WGPU_LIBRARY
-  NAMES wgpu_native
-  PATHS ${CMAKE_SOURCE_DIR}/vendor/wgpu-native/target/release
-  REQUIRED
-)
-find_path(
-  WGPU_INCLUDE_DIR
-  NAMES wgpu.h
-  PATHS ${CMAKE_SOURCE_DIR}/vendor/wgpu-native/ffi
-  REQUIRED
-)
+find_package(WGPU) # creates WGPU_LIBRARY and WGPU_INCLUDE_DIR
 
 # cimgui
 # goofy hack: some internal imgui sources rely on "webgpu/webgpu.h", so create a symlink to it
@@ -57,26 +23,7 @@ add_subdirectory(vendor/cimgui/)
 set(BUILD_SHARED_LIBS OFF)
 add_subdirectory(vendor/box2d/)
 
-set(SDL_SHARED OFF)
-set(SDL_STATIC ON)
-add_subdirectory(vendor/SDL)
-
-set(SDLTTF_VENDORED ON)
-set(SDLTTF_BUILD_SHARED_LIBS OFF)
-add_subdirectory(vendor/SDL_ttf)
-
-set(SDLIMAGE_VENDORED ON)
-set(BUILD_SHARED_LIBS OFF)
-set(SDLIMAGE_AVIF OFF)
-set(SDLIMAGE_LBM  OFF)
-set(SDLIMAGE_PCX  OFF)
-set(SDLIMAGE_PNM  OFF)
-set(SDLIMAGE_TGA  OFF)
-set(SDLIMAGE_WEBP OFF)
-set(SDLIMAGE_XCF  OFF)
-set(SDLIMAGE_XPM  OFF)
-set(SDLIMAGE_XV   OFF)
-add_subdirectory(vendor/SDL_image)
+include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl.cmake)
 
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
@@ -98,80 +45,34 @@ include_directories(
     src/
 )
 
-add_executable(game
-    src/audio/audio.c
-
-    src/debug/windows/brush.c
-    src/debug/windows/new-map.c
-    src/debug/windows/tilemap-editor.c
-    src/debug/windows/window-container.c
-    src/debug/level-editor.c
-
-    src/events/interpreter.c
-    src/events/lexer.c
-
-    src/graphics/graphics.c
-    src/graphics/shaders.c
-    src/graphics/tex_manager.c
-    src/graphics/quad_manager.c
-    src/graphics/wgpu_resources.c
-    src/graphics/bind_group_layouts.c
-    src/graphics/binding_helper.c
-    src/graphics/transform_manager.c
-    src/graphics/tilemap.c
-    src/graphics/layer.c
-    src/graphics/sprite.c
-
-    src/fonts/font.c
-
-    src/physics/physics.c
-    src/physics/debug_draw.c
-
-    src/scenes/map.c
-
-    src/player.c
-
-    src/input/input.c
-
-    src/utility/linked-list.c
-    src/utility/list.c
-    src/utility/log.c
-    src/utility/vec.c
-    src/utility/graphics.c
-
-    src/core_types.c
-    src/lvl-parser.c
-
-    src/main.c
-
+set(EXECUTABLE_NAME game)
+add_subdirectory(src)
+add_executable(${EXECUTABLE_NAME}
+    ${SOURCES}
     vendor/cimgui/imgui/backends/imgui_impl_wgpu.cpp
     vendor/cimgui/imgui/backends/imgui_impl_sdl3.cpp
 )
 
-enable_testing()
-add_executable(vec_test         tests/vec_test.c         src/utility/vec.c)
-add_executable(linked_list_test tests/linked_list_test.c src/utility/linked-list.c)
-add_test(NAME vec_test         COMMAND $<TARGET_FILE:vec_test>)
-add_test(NAME linked_list_test COMMAND $<TARGET_FILE:linked_list_test>)
+include(${CMAKE_SOURCE_DIR}/cmake/tests.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
 
-add_dependencies(game wgpu-native)
+add_dependencies(${EXECUTABLE_NAME} wgpu-native)
 
-target_compile_options(game PRIVATE -Wall -Wextra -Wpedantic -fpermissive -Wno-error)
+target_compile_options(${EXECUTABLE_NAME} PRIVATE -Wall -Wextra -Wpedantic -fpermissive -Wno-error)
 
 target_link_libraries(
-  game 
-  SDL3::SDL3
-  SDL3::Headers
-  SDL3_ttf::SDL3_ttf
-  SDL3_image::SDL3_image
-  cglm
-  ${FMOD_LIBRARY}
-  ${FMOD_STUDIO_LIBRARY}
-  ${WGPU_LIBRARY}
-  box2d
-  cimgui
-  m # link against math library (looks really stupid lol)
-  accesskit
+    ${EXECUTABLE_NAME} 
+    SDL3::SDL3
+    SDL3::Headers
+    SDL3_ttf::SDL3_ttf
+    SDL3_image::SDL3_image
+    cglm
+    ${FMOD_LIBRARY}
+    ${FMOD_STUDIO_LIBRARY}
+    ${WGPU_LIBRARY}
+    box2d
+    cimgui
+    m # link against math library (looks really stupid lol)
+    accesskit
 )
 
-include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
