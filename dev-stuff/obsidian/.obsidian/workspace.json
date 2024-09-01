@@ -18,8 +18,21 @@
                 "source": false
               }
             }
+          },
+          {
+            "id": "4021086203e74109",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "aghghghghh fuckkkk.md",
+                "mode": "source",
+                "source": false
+              }
+            }
           }
-        ]
+        ],
+        "currentTab": 1
       }
     ],
     "direction": "vertical"
@@ -85,7 +98,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "characters.md",
+                "file": "aghghghghh fuckkkk.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -102,7 +115,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "characters.md",
+                "file": "aghghghghh fuckkkk.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -125,7 +138,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "characters.md"
+                "file": "aghghghghh fuckkkk.md"
               }
             }
           }
@@ -146,12 +159,12 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "6ff3038ed05721ac",
+  "active": "4021086203e74109",
   "lastOpenFiles": [
+    "characters.md",
+    "aghghghghh fuckkkk.md",
     "Untitled.md",
     "The Sun.md",
-    "characters.md",
-    "Untitled 1.md",
     "braindump.md",
     "The Angels.md",
     "the drabblezone/4.md",
