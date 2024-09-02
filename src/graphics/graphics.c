@@ -11,7 +11,7 @@
 #include "graphics/sprite.h"
 #include "graphics/tex_manager.h"
 #include "graphics/tilemap.h"
-#include "imgui-wgpu.h"
+#include "imgui_wgpu.h"
 #include "input/input.h"
 #include "physics/debug_draw.h"
 #include "utility/log.h"

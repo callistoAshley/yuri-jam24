@@ -1,4 +1,4 @@
-#include "linked-list.h"
+#include "linked_list.h"
 #include <assert.h>
 
 LinkedList *linked_list_init(void)

@@ -6,7 +6,7 @@
 #include "graphics/graphics.h"
 #include "graphics/tilemap.h"
 #include "utility/macros.h"
-#include "windows/window-container.h"
+#include "windows/window_container.h"
 
 typedef struct
 {

@@ -7,14 +7,14 @@
 #include <SDL3_image/SDL_image.h>
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
-#include "graphics/imgui-wgpu.h"
+#include "graphics/imgui_wgpu.h"
 
 #include <stdbool.h>
 #include <stdio.h>
 #include <stdlib.h>
 
 #include "audio/audio.h"
-#include "debug/level-editor.h"
+#include "debug/level_editor.h"
 #include "graphics/graphics.h"
 #include "input/input.h"
 #include "utility/log.h"

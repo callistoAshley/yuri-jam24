@@ -1,7 +1,7 @@
 add_subdirectory(windows)
 
 set(SOURCES
-    src/debug/level-editor.c
+    src/debug/level_editor.c
     ${SOURCES}
     PARENT_SCOPE
 )

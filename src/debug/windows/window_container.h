@@ -6,7 +6,7 @@
 #include "window.h"
 #include "graphics/graphics.h"
 #include "utility/macros.h"
-#include "utility/linked-list.h"
+#include "utility/linked_list.h"
 
 typedef struct WindowContainer
 {

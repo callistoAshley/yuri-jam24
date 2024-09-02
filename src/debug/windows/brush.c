@@ -1,5 +1,5 @@
 #include "brush.h"
-#include "window-container.h"
+#include "window_container.h"
 
 typedef struct
 {

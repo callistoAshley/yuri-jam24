@@ -10,7 +10,7 @@ add_subdirectory(utility)
 
 set(SOURCES 
     src/core_types.c 
-    src/lvl-parser.c 
+    src/lvl_parser.c 
     src/main.c 
     src/player.c
     ${SOURCES}

@@ -6,7 +6,7 @@
 
 #include "lexer.h"
 #include "token.h"
-#include "../utility/linked-list.h"
+#include "../utility/linked_list.h"
 #include "../utility/macros.h"
 
 typedef struct

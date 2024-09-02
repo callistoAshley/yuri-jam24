@@ -1,4 +1,4 @@
-#include "window-container.h"
+#include "window_container.h"
 
 static void free_window(Window *window)
 {

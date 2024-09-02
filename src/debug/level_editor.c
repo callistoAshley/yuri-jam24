@@ -1,6 +1,6 @@
-#include "level-editor.h"
+#include "level_editor.h"
 #include "windows/brush.h"
-#include "windows/new-map.h"
+#include "windows/new_map.h"
 
 static void new_map_callback(void *wnd_cont, NewMapInfo info)
 {
