@@ -128,7 +128,7 @@ Transform transform_from_matrix(mat4s matrix)
 
 // ----
 
-Rect rect_new(vec2s min, vec2s max)
+Rect rect_init(vec2s min, vec2s max)
 {
     Rect rect;
     rect.min = min;
@@ -195,7 +195,7 @@ bool rect_contains(Rect rect, vec2s point)
 
 // ----
 
-Quad quad_new(Rect rect, Rect tex_coords)
+Quad quad_init(Rect rect, Rect tex_coords)
 {
     Quad quad;
     quad.rect = rect;
@@ -209,7 +209,7 @@ Quad quad_norm_tex_coords(Quad quad, int tex_width, int tex_height)
     vec2s tex_size = (vec2s){.x = tex_width, .y = tex_height};
     tex_coords.min = glms_vec2_div(tex_coords.min, tex_size);
     tex_coords.max = glms_vec2_div(tex_coords.max, tex_size);
-    return quad_new(quad.rect, tex_coords);
+    return quad_init(quad.rect, tex_coords);
 }
 
 // ----
@@ -256,7 +256,7 @@ void quad_into_vertices(Quad quad, Vertex vertices[6])
 
 Quad quad_from_vertices(Vertex *vertices)
 {
-    Rect rect = rect_new(vertices[0].position, vertices[5].position);
-    Rect tex_coords = rect_new(vertices[0].tex_coords, vertices[5].tex_coords);
-    return quad_new(rect, tex_coords);
+    Rect rect = rect_init(vertices[0].position, vertices[5].position);
+    Rect tex_coords = rect_init(vertices[0].tex_coords, vertices[5].tex_coords);
+    return quad_init(rect, tex_coords);
 }

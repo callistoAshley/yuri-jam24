@@ -25,7 +25,7 @@ void map_scene_init(void **scene_data, Resources *resources)
         {
             map_data[i] = 1;
         }
-        tilemap_new(&map_scene->tilemap, resources->graphics, tileset,
+        tilemap_init(&map_scene->tilemap, resources->graphics, tileset,
                     tilemap_transform, 50, 5, 1, map_data);
 
         TilemapLayer *background = malloc(sizeof(TilemapLayer));

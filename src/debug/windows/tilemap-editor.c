@@ -44,7 +44,7 @@ void wnd_tmap_edit_init_tilemap(
     state->transform = transform_from_xyz(0, 0, 0);
     state->tile_data = calloc(state->width * state->height, sizeof(u32));
 
-    tilemap_new(
+    tilemap_init(
         &state->tilemap, 
         self->wnd_cont->graphics,
         tileset_tex, 
@@ -70,6 +70,9 @@ void wnd_tmap_edit_update(Window *self)
         }
         else
         {
+            ImDrawList *draw_list = igGetWindowDrawList();
+            // render the entire tilemap into one WGPUTextureView?
+            // take a look at the ImDrawList API
         }
     }
     igEnd();

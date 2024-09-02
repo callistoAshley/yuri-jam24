@@ -60,7 +60,7 @@ int main(int argc, char **argv)
     audio_init(&audio);
 
     Input input;
-    input_new(&input);
+    input_init(&input);
 
     Physics physics;
     physics_init(&physics);

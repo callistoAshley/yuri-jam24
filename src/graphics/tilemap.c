@@ -7,7 +7,7 @@
 #include "utility/log.h"
 #include "webgpu.h"
 
-void tilemap_new(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
+void tilemap_init(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
                  TransformEntry transform, int map_w, int map_h, int layers,
                  u32 *map_data)
 {

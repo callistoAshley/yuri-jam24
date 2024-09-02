@@ -27,7 +27,7 @@ typedef struct
     f32 delta_seconds;
 } Input;
 
-void input_new(Input *input);
+void input_init(Input *input);
 
 void input_start_frame(Input *input);
 void input_process(SDL_Event *event, Input *input);

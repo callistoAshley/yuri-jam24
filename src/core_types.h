@@ -50,7 +50,7 @@ typedef struct
     vec2s max;
 } Rect;
 
-Rect rect_new(vec2s min, vec2s max);
+Rect rect_init(vec2s min, vec2s max);
 Rect rect_from_min_size(vec2s min, vec2s size);
 // creates a rect centered at half the size
 // THIS SHOULD ALWAYS BE PREFERED WHEN CREATING A QUAD!
@@ -87,7 +87,7 @@ typedef struct
     Rect tex_coords;
 } Quad;
 
-Quad quad_new(Rect rect, Rect tex_coords);
+Quad quad_init(Rect rect, Rect tex_coords);
 Quad quad_norm_tex_coords(Quad quad, int tex_width, int tex_height);
 
 #define VERTICES_PER_QUAD 6

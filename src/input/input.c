@@ -2,7 +2,7 @@
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
 
-void input_new(Input *input)
+void input_init(Input *input)
 {
     input->prev = 0;
     input->curr = 0;
