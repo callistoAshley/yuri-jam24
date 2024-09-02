@@ -4,6 +4,7 @@
 #include <string.h>
 
 #include "graphics/graphics.h"
+#include "graphics/tilemap.h"
 #include "utility/macros.h"
 #include "windows/window-container.h"
 
@@ -17,6 +18,6 @@ typedef struct
     Graphics *graphics;
 } LevelEditor;
 
-LevelEditor *lvledit_init(Graphics *graphics);
+LevelEditor *lvledit_init(Graphics *graphics, Tilemap *tilemap);
 void lvledit_update(LevelEditor *editor);
 void lvledit_free(LevelEditor *editor);

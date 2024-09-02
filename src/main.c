@@ -114,9 +114,6 @@ int main(int argc, char **argv)
     sprite_init(&sprite, texture_entry, transform_entry, quad_entry);
     layer_add(&graphics.ui_layers.foreground, &sprite);
 
-    if (init_level_editor)
-        level_editor = lvledit_init(&graphics);
-
     char *files[] = {
         "assets/events.txt",
     };
@@ -152,6 +149,9 @@ int main(int argc, char **argv)
     void *scene_data;
     SceneInterface scene = MAP_SCENE;
     scene.init(&scene_data, &resources);
+
+    if (init_level_editor)
+        level_editor = lvledit_init(&graphics, &((MapScene *)scene_data)->tilemap);
 
     u64 accumulator = 0;
     const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;

@@ -11,7 +11,7 @@ static void new_map_callback(void *wnd_cont, NewMapInfo info)
     //wnd_brush_init_tilemap(editor->brush_wnd, info.input_width, info.input_height);
 }
 
-LevelEditor *lvledit_init(Graphics *graphics)
+LevelEditor *lvledit_init(Graphics *graphics, Tilemap *tilemap)
 {
     LevelEditor *editor = calloc(1, sizeof(LevelEditor));
     PTR_ERRCHK(editor, "lvledit_init: calloc failure.");

@@ -1,12 +1,4 @@
 #include "map.h"
-#include "graphics/tilemap.h"
-#include "player.h"
-
-typedef struct
-{
-    Tilemap tilemap;
-    Player player;
-} MapScene;
 
 void map_scene_init(void **scene_data, Resources *resources)
 {
