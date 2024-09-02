@@ -28,18 +28,12 @@
 
 int main(int argc, char **argv)
 {
-    LevelEditor *level_editor = NULL;
-    bool init_level_editor = false;
     bool imgui_demo = false;
     bool physics_debug_draw = false;
 
     for (int i = 0; i < argc; i++)
     {
-        if (!strcmp(argv[i], "--level-editor"))
-        {
-            init_level_editor = true;
-        }
-        else if (!strcmp(argv[i], "--imgui-demo"))
+        if (!strcmp(argv[i], "--imgui-demo"))
         {
             imgui_demo = true;
         }
@@ -152,9 +146,6 @@ int main(int argc, char **argv)
 
     scene.init(&scene_data, &resources);
 
-    if (init_level_editor)
-        level_editor = lvledit_init(&graphics, &((MapScene *)scene_data)->tilemap);
-
     u64 accumulator = 0;
     const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;
 
@@ -199,13 +190,6 @@ int main(int argc, char **argv)
         }
 
         FMOD_Studio_System_Update(audio.system);
-
-        if (level_editor)
-        {
-            lvledit_update(level_editor);
-            if (level_editor->request_quit)
-                break;
-        }
 
         while (accumulator >= FIXED_TIME_STEP)
         {

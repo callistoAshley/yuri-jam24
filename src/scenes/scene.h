@@ -9,7 +9,7 @@
 
 typedef enum
 {
-    Map
+    Scene_Map
 } SceneType;
 
 typedef struct

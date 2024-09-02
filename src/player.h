@@ -23,5 +23,5 @@ typedef struct
 } Player;
 
 void player_init(Player *player, Resources *resources);
-void player_update(Player *player, Resources *resources);
+void player_update(Player *player, Resources *resources, bool disable_input);
 void player_free(Player *player, Resources *resources);

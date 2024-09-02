@@ -1,5 +1,6 @@
 #pragma once
 
+#include "debug/level_editor.h"
 #include "graphics/tilemap.h"
 #include "scene.h"
 #include "player.h"
@@ -12,6 +13,9 @@ typedef struct
 
     Tilemap tilemap;
     Player player;
+
+    bool freecam, level_editor_enabled;
+    LevelEditor *editor;
 } MapScene;
 
 extern const SceneInterface MAP_SCENE;

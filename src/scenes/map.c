@@ -1,12 +1,18 @@
 #include "map.h"
 #include "graphics/tilemap.h"
+#include "input/input.h"
 #include "player.h"
 #include "scenes/scene.h"
+#include "utility/common_defines.h"
 
 void map_scene_init(Scene **scene_data, Resources *resources)
 {
     MapScene *map_scene = malloc(sizeof(MapScene));
+    map_scene->type = Scene_Map;
     *scene_data = (Scene *)map_scene;
+
+    map_scene->freecam = false;
+    map_scene->level_editor_enabled = false;
 
     {
         Transform transform = transform_from_xyz(0, 0, 0);
@@ -30,12 +36,44 @@ void map_scene_init(Scene **scene_data, Resources *resources)
     }
 
     player_init(&map_scene->player, resources);
+
+    lvledit_init(resources->graphics, &map_scene->tilemap);
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)
 {
     MapScene *map_scene = (MapScene *)scene_data;
-    player_update(&map_scene->player, resources);
+
+    if (input_is_pressed(resources->input, Button_Freecam))
+        map_scene->freecam = !map_scene->freecam;
+
+    player_update(&map_scene->player, resources, map_scene->freecam);
+
+    if (map_scene->freecam)
+    {
+        bool left_down = input_is_down(resources->input, Button_Left);
+        bool right_down = input_is_down(resources->input, Button_Right);
+        bool up_down = input_is_down(resources->input, Button_Up);
+        bool down_down = input_is_down(resources->input, Button_Down);
+
+        const float freecam_move_speed =
+            M_TO_PX(16) * resources->input->delta_seconds;
+        if (right_down)
+            resources->raw_camera->x += freecam_move_speed;
+        if (left_down)
+            resources->raw_camera->x -= freecam_move_speed;
+        if (up_down)
+            resources->raw_camera->y -= freecam_move_speed;
+        if (down_down)
+            resources->raw_camera->y += freecam_move_speed;
+    }
+    else
+    {
+        resources->raw_camera->x = map_scene->player.transform.position.x -
+                                   INTERNAL_SCREEN_WIDTH / 2.0;
+        resources->raw_camera->y = map_scene->player.transform.position.y -
+                                   INTERNAL_SCREEN_HEIGHT / 2.0;
+    }
 }
 
 void map_scene_free(Scene *scene_data, Resources *resources)
