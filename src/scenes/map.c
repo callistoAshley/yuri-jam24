@@ -1,4 +1,5 @@
 #include "map.h"
+#include "debug/level_editor.h"
 #include "graphics/tilemap.h"
 #include "input/input.h"
 #include "player.h"
@@ -37,7 +38,7 @@ void map_scene_init(Scene **scene_data, Resources *resources)
 
     player_init(&map_scene->player, resources);
 
-    lvledit_init(resources->graphics, &map_scene->tilemap);
+    map_scene->editor = lvledit_init(resources->graphics, &map_scene->tilemap);
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)
@@ -46,6 +47,11 @@ void map_scene_update(Scene *scene_data, Resources *resources)
 
     if (input_is_pressed(resources->input, Button_Freecam))
         map_scene->freecam = !map_scene->freecam;
+    if (input_is_pressed(resources->input, Button_LevelEdit))
+        map_scene->level_editor_enabled = !map_scene->level_editor_enabled;
+
+    if (map_scene->level_editor_enabled)
+        lvledit_update(map_scene->editor);
 
     player_update(&map_scene->player, resources, map_scene->freecam);
 
@@ -81,6 +87,7 @@ void map_scene_free(Scene *scene_data, Resources *resources)
     MapScene *map_scene = (MapScene *)scene_data;
     tilemap_free(&map_scene->tilemap, resources->graphics);
     player_free(&map_scene->player, resources);
+    lvledit_free(map_scene->editor);
     free(map_scene);
 }
 

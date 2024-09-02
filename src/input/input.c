@@ -62,6 +62,9 @@ void input_process(SDL_Event *event, Input *input)
         case SDLK_GRAVE:
             TOGGLE_BUTTON_IF_DOWN(Button_Freecam);
             break;
+        case SDLK_TAB:
+            TOGGLE_BUTTON_IF_DOWN(Button_LevelEdit);
+            break;
         default:
             break;
         }
