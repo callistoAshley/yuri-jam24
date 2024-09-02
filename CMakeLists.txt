@@ -75,3 +75,7 @@ target_link_libraries(
     accesskit
 )
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+    # add the debug definition to the executable target
+    target_compile_definitions(${EXECUTABLE_NAME} PRIVATE -DDEBUG)
+endif()

@@ -138,16 +138,18 @@ int main(int argc, char **argv)
     ImGui_ImplSDL3_InitForOther(window);
     ImGui_ImplWGPU_Init(&imgui_init_info);
 
+    Scene *scene_data;
+    SceneInterface scene = MAP_SCENE;
+
     Resources resources = {
         .graphics = &graphics,
         .physics = &physics,
         .audio = &audio,
         .input = &input,
         .raw_camera = &raw_camera,
+        .current_scene = &scene_data,
     };
 
-    void *scene_data;
-    SceneInterface scene = MAP_SCENE;
     scene.init(&scene_data, &resources);
 
     if (init_level_editor)

@@ -1,9 +1,12 @@
 #include "map.h"
+#include "graphics/tilemap.h"
+#include "player.h"
+#include "scenes/scene.h"
 
-void map_scene_init(void **scene_data, Resources *resources)
+void map_scene_init(Scene **scene_data, Resources *resources)
 {
     MapScene *map_scene = malloc(sizeof(MapScene));
-    *scene_data = map_scene;
+    *scene_data = (Scene *)map_scene;
 
     {
         Transform transform = transform_from_xyz(0, 0, 0);
@@ -18,7 +21,7 @@ void map_scene_init(void **scene_data, Resources *resources)
             map_data[i] = 1;
         }
         tilemap_init(&map_scene->tilemap, resources->graphics, tileset,
-                    tilemap_transform, 50, 5, 1, map_data);
+                     tilemap_transform, 50, 5, 1, map_data);
 
         TilemapLayer *background = malloc(sizeof(TilemapLayer));
         background->tilemap = &map_scene->tilemap;
@@ -29,15 +32,15 @@ void map_scene_init(void **scene_data, Resources *resources)
     player_init(&map_scene->player, resources);
 }
 
-void map_scene_update(void *scene_data, Resources *resources)
+void map_scene_update(Scene *scene_data, Resources *resources)
 {
-    MapScene *map_scene = scene_data;
+    MapScene *map_scene = (MapScene *)scene_data;
     player_update(&map_scene->player, resources);
 }
 
-void map_scene_free(void *scene_data, Resources *resources)
+void map_scene_free(Scene *scene_data, Resources *resources)
 {
-    MapScene *map_scene = scene_data;
+    MapScene *map_scene = (MapScene *)scene_data;
     tilemap_free(&map_scene->tilemap, resources->graphics);
     player_free(&map_scene->player, resources);
     free(map_scene);

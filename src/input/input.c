@@ -58,6 +58,10 @@ void input_process(SDL_Event *event, Input *input)
             break;
         case SDLK_F11:
             TOGGLE_BUTTON_IF_DOWN(Button_Fullscreen);
+            break;
+        case SDLK_GRAVE:
+            TOGGLE_BUTTON_IF_DOWN(Button_Freecam);
+            break;
         default:
             break;
         }

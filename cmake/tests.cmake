@@ -1,5 +1,5 @@
 enable_testing()
 add_executable(vec_test         tests/vec_test.c         src/utility/vec.c)
-add_executable(linked_list_test tests/linked_list_test.c src/utility/linked-list.c)
+add_executable(linked_list_test tests/linked_list_test.c src/utility/linked_list.c)
 add_test(NAME vec_test         COMMAND $<TARGET_FILE:vec_test>)
 add_test(NAME linked_list_test COMMAND $<TARGET_FILE:linked_list_test>)

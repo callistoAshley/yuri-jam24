@@ -15,6 +15,7 @@ typedef enum
     Button_Quit = 1 << 6,
 
     Button_Fullscreen = 1 << 7,
+    Button_Freecam = 1 << 8,
 } Button;
 
 typedef struct

@@ -6,6 +6,10 @@
 
 typedef struct
 {
+    // because this struct starts with SceneType (and so does Scene) we can cast
+    // between them
+    SceneType type;
+
     Tilemap tilemap;
     Player player;
 } MapScene;

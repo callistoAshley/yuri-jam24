@@ -1,6 +1,6 @@
 #include <stdio.h>
 #include <assert.h>
-#include "utility/linked-list.h"
+#include "utility/linked_list.h"
 
 int main(void)
 {
