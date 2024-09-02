@@ -1,12 +1,9 @@
 #include "brush.h"
-#include "tilemap-editor.h"
 #include "window-container.h"
 
 typedef struct
 {
     bool solid;
-
-    Window *tmap_edit;
 
     TextureEntry *tileset_tex;
     WGPUTextureView non_srgb_view;
@@ -25,7 +22,6 @@ void wnd_brush_init(Window *self)
 {
     BrushWndState *state;
     state = (BrushWndState *)(self->userdata = calloc(1, sizeof(BrushWndState)));
-    state->tmap_edit = wndcont_add(self->children, tmap_edit_window);
 
     wnd_brush_set_tileset(self, "./assets/textures/tileset_test.png");
 }
@@ -56,15 +52,6 @@ void wnd_brush_set_tileset(Window *self, char *tileset)
 
     state->tileset_tex_width = wgpuTextureGetWidth(tileset_texture);
     state->tileset_tex_height = wgpuTextureGetHeight(tileset_texture);
-}
-
-void wnd_brush_init_tilemap(
-    Window *self, 
-    uint32_t width, 
-    uint32_t height)
-{
-    BrushWndState *state = self->userdata;
-    wnd_tmap_edit_init_tilemap(state->tmap_edit, width, height, state->tileset_tex, state->non_srgb_view);
 }
 
 void wnd_brush_update(Window *self)

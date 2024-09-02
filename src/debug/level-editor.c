@@ -1,13 +1,14 @@
 #include "level-editor.h"
 #include "windows/brush.h"
 #include "windows/new-map.h"
-#include "windows/tilemap-editor.h"
 
 static void new_map_callback(void *wnd_cont, NewMapInfo info)
 {
     LevelEditor *editor = ((WindowContainer *)wnd_cont)->owner;
+    (void)editor;
+    (void)info;
 
-    wnd_brush_init_tilemap(editor->brush_wnd, info.input_width, info.input_height);
+    //wnd_brush_init_tilemap(editor->brush_wnd, info.input_width, info.input_height);
 }
 
 LevelEditor *lvledit_init(Graphics *graphics)
