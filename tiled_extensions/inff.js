@@ -96,6 +96,21 @@ class ChunkDataReader {
     this.offset += length;
     return str;
   }
+
+  readId() {
+    var id = "";
+    for (var i = 0; i < 4; i++) {
+      id += String.fromCharCode(this.view.getUint8(this.offset + i));
+    }
+    this.offset += 4;
+    return id;
+  }
+
+  readN(n) {
+    var slice = this.view.buffer.slice(this.offset, this.offset + n);
+    this.offset += n;
+    return slice;
+  }
 }
 
 var chunk_count = 0;
@@ -163,9 +178,9 @@ function write_object_layer_chunks(object_layer, file) {
   {
     var chunk_builder = new ChunkDataBuilder();
     for (var object of object_layer.objects) {
+      tiled.warn(`Writing object ${object.name}`, () => { });
       chunk_builder.addString(object.name);
       chunk_builder.addString(object.className);
-      chunk_builder.addUint32(); // ID
 
       // object position
       chunk_builder.addFloat32();
@@ -190,7 +205,6 @@ function write_object_layer_chunks(object_layer, file) {
     for (var object of object_layer.objects) {
       chunk_writer.writeString(object.name);
       chunk_writer.writeString(object.className);
-      chunk_writer.writeUint32(object.id);
 
       chunk_writer.writeFloat32(object.x);
       chunk_writer.writeFloat32(object.y);
@@ -202,17 +216,24 @@ function write_object_layer_chunks(object_layer, file) {
       switch (object.shape) {
         case MapObject.Rectangle:
           shape = 0;
+          break
         case MapObject.Polygon:
           shape = 1;
+          break;
         case MapObject.Polyline:
           shape = 2;
+          break;
         case MapObject.Ellipse:
           shape = 3;
+          break;
         case MapObject.Text:
           shape = 4;
+          break;
         case MapObject.Point:
           shape = 5;
+          break;
       };
+      tiled.warn(`Shape ${shape}`, () => { });
       chunk_writer.writeUint32(shape);
 
       chunk_writer.writeUint32(object.polygon.length);
@@ -232,7 +253,7 @@ function write_object_layer_chunks(object_layer, file) {
  * @returns {undefined}
  */
 function write(map, filename) {
-  var file = new BinaryFile(filename, BinaryFile.ReadWrite);
+  var file = new BinaryFile(filename, BinaryFile.WriteOnly);
 
   // write magic number
   // file only supports writing ArrayBuffer, so we need to convert the string to ArrayBuffer
@@ -331,36 +352,28 @@ function read(filename) {
   var file = new BinaryFile(filename, BinaryFile.ReadOnly);
   var buffer = file.readAll();
 
+  var chunk_reader = new ChunkDataReader(buffer);
+
   // read magic number
-  var magic_number_buffer = new Uint8Array(buffer, 0, 4);
-  var magic_number = "";
-  for (var i = 0; i < 4; i++)
-    magic_number += String.fromCharCode(magic_number_buffer[i]);
+  var magic_number = chunk_reader.readId();
   if (magic_number !== "INFF")
     throw new Error(`Invalid magic number ${magic_number}`)
 
   // read chunk count
-  var chunk_count = new Uint32Array(buffer, 4, 1)[0];
-  var offset = 8;
+  var chunk_count = chunk_reader.readUint32();
   var chunks = [];
 
   for (var i = 0; i < chunk_count; i++) {
-    var chunk_buffer = new Uint8Array(buffer, offset, 4);
-    var chunk_id = "";
-    for (var j = 0; j < 4; j++)
-      chunk_id += String.fromCharCode(chunk_buffer[j]);
-    offset += 4;
+    var chunk_id = chunk_reader.readId();
 
     // display offset as hex
-    tiled.warn(`Reading chunk ${chunk_id} at 0x${offset.toString(16)}`, () => { });
+    tiled.warn(`Reading chunk ${chunk_id} at 0x${chunk_reader.offset.toString(16)}`, () => { });
 
-    var chunk_size = new Uint32Array(buffer, offset, 1)[0];
-    offset += 4;
+    var chunk_size = chunk_reader.readUint32();
 
     tiled.warn(`Chunk size ${chunk_size}`, () => { });
 
-    var chunk_data = buffer.slice(offset, offset + chunk_size);
-    offset += chunk_size;
+    var chunk_data = chunk_reader.readN(chunk_size);
 
     chunks.push({ id: chunk_id, data: chunk_data });
   }
@@ -425,6 +438,7 @@ function read(filename) {
         layer.className = reader.readString();
 
         var object_count = reader.readUint32();
+        tiled.warn(`Reading ${object_count} objects`, () => { });
 
         i++;
         chunk = chunks[i];
@@ -433,6 +447,7 @@ function read(filename) {
         reader = new ChunkDataReader(chunk.data);
 
         for (var j = 0; j < object_count; j++) {
+          tiled.warn(`Reading object ${j}`, () => { });
           var object = new MapObject();
           object.name = reader.readString();
           object.className = reader.readString();
@@ -442,6 +457,7 @@ function read(filename) {
           object.height = reader.readFloat32();
 
           var shape = reader.readUint32();
+          tiled.warn(`Shape ${shape}`, () => { });
           switch (shape) {
             case 0:
               object.shape = MapObject.Rectangle;
