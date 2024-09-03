@@ -322,7 +322,7 @@ function write_layer(layer, file) {
  * @param {string} filename 
  * @returns {undefined}
  */
-function write(map, filename) {
+function write_map(map, filename) {
   var file = new BinaryFile(filename, BinaryFile.WriteOnly);
 
   // write magic number
@@ -417,7 +417,7 @@ class ChunkIter {
   }
 }
 
-function read_chunks(into, chunk_iter) {
+function read_map_layers(into, chunk_iter) {
   var chunk = chunk_iter.next();
   if (!chunk)
     return;
@@ -522,7 +522,7 @@ function read_chunks(into, chunk_iter) {
       var layer_count = reader.readUint32();
 
       for (var i = 0; i < layer_count; i++) {
-        read_chunks(group_layer, chunk_iter);
+        read_map_layers(group_layer, chunk_iter);
       }
 
       into.addLayer(group_layer);
@@ -546,7 +546,7 @@ function read_chunks(into, chunk_iter) {
  */
 // @ts-ignore
 // @ts-ignore
-function read(filename) {
+function read_map(filename) {
   var file = new BinaryFile(filename, BinaryFile.ReadOnly);
   var buffer = file.readAll();
 
@@ -583,18 +583,102 @@ function read(filename) {
   map.tileHeight = 8;
 
   while (!chunk_iter.done)
-    read_chunks(map, chunk_iter);
+    read_map_layers(map, chunk_iter);
 
   return map;
 }
 
-
 var custom_format = {
-  name: "Inff's Not a File Format",
-  extension: "inff",
+  name: "Mnff's Not a File Format",
+  extension: "mnff",
 
-  read: read,
-  write: write
+  read: read_map,
+  write: write_map
 };
-// @ts-ignore
 tiled.registerMapFormat(custom_format.extension, custom_format);
+
+/**
+ * @param {Tileset} tileset
+ * @param {string} filename
+ * @return {undefined}
+ */
+function write_tileset(tileset, filename) {
+  var file = new BinaryFile(filename, BinaryFile.WriteOnly);
+
+  // write magic number
+  var buffer = new Uint8Array(4);
+  for (var i = 0; i < 4; i++) {
+    buffer[i] = "INFF".charCodeAt(i);
+  }
+  file.write(buffer.buffer);
+
+  // we'll only be writing one chunk
+  var chunk_buffer = new Uint32Array([1]);
+  file.write(chunk_buffer.buffer);
+
+  {
+    var chunk_builder = new ChunkDataBuilder();
+    chunk_builder.addString(tileset.name);
+    chunk_builder.addString(tileset.className);
+    chunk_builder.addString(tileset.imageFileName);
+    // tile width and height are fixed at 8
+
+    var chunk_writer = chunk_builder.build();
+    chunk_writer.writeString(tileset.name);
+    chunk_writer.writeString(tileset.className);
+    chunk_writer.writeString(tileset.imageFileName);
+
+    writeChunk("TDEF", chunk_writer.finish(), file);
+  }
+
+  file.commit();
+}
+
+/**
+ * @param {string} filename
+ * @returns {Tileset}
+ */
+function read_tileset(filename) {
+  var file = new BinaryFile(filename, BinaryFile.ReadOnly);
+  var buffer = file.readAll();
+
+  var chunk_reader = new ChunkDataReader(buffer);
+
+  // read magic number
+  var magic_number = chunk_reader.readId();
+  if (magic_number !== "INFF")
+    throw new Error(`Invalid magic number ${magic_number}`)
+
+  // read chunk count
+  var chunk_count = chunk_reader.readUint32();
+  if (chunk_count !== 1)
+    throw new Error("Invalid chunk count");
+
+  var chunk_id = chunk_reader.readId();
+  if (chunk_id !== "TDEF")
+    throw new Error("Expected TDEF chunk");
+
+  var chunk_count = chunk_reader.readUint32();
+  var chunk_data = chunk_reader.readN(chunk_count);
+
+  var reader = new ChunkDataReader(chunk_data);
+
+  var tileset = new Tileset();
+
+  tileset.name = reader.readString();
+  tileset.className = reader.readString();
+  tileset.imageFileName = reader.readString();
+  tileset.tileWidth = 8;
+  tileset.tileHeight = 8;
+
+  return tileset;
+}
+
+var custom_tileset_format = {
+  name: "Tnff's Not a File Format",
+  extension: "tnff",
+
+  read: read_tileset,
+  write: write_tileset
+};
+tiled.registerTilesetFormat(custom_tileset_format.extension, custom_tileset_format);
