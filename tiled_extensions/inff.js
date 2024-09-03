@@ -245,7 +245,6 @@ function write_object_layer_chunks(object_layer, file) {
 }
 
 /**
- * 
  * @param {GroupLayer} group_layer 
  * @param {BinaryFile} file 
  */
@@ -265,11 +264,32 @@ function write_group_layer_chunks(group_layer, file) {
   }
 
   {
-    var chunk_builder = new ChunkDataBuilder();
     for (var layer of group_layer.layers) {
       write_layer(layer, file);
     }
   }
+}
+
+/**
+ * @param {ImageLayer} image_layer
+ * @param {BinaryFile} file
+ */
+function write_image_layer_chunks(image_layer, file) {
+  var chunk_builder = new ChunkDataBuilder();
+  chunk_builder.addString(image_layer.name);
+  chunk_builder.addString(image_layer.className);
+  chunk_builder.addString(image_layer.imageFileName);
+  chunk_builder.addFloat32(); // parallax factor x
+  chunk_builder.addFloat32(); // parallax factor y
+
+  var chunk_writer = chunk_builder.build();
+  chunk_writer.writeString(image_layer.name);
+  chunk_writer.writeString(image_layer.className);
+  chunk_writer.writeString(image_layer.imageFileName);
+  chunk_writer.writeFloat32(image_layer.parallaxFactor.x);
+  chunk_writer.writeFloat32(image_layer.parallaxFactor.y);
+
+  writeChunk("ILYR", chunk_writer.finish(), file);
 }
 
 /**
@@ -288,6 +308,10 @@ function write_layer(layer, file) {
   if (layer.isGroupLayer)
     // @ts-ignore
     write_group_layer_chunks(layer, file);
+
+  if (layer.isImageLayer)
+    // @ts-ignore
+    write_image_layer_chunks(layer, file);
 
   // TODO figure out how to write tile layer properties
 }
@@ -502,6 +526,16 @@ function read_chunks(into, chunk_iter) {
       }
 
       into.addLayer(group_layer);
+      break;
+    case "ILYR":
+      var image_layer = new ImageLayer();
+      image_layer.name = reader.readString();
+      image_layer.className = reader.readString();
+      image_layer.imageFileName = reader.readString();
+      image_layer.parallaxFactor.x = reader.readFloat32();
+      image_layer.parallaxFactor.y = reader.readFloat32();
+
+      into.addLayer(image_layer);
       break;
   }
 }
