@@ -40,6 +40,11 @@ class ChunkDataWriter {
     this.offset += 4;
   }
 
+  writeInt32(value) {
+    this.view.setInt32(this.offset, value, true);
+    this.offset += 4;
+  }
+
   writeFloat32(value) {
     this.view.setFloat32(this.offset, value, true);
     this.offset += 4;
@@ -55,6 +60,41 @@ class ChunkDataWriter {
 
   finish() {
     return this.view.buffer;
+  }
+}
+
+class ChunkDataReader {
+  constructor(buffer) {
+    this.view = new DataView(buffer);
+    this.offset = 0;
+  }
+
+  readUint32() {
+    var value = this.view.getUint32(this.offset, true);
+    this.offset += 4;
+    return value;
+  }
+
+  readInt32() {
+    var value = this.view.getInt32(this.offset, true);
+    this.offset += 4;
+    return value;
+  }
+
+  readFloat32() {
+    var value = this.view.getFloat32(this.offset, true);
+    this.offset += 4;
+    return value;
+  }
+
+  readString() {
+    var length = this.readUint32();
+    var str = "";
+    for (var i = 0; i < length; i++) {
+      str += String.fromCharCode(this.view.getUint8(this.offset + i));
+    }
+    this.offset += length;
+    return str;
   }
 }
 
@@ -82,14 +122,13 @@ function write_tile_layer_chunks(tile_layer, file) {
     chunk_writer.writeFloat32(tile_layer.parallaxFactor.y);
 
     writeChunk("TINF", chunk_writer.finish(), file);
-    chunk_count++;
   }
 
   {
     // write layer data chunk (we can just use Uint32Array for this)
     var layer_data_size = tile_layer.width * tile_layer.height;
 
-    var layer_data_buffer = new Uint32Array(layer_data_size);
+    var layer_data_buffer = new Int32Array(layer_data_size);
     for (var y = 0; y < tile_layer.height; y++) {
       for (var x = 0; x < tile_layer.width; x++) {
         var tile = tile_layer.cellAt(x, y);
@@ -98,7 +137,6 @@ function write_tile_layer_chunks(tile_layer, file) {
     }
 
     writeChunk("TDAT", layer_data_buffer.buffer, file);
-    chunk_count++;
   }
 }
 
@@ -187,13 +225,14 @@ function write_object_layer_chunks(object_layer, file) {
   }
 }
 
+
 /**
  * @param {TileMap} map 
  * @param {string} filename 
  * @returns {undefined}
  */
 function write(map, filename) {
-  var file = new BinaryFile(filename, BinaryFile.WriteOnly);
+  var file = new BinaryFile(filename, BinaryFile.ReadWrite);
 
   // write magic number
   // file only supports writing ArrayBuffer, so we need to convert the string to ArrayBuffer
@@ -207,9 +246,6 @@ function write(map, filename) {
   // we need to know the number of chunks we'll be writing, so we'll write a placeholder for now
   chunk_count = 0;
   var chunk_buffer = new Uint32Array(1);
-  // @ts-ignore
-  // @ts-ignore
-  var chunk_position = file.pos; // We will need to come back here to write the actual value!!!!!!!!
   file.write(chunk_buffer.buffer);
 
   // construct map info chunk
@@ -218,7 +254,6 @@ function write(map, filename) {
   map_info_buffer[1] = map.height;
 
   writeChunk("INFO", map_info_buffer.buffer, file);
-  chunk_count++;
 
   // write the tileset (there should only be one tileset)
   var tileset = map.tilesets[0];
@@ -233,7 +268,6 @@ function write(map, filename) {
     chunk_writer.writeString(tileset.imageFileName);
 
     writeChunk("TSET", chunk_writer.finish(), file);
-    chunk_count++;
   }
 
   for (var layer of map.layers) {
@@ -249,9 +283,11 @@ function write(map, filename) {
   }
 
   // write the actual chunk count
-  file.seek(chunk_position);
+  file.seek(4);
   chunk_buffer[0] = chunk_count;
-  file.write(chunk_buffer);
+  file.write(chunk_buffer.buffer);
+
+  tiled.warn(`Writing chunk count ${chunk_count}`, () => { });
 
   file.commit();
 }
@@ -276,11 +312,13 @@ function writeChunk(chunk_id, chunk_data, file) {
 
   // write chunk size
   var size = chunk_data.byteLength;
-  var size_buffer = new Uint32Array(size).buffer;
-  file.write(size_buffer);
+  var size_buffer = new Uint32Array([size]);
+  file.write(size_buffer.buffer);
 
   // write chunk data
   file.write(chunk_data);
+
+  chunk_count++;
 }
 
 /**
@@ -289,13 +327,165 @@ function writeChunk(chunk_id, chunk_data, file) {
  */
 // @ts-ignore
 // @ts-ignore
-function read(filename) { throw new Error("Not implemented"); }
+function read(filename) {
+  var file = new BinaryFile(filename, BinaryFile.ReadOnly);
+  var buffer = file.readAll();
+
+  // read magic number
+  var magic_number_buffer = new Uint8Array(buffer, 0, 4);
+  var magic_number = "";
+  for (var i = 0; i < 4; i++)
+    magic_number += String.fromCharCode(magic_number_buffer[i]);
+  if (magic_number !== "INFF")
+    throw new Error(`Invalid magic number ${magic_number}`)
+
+  // read chunk count
+  var chunk_count = new Uint32Array(buffer, 4, 1)[0];
+  var offset = 8;
+  var chunks = [];
+
+  for (var i = 0; i < chunk_count; i++) {
+    var chunk_buffer = new Uint8Array(buffer, offset, 4);
+    var chunk_id = "";
+    for (var j = 0; j < 4; j++)
+      chunk_id += String.fromCharCode(chunk_buffer[j]);
+    offset += 4;
+
+    // display offset as hex
+    tiled.warn(`Reading chunk ${chunk_id} at 0x${offset.toString(16)}`, () => { });
+
+    var chunk_size = new Uint32Array(buffer, offset, 1)[0];
+    offset += 4;
+
+    tiled.warn(`Chunk size ${chunk_size}`, () => { });
+
+    var chunk_data = buffer.slice(offset, offset + chunk_size);
+    offset += chunk_size;
+
+    chunks.push({ id: chunk_id, data: chunk_data });
+  }
+
+  tiled.warn(chunks.toString(), () => { });
+  var map = new TileMap();
+
+  for (var i = 0; i < chunks.length; i++) {
+    var chunk = chunks[i];
+    var reader = new ChunkDataReader(chunk.data);
+    tiled.warn(chunk.id, () => { });
+
+    switch (chunk.id) {
+      case "INFO":
+        map.width = reader.readUint32();
+        map.height = reader.readUint32();
+        map.tileWidth = 8;
+        map.tileHeight = 8;
+        break;
+      case "TSET":
+        var tileset = new Tileset();
+        tileset.name = reader.readString();
+        tileset.tileWidth = 8;
+        tileset.tileHeight = 8;
+        tileset.imageFileName = reader.readString();
+        map.addTileset(tileset);
+        break;
+      case "TINF":
+        var tile_layer = new TileLayer();
+        tile_layer.name = reader.readString();
+        tile_layer.className = reader.readString();
+        tile_layer.parallaxFactor.x = reader.readFloat32();
+        tile_layer.parallaxFactor.y = reader.readFloat32();
+
+        tile_layer.width = map.width;
+        tile_layer.height = map.height;
+
+        i++;
+        chunk = chunks[i];
+        if (chunk.id !== "TDAT")
+          throw new Error("Expected TDAT chunk");
+        reader = new ChunkDataReader(chunk.data);
+
+        var editor = tile_layer.edit();
+
+        for (var y = 0; y < map.height; y++) {
+          for (var x = 0; x < map.width; x++) {
+            var tile_id = reader.readInt32();
+            var tile = map.tilesets[0].findTile(tile_id);
+            tiled.warn(`Setting tile ${tile_id}`, () => { });
+            editor.setTile(x, y, tile);
+          }
+        }
+
+        editor.apply();
+
+        map.addLayer(tile_layer);
+        break;
+      case "OINF":
+        var layer = new ObjectGroup();
+        layer.name = reader.readString();
+        layer.className = reader.readString();
+
+        var object_count = reader.readUint32();
+
+        i++;
+        chunk = chunks[i];
+        if (chunk.id !== "ODAT")
+          throw new Error("Expected ODAT chunk");
+        reader = new ChunkDataReader(chunk.data);
+
+        for (var j = 0; j < object_count; j++) {
+          var object = new MapObject();
+          object.name = reader.readString();
+          object.className = reader.readString();
+          object.x = reader.readFloat32();
+          object.y = reader.readFloat32();
+          object.width = reader.readFloat32();
+          object.height = reader.readFloat32();
+
+          var shape = reader.readUint32();
+          switch (shape) {
+            case 0:
+              object.shape = MapObject.Rectangle;
+              break;
+            case 1:
+              object.shape = MapObject.Polygon;
+              break;
+            case 2:
+              object.shape = MapObject.Polyline;
+              break;
+            case 3:
+              object.shape = MapObject.Ellipse;
+              break;
+            case 4:
+              object.shape = MapObject.Text;
+              break;
+            case 5:
+              object.shape = MapObject.Point;
+              break;
+          }
+
+          var point_count = reader.readUint32();
+          for (var k = 0; k < point_count; k++) {
+            object.polygon.push({ x: reader.readFloat32(), y: reader.readFloat32() });
+          }
+
+          layer.addObject(object);
+        }
+
+        map.addLayer(layer);
+        break;
+    }
+  }
+
+  return map;
+}
+
+
 
 var custom_format = {
   name: "Inff's Not a File Format",
   extension: "inff",
 
-  // read: read,
+  read: read,
   write: write
 };
 // @ts-ignore
