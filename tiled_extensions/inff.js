@@ -178,7 +178,6 @@ function write_object_layer_chunks(object_layer, file) {
   {
     var chunk_builder = new ChunkDataBuilder();
     for (var object of object_layer.objects) {
-      tiled.warn(`Writing object ${object.name}`, () => { });
       chunk_builder.addString(object.name);
       chunk_builder.addString(object.className);
 
@@ -233,7 +232,6 @@ function write_object_layer_chunks(object_layer, file) {
           shape = 5;
           break;
       };
-      tiled.warn(`Shape ${shape}`, () => { });
       chunk_writer.writeUint32(shape);
 
       chunk_writer.writeUint32(object.polygon.length);
@@ -244,6 +242,54 @@ function write_object_layer_chunks(object_layer, file) {
     }
     writeChunk("ODAT", chunk_writer.finish(), file);
   }
+}
+
+/**
+ * 
+ * @param {GroupLayer} group_layer 
+ * @param {BinaryFile} file 
+ */
+function write_group_layer_chunks(group_layer, file) {
+  {
+    var chunk_builder = new ChunkDataBuilder();
+    chunk_builder.addString(group_layer.name);
+    chunk_builder.addString(group_layer.className);
+    chunk_builder.addUint32(); // number of layers in the group
+
+    var chunk_writer = chunk_builder.build();
+    chunk_writer.writeString(group_layer.name);
+    chunk_writer.writeString(group_layer.className);
+    chunk_writer.writeUint32(group_layer.layerCount);
+
+    writeChunk("GLYR", chunk_writer.finish(), file);
+  }
+
+  {
+    var chunk_builder = new ChunkDataBuilder();
+    for (var layer of group_layer.layers) {
+      write_layer(layer, file);
+    }
+  }
+}
+
+/**
+ * @param {Layer} layer
+ * @param {BinaryFile} file
+ */
+function write_layer(layer, file) {
+  if (layer.isTileLayer)
+    // @ts-ignore
+    write_tile_layer_chunks(layer, file);
+
+  if (layer.isObjectLayer)
+    // @ts-ignore
+    write_object_layer_chunks(layer, file);
+
+  if (layer.isGroupLayer)
+    // @ts-ignore
+    write_group_layer_chunks(layer, file);
+
+  // TODO figure out how to write tile layer properties
 }
 
 
@@ -292,23 +338,13 @@ function write(map, filename) {
   }
 
   for (var layer of map.layers) {
-    if (layer.isTileLayer)
-      // @ts-ignore
-      write_tile_layer_chunks(layer, file);
-
-    if (layer.isObjectLayer)
-      // @ts-ignore
-      write_object_layer_chunks(layer, file);
-
-    // TODO figure out how to write tile layer properties
+    write_layer(layer, file);
   }
 
   // write the actual chunk count
   file.seek(4);
   chunk_buffer[0] = chunk_count;
   file.write(chunk_buffer.buffer);
-
-  tiled.warn(`Writing chunk count ${chunk_count}`, () => { });
 
   file.commit();
 }
@@ -329,7 +365,6 @@ function writeChunk(chunk_id, chunk_data, file) {
     id_buffer[i] = chunk_id.charCodeAt(i);
   }
   file.write(id_buffer.buffer);
-  tiled.warn(`Writing chunk ${chunk_id}`, () => { });
 
   // write chunk size
   var size = chunk_data.byteLength;
@@ -340,6 +375,135 @@ function writeChunk(chunk_id, chunk_data, file) {
   file.write(chunk_data);
 
   chunk_count++;
+}
+
+class ChunkIter {
+  constructor(chunks) {
+    this.chunks = chunks;
+    this.i = 0;
+    this.done = false;
+  }
+
+  next() {
+    if (this.i >= this.chunks.length) {
+      this.done = true;
+      return;
+    }
+    return this.chunks[this.i++];
+  }
+}
+
+function read_chunks(into, chunk_iter) {
+  var chunk = chunk_iter.next();
+  if (!chunk)
+    return;
+  var reader = new ChunkDataReader(chunk.data);
+
+  switch (chunk.id) {
+    case "TSET":
+      var tileset = new Tileset();
+      tileset.name = reader.readString();
+      tileset.tileWidth = 8;
+      tileset.tileHeight = 8;
+      tileset.imageFileName = reader.readString();
+      into.addTileset(tileset);
+      break;
+    case "TINF":
+      var tile_layer = new TileLayer();
+      tile_layer.name = reader.readString();
+      tile_layer.className = reader.readString();
+      tile_layer.parallaxFactor.x = reader.readFloat32();
+      tile_layer.parallaxFactor.y = reader.readFloat32();
+
+      tile_layer.width = into.width;
+      tile_layer.height = into.height;
+
+      chunk = chunk_iter.next();
+      if (chunk.id !== "TDAT")
+        throw new Error("Expected TDAT chunk");
+      reader = new ChunkDataReader(chunk.data);
+
+      var editor = tile_layer.edit();
+
+      for (var y = 0; y < into.height; y++) {
+        for (var x = 0; x < into.width; x++) {
+          var tile_id = reader.readInt32();
+          var tile = into.tilesets[0].findTile(tile_id);
+          editor.setTile(x, y, tile);
+        }
+      }
+
+      editor.apply();
+
+      into.addLayer(tile_layer);
+      break;
+    case "OINF":
+      var layer = new ObjectGroup();
+      layer.name = reader.readString();
+      layer.className = reader.readString();
+
+      var object_count = reader.readUint32();
+
+      chunk = chunk_iter.next();
+      if (chunk.id !== "ODAT")
+        throw new Error("Expected ODAT chunk");
+      reader = new ChunkDataReader(chunk.data);
+
+      for (var j = 0; j < object_count; j++) {
+        var object = new MapObject();
+        object.name = reader.readString();
+        object.className = reader.readString();
+        object.x = reader.readFloat32();
+        object.y = reader.readFloat32();
+        object.width = reader.readFloat32();
+        object.height = reader.readFloat32();
+
+        var shape = reader.readUint32();
+        switch (shape) {
+          case 0:
+            object.shape = MapObject.Rectangle;
+            break;
+          case 1:
+            object.shape = MapObject.Polygon;
+            break;
+          case 2:
+            object.shape = MapObject.Polyline;
+            break;
+          case 3:
+            object.shape = MapObject.Ellipse;
+            break;
+          case 4:
+            object.shape = MapObject.Text;
+            break;
+          case 5:
+            object.shape = MapObject.Point;
+            break;
+        }
+
+        var point_count = reader.readUint32();
+        for (var k = 0; k < point_count; k++) {
+          object.polygon.push({ x: reader.readFloat32(), y: reader.readFloat32() });
+        }
+
+        layer.addObject(object);
+      }
+
+      into.addLayer(layer);
+      break;
+    case "GLYR":
+      var group_layer = new GroupLayer();
+      group_layer.name = reader.readString();
+      group_layer.className = reader.readString();
+
+      var layer_count = reader.readUint32();
+
+      for (var i = 0; i < layer_count; i++) {
+        read_chunks(group_layer, chunk_iter);
+      }
+
+      into.addLayer(group_layer);
+      break;
+  }
 }
 
 /**
@@ -365,136 +529,30 @@ function read(filename) {
 
   for (var i = 0; i < chunk_count; i++) {
     var chunk_id = chunk_reader.readId();
-
-    // display offset as hex
-    tiled.warn(`Reading chunk ${chunk_id} at 0x${chunk_reader.offset.toString(16)}`, () => { });
-
     var chunk_size = chunk_reader.readUint32();
-
-    tiled.warn(`Chunk size ${chunk_size}`, () => { });
-
     var chunk_data = chunk_reader.readN(chunk_size);
 
     chunks.push({ id: chunk_id, data: chunk_data });
   }
 
-  tiled.warn(chunks.toString(), () => { });
   var map = new TileMap();
 
-  for (var i = 0; i < chunks.length; i++) {
-    var chunk = chunks[i];
-    var reader = new ChunkDataReader(chunk.data);
-    tiled.warn(chunk.id, () => { });
+  var chunk_iter = new ChunkIter(chunks);
 
-    switch (chunk.id) {
-      case "INFO":
-        map.width = reader.readUint32();
-        map.height = reader.readUint32();
-        map.tileWidth = 8;
-        map.tileHeight = 8;
-        break;
-      case "TSET":
-        var tileset = new Tileset();
-        tileset.name = reader.readString();
-        tileset.tileWidth = 8;
-        tileset.tileHeight = 8;
-        tileset.imageFileName = reader.readString();
-        map.addTileset(tileset);
-        break;
-      case "TINF":
-        var tile_layer = new TileLayer();
-        tile_layer.name = reader.readString();
-        tile_layer.className = reader.readString();
-        tile_layer.parallaxFactor.x = reader.readFloat32();
-        tile_layer.parallaxFactor.y = reader.readFloat32();
+  var info_chunk = chunk_iter.next();
+  if (info_chunk.id !== "INFO")
+    throw new Error("Expected INFO chunk");
+  var info_reader = new ChunkDataReader(info_chunk.data);
+  map.width = info_reader.readUint32();
+  map.height = info_reader.readUint32();
+  map.tileWidth = 8;
+  map.tileHeight = 8;
 
-        tile_layer.width = map.width;
-        tile_layer.height = map.height;
-
-        i++;
-        chunk = chunks[i];
-        if (chunk.id !== "TDAT")
-          throw new Error("Expected TDAT chunk");
-        reader = new ChunkDataReader(chunk.data);
-
-        var editor = tile_layer.edit();
-
-        for (var y = 0; y < map.height; y++) {
-          for (var x = 0; x < map.width; x++) {
-            var tile_id = reader.readInt32();
-            var tile = map.tilesets[0].findTile(tile_id);
-            tiled.warn(`Setting tile ${tile_id}`, () => { });
-            editor.setTile(x, y, tile);
-          }
-        }
-
-        editor.apply();
-
-        map.addLayer(tile_layer);
-        break;
-      case "OINF":
-        var layer = new ObjectGroup();
-        layer.name = reader.readString();
-        layer.className = reader.readString();
-
-        var object_count = reader.readUint32();
-        tiled.warn(`Reading ${object_count} objects`, () => { });
-
-        i++;
-        chunk = chunks[i];
-        if (chunk.id !== "ODAT")
-          throw new Error("Expected ODAT chunk");
-        reader = new ChunkDataReader(chunk.data);
-
-        for (var j = 0; j < object_count; j++) {
-          tiled.warn(`Reading object ${j}`, () => { });
-          var object = new MapObject();
-          object.name = reader.readString();
-          object.className = reader.readString();
-          object.x = reader.readFloat32();
-          object.y = reader.readFloat32();
-          object.width = reader.readFloat32();
-          object.height = reader.readFloat32();
-
-          var shape = reader.readUint32();
-          tiled.warn(`Shape ${shape}`, () => { });
-          switch (shape) {
-            case 0:
-              object.shape = MapObject.Rectangle;
-              break;
-            case 1:
-              object.shape = MapObject.Polygon;
-              break;
-            case 2:
-              object.shape = MapObject.Polyline;
-              break;
-            case 3:
-              object.shape = MapObject.Ellipse;
-              break;
-            case 4:
-              object.shape = MapObject.Text;
-              break;
-            case 5:
-              object.shape = MapObject.Point;
-              break;
-          }
-
-          var point_count = reader.readUint32();
-          for (var k = 0; k < point_count; k++) {
-            object.polygon.push({ x: reader.readFloat32(), y: reader.readFloat32() });
-          }
-
-          layer.addObject(object);
-        }
-
-        map.addLayer(layer);
-        break;
-    }
-  }
+  while (!chunk_iter.done)
+    read_chunks(map, chunk_iter);
 
   return map;
 }
-
 
 
 var custom_format = {
