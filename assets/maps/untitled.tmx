@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="3" height="3" tilewidth="8" tileheight="8" infinite="0" nextlayerid="3" nextobjectid="4">
+ <editorsettings>
+  <export format="inff"/>
+ </editorsettings>
+ <tileset firstgid="1" source="../tilesets/red_test.tsx"/>
+ <layer id="1" name="Tile Layer 1" width="3" height="3">
+  <data encoding="csv">
+0,0,0,
+18,19,20,
+26,27,28
+</data>
+ </layer>
+ <objectgroup id="2" name="Object Layer 1">
+  <object id="1" x="0.129688" y="8.11845" width="23.7588" height="15.77"/>
+  <object id="2" x="11.9053" y="7.70345">
+   <properties>
+    <property name="spawnpoint" type="bool" value="true"/>
+   </properties>
+   <point/>
+  </object>
+ </objectgroup>
+</map>
