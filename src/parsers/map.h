@@ -1,6 +1,6 @@
 #pragma once
 
-#include <cglm/struct.h>
+#include "box2d/math_functions.h"
 #include "inff.h"
 #include "sensible_nums.h"
 
@@ -8,11 +8,12 @@ typedef struct MapLayer MapLayer;
 
 typedef enum
 {
-    Obj_Rectangle,
-    Obj_Polygon,
-    Obj_Ellipse,
-    Obj_Text,
-    Obj_Point,
+    Obj_Rectangle = 0,
+    Obj_Polygon = 1,
+    Obj_Polyline = 2,
+    Obj_Ellipse = 3,
+    Obj_Text = 4,
+    Obj_Point = 5,
 } ObjectType;
 
 typedef struct
@@ -26,7 +27,7 @@ typedef struct
     ObjectType type;
 
     u32 polygon_len;
-    vec2s *polygons;
+    b2Vec2 *polygons;
 } Object;
 
 typedef enum

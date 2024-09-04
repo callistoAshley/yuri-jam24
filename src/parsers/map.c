@@ -1,4 +1,5 @@
 #include "map.h"
+#include "box2d/math_functions.h"
 #include "parsers/inff.h"
 #include "utility/log.h"
 #include "utility/macros.h"
@@ -111,10 +112,11 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
             object->width = chunk_read_f32(&reader);
             object->height = chunk_read_f32(&reader);
 
-            object->type = chunk_read_u32(&reader); // TODO validate this
+            // TODO validate this
+            object->type = chunk_read_u32(&reader);
 
             object->polygon_len = chunk_read_u32(&reader);
-            object->polygons = malloc(sizeof(vec2s) * object->polygon_len);
+            object->polygons = malloc(sizeof(b2Vec2) * object->polygon_len);
             for (u32 j = 0; j < object->polygon_len; j++)
             {
                 object->polygons[j].x = chunk_read_f32(&reader);
@@ -187,6 +189,11 @@ void pretty_print_layer(MapLayer *layer)
             log_info("Size: %f, %f", object->width, object->height);
             log_info("Type: %d", object->type);
             log_info("Vertex count: %d", object->polygon_len);
+            for (u32 j = 0; j < object->polygon_len; j++)
+            {
+                log_info("Vertex %d: %f, %f", j, object->polygons[j].x,
+                         object->polygons[j].y);
+            }
         }
         break;
     case Layer_Image:

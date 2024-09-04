@@ -1,4 +1,5 @@
 #include "map.h"
+#include "box2d/collision.h"
 #include "debug/level_editor.h"
 #include "graphics/tilemap.h"
 #include "input/input.h"
@@ -70,6 +71,40 @@ static void add_collisions(MapLayer *layer, Physics *physics)
                 b2CreatePolygonShape(groundId, &groundShapeDef, &groundBox);
                 break;
             }
+            case Obj_Ellipse:
+            {
+                // TODO actually support ellipses
+                b2BodyDef groundBodyDef = b2DefaultBodyDef();
+                groundBodyDef.position =
+                    (b2Vec2){(object->x + object->width / 2) / PX_PER_M,
+                             -(object->y + object->width / 2) / PX_PER_M};
+
+                b2BodyId groundId =
+                    b2CreateBody(physics->world, &groundBodyDef);
+                b2Circle groundCircle = {
+                    .center = {0, 0},
+                    .radius = object->width / PX_PER_M / 2,
+                };
+                b2ShapeDef groundShapeDef = b2DefaultShapeDef();
+                b2CreateCircleShape(groundId, &groundShapeDef, &groundCircle);
+                break;
+            }
+            case Obj_Polygon:
+            {
+                b2BodyDef groundBodyDef = b2DefaultBodyDef();
+                groundBodyDef.position =
+                    (b2Vec2){(object->x + object->width / 2) / PX_PER_M,
+                             -(object->y + object->height / 2) / PX_PER_M};
+
+                b2BodyId groundId =
+                    b2CreateBody(physics->world, &groundBodyDef);
+                b2Hull groundHull =
+                    b2ComputeHull(object->polygons, object->polygon_len);
+                b2Polygon groundPolygon = b2MakePolygon(&groundHull, 1.0);
+                b2ShapeDef groundShapeDef = b2DefaultShapeDef();
+                b2CreatePolygonShape(groundId, &groundShapeDef, &groundPolygon);
+                break;
+            }
             default:
                 break;
             }
@@ -107,7 +142,7 @@ void map_scene_init(Scene **scene_data, Resources *resources)
             &resources->graphics->texture_manager,
             "assets/textures/red_start.png", &resources->graphics->wgpu);
 
-        u32 tile_layer_count;
+        u32 tile_layer_count = 0;
         for (u32 i = 0; i < map.layer_len; i++)
             count_tile_map_layers(&map.layers[i], &tile_layer_count);
 
