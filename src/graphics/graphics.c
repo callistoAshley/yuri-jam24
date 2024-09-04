@@ -7,6 +7,7 @@
 #include "core_types.h"
 #include "binding_helper.h"
 #include "graphics/layer.h"
+#include "graphics/light.h"
 #include "graphics/quad_manager.h"
 #include "graphics/sprite.h"
 #include "graphics/tex_manager.h"
@@ -22,6 +23,8 @@
 
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
+
+PointLight light;
 
 void tilemap_layer_draw(void *layer, Graphics *graphics, mat4s camera,
                         WGPURenderPassEncoder pass)
@@ -95,6 +98,9 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     graphics->normal_view = wgpuTextureCreateView(graphics->normal, NULL);
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
+
+    point_light_init(&light, graphics, (vec3s){.x = 0.0, .y = 25.0},
+                     GLMS_VEC3_ONE, 50.0f);
 
     // screen quad
     {
@@ -325,12 +331,11 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                          graphics->shaders.lighting);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0,
                                           0);
-
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
-        wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1,
-                                  QUAD_ENTRY_TO_VERTEX_INDEX(screen_quad_index),
-                                  0);
+
+        light.position.x += 20.0f / 144.0;
+        point_light_render(&light, graphics, render_pass, raw_camera);
 
         if (physics->debug_draw)
             physics_debug_draw(&debug_ctx, physics, render_pass);

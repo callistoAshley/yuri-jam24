@@ -156,7 +156,21 @@ void create_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
     WGPUShaderModule module =
         wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
 
+    WGPUPushConstantRange push_constant_ranges[] = {
+        (WGPUPushConstantRange){
+            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+            .start = 0,
+            .end = sizeof(TilemapPushConstants),
+        },
+    };
+    WGPUPipelineLayoutExtras extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
+        .pushConstantRanges = push_constant_ranges,
+        .pushConstantRangeCount = 1,
+    };
+
     WGPUPipelineLayoutDescriptor layout_descriptor = {
+        .nextInChain = (WGPUChainedStruct *)&extras,
         .label = "lighting",
         .bindGroupLayoutCount = 1,
         .bindGroupLayouts = &layouts->lighting,

@@ -3,6 +3,7 @@ set(SOURCES
     ${DIR}/bind_group_layouts.c
     ${DIR}/binding_helper.c
     ${DIR}/graphics.c
+    ${DIR}/light.c
     ${DIR}/layer.c
     ${DIR}/quad_manager.c
     ${DIR}/shaders.c

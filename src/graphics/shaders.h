@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wgpu.h>
+#include "cglm/types.h"
 #include "utility/list.h"
 #include "webgpu.h"
 #include "wgpu_resources.h"
@@ -63,6 +64,17 @@ typedef struct
     u32 texture_index;
     u32 map_width;
 } TilemapPushConstants;
+
+typedef struct
+{
+    vec3s color;
+
+    alignas(16) vec2s position;
+    vec2s camera_position;
+
+    f32 radius;
+    f32 internal_scale;
+} LightPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources);
