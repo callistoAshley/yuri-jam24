@@ -10,7 +10,10 @@ static void logCallback(WGPULogLevel level, const char *message, void *userdata)
 {
     (void)userdata;
     (void)level;
-    printf("(WGPU) %s\n", message);
+    if (level == WGPULogLevel_Error)
+        printf("(WGPU) ERROR: %s\n", message);
+    else if (level == WGPULogLevel_Warn)
+        printf("(WGPU) WARNING: %s\n", message);
 }
 
 static void handle_request_adapter(WGPURequestAdapterStatus status,
