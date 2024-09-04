@@ -45,8 +45,8 @@ static char *chunk_read_string(ChunkDataReader *reader)
 }
 
 // ids are char[4] and NOT null-terminated so we can't use strcmp
-#define IDEQ(a, b)                                                             \
-    (a[0] == b[0] && a[1] == b[1] && a[2] == b[2] && a[3] == b[3])
+#define IDEQ(a, b) strncmp(a, b, 4) == 0
+#define IDNEQ(a, b) strncmp(a, b, 4) != 0
 
 static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
                              u32 *current_layer, u32 *chunk_index)
@@ -72,7 +72,7 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
 
         chunk = inff->chunks[*chunk_index];
         (*chunk_index)++;
-        if (!IDEQ(chunk.id, "TDAT"))
+        if (IDNEQ(chunk.id, "TDAT"))
             FATAL("Expected TDAT chunk after TINF chunk");
         reader.offset = 0;
         reader.data = chunk.data;
@@ -94,7 +94,7 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
 
         chunk = inff->chunks[*chunk_index];
         (*chunk_index)++;
-        if (!IDEQ(chunk.id, "ODAT"))
+        if (IDNEQ(chunk.id, "ODAT"))
             FATAL("Expected ODAT chunk after OINF chunk");
         reader.offset = 0;
         reader.data = chunk.data;
@@ -220,7 +220,7 @@ void pretty_print_map(Map *map)
 void parse_map_from(Map *map, INFF *inff)
 {
     INFFChunk info = inff->chunks[0];
-    if (!IDEQ(info.id, "INFO"))
+    if (IDNEQ(info.id, "INFO"))
         FATAL("INFO chunk not found in map file");
 
     // read map properties
