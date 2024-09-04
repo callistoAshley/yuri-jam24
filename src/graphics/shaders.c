@@ -270,7 +270,7 @@ void create_tilemap_shader(Shaders *shaders, BindGroupLayouts *layouts,
         wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
 
     WGPUVertexAttribute vertex_attributes[] = {(WGPUVertexAttribute){
-        .format = WGPUVertexFormat_Uint32,
+        .format = WGPUVertexFormat_Sint32,
         .offset = 0,
         .shaderLocation = 0,
     }};

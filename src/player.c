@@ -40,15 +40,6 @@ void player_init(Player *player, Resources *resources)
     player->shape_id =
         b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
 
-    // hacky ground box
-    b2BodyDef groundBodyDef = b2DefaultBodyDef();
-    groundBodyDef.position = (b2Vec2){25, -2.5};
-
-    b2BodyId groundId = b2CreateBody(resources->physics->world, &groundBodyDef);
-    b2Polygon groundBox = b2MakeBox(25.0f, 2.5f);
-    b2ShapeDef groundShapeDef = b2DefaultShapeDef();
-    b2CreatePolygonShape(groundId, &groundShapeDef, &groundBox);
-
     player->jump_timeout = 0;
 }
 

@@ -8,8 +8,8 @@
 #include "webgpu.h"
 
 void tilemap_init(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
-                 TransformEntry transform, int map_w, int map_h, int layers,
-                 u32 *map_data)
+                  TransformEntry transform, int map_w, int map_h, int layers,
+                  i32 *map_data)
 {
     tilemap->tileset = tileset;
     tilemap->transform = transform;
@@ -17,7 +17,7 @@ void tilemap_init(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
     tilemap->map_h = map_h;
     tilemap->layers = layers;
 
-    usize map_data_size = map_w * map_h * layers * sizeof(u32);
+    usize map_data_size = map_w * map_h * layers * sizeof(i32);
     log_info("map data size: %lu", map_data_size);
 
     WGPUBufferDescriptor buffer_desc = {
@@ -60,11 +60,11 @@ void tilemap_render(Tilemap *tilemap, mat4s camera, int layer,
 }
 
 void tilemap_set_tile(Tilemap *tilemap, Graphics *graphics, int x, int y,
-                      int layer, u16 tile)
+                      int layer, i32 tile)
 {
     u64 byte_offset =
         (y * tilemap->map_w + x + (tilemap->map_w * tilemap->map_h) * layer) *
-        sizeof(u16);
+        sizeof(i32);
     wgpuQueueWriteBuffer(graphics->wgpu.queue, tilemap->instances, byte_offset,
-                         &tile, sizeof(u16));
+                         &tile, sizeof(i32));
 }

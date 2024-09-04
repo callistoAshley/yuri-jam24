@@ -5,6 +5,77 @@
 #include "player.h"
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
+#include "parsers/inff.h"
+#include "parsers/map.h"
+
+// TODO add general map layer function, these all do the same thing
+static void count_tile_map_layers(MapLayer *layer, u32 *tile_layer_count)
+{
+    if (layer->type == Layer_Tile)
+    {
+        (*tile_layer_count)++;
+    }
+    else if (layer->type == Layer_Group)
+    {
+        for (u32 i = 0; i < layer->data.group.layer_len; i++)
+            count_tile_map_layers(&layer->data.group.layers[i],
+                                  tile_layer_count);
+    }
+}
+
+static void copy_tile_layer_data(Map *map, MapLayer *layer, u32 *layer_index,
+                                 i32 *tile_ids)
+{
+    if (layer->type == Layer_Tile)
+    {
+        memcpy(&tile_ids[map->width * map->height * (*layer_index)],
+               layer->data.tile.tiles, sizeof(i32) * map->width * map->height);
+        (*layer_index)++;
+    }
+    else if (layer->type == Layer_Group)
+    {
+        for (u32 i = 0; i < layer->data.group.layer_len; i++)
+            copy_tile_layer_data(map, &layer->data.group.layers[i], layer_index,
+                                 tile_ids);
+    }
+}
+
+static void add_collisions(MapLayer *layer, Physics *physics)
+{
+    if (layer->type == Layer_Group)
+    {
+        for (u32 i = 0; i < layer->data.group.layer_len; i++)
+            add_collisions(&layer->data.group.layers[i], physics);
+    }
+
+    if (layer->type == Layer_Object)
+    {
+        for (u32 i = 0; i < layer->data.object.object_len; i++)
+        {
+            Object *object = &layer->data.object.objects[i];
+            switch (object->type)
+            {
+            case Obj_Rectangle:
+            {
+                b2BodyDef groundBodyDef = b2DefaultBodyDef();
+                groundBodyDef.position =
+                    (b2Vec2){(object->height / 2 - object->x) / PX_PER_M + 0.5,
+                             -(object->y + object->width / 2) / PX_PER_M + 0.5};
+
+                b2BodyId groundId =
+                    b2CreateBody(physics->world, &groundBodyDef);
+                b2Polygon groundBox = b2MakeBox(object->width / PX_PER_M / 2,
+                                                object->height / PX_PER_M / 2);
+                b2ShapeDef groundShapeDef = b2DefaultShapeDef();
+                b2CreatePolygonShape(groundId, &groundShapeDef, &groundBox);
+                break;
+            }
+            default:
+                break;
+            }
+        }
+    }
+}
 
 void map_scene_init(Scene **scene_data, Resources *resources)
 {
@@ -13,7 +84,20 @@ void map_scene_init(Scene **scene_data, Resources *resources)
     *scene_data = (Scene *)map_scene;
 
     map_scene->freecam = false;
-    map_scene->level_editor_enabled = false;
+
+    char out_err_msg[256];
+    INFF *inff = inff_parse("assets/maps/untitled.mnff", out_err_msg);
+    if (!inff)
+        FATAL("Failed to parse INFF file: %s", out_err_msg);
+
+    Map map;
+    parse_map_from(&map, inff);
+    inff_free(inff); // map copies inff data, so we can free it now
+
+    for (u32 i = 0; i < map.layer_len; i++)
+    {
+        add_collisions(&map.layers[i], resources->physics);
+    }
 
     {
         Transform transform = transform_from_xyz(0, 0, 0);
@@ -22,13 +106,22 @@ void map_scene_init(Scene **scene_data, Resources *resources)
         TextureEntry *tileset = texture_manager_load(
             &resources->graphics->texture_manager,
             "assets/textures/red_start.png", &resources->graphics->wgpu);
-        u32 map_data[50 * 5];
-        for (int i = 0; i < 50 * 5; i++)
-        {
-            map_data[i] = 1;
-        }
+
+        u32 tile_layer_count;
+        for (u32 i = 0; i < map.layer_len; i++)
+            count_tile_map_layers(&map.layers[i], &tile_layer_count);
+
+        i32 *map_data =
+            malloc(sizeof(i32) * map.width * map.height * tile_layer_count);
+
+        u32 tile_layer_index = 0;
+        for (u32 i = 0; i < map.layer_len; i++)
+            copy_tile_layer_data(&map, &map.layers[i], &tile_layer_index,
+                                 map_data);
+
         tilemap_init(&map_scene->tilemap, resources->graphics, tileset,
-                     tilemap_transform, 50, 5, 1, map_data);
+                     tilemap_transform, map.width, map.height, tile_layer_count,
+                     map_data);
 
         TilemapLayer *background = malloc(sizeof(TilemapLayer));
         background->tilemap = &map_scene->tilemap;
@@ -36,9 +129,9 @@ void map_scene_init(Scene **scene_data, Resources *resources)
         layer_add(&resources->graphics->tilemap_layers.background, background);
     }
 
-    player_init(&map_scene->player, resources);
+    // map_free(&map);
 
-    map_scene->editor = lvledit_init(resources->graphics, &map_scene->tilemap);
+    player_init(&map_scene->player, resources);
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)
@@ -47,11 +140,6 @@ void map_scene_update(Scene *scene_data, Resources *resources)
 
     if (input_is_pressed(resources->input, Button_Freecam))
         map_scene->freecam = !map_scene->freecam;
-    if (input_is_pressed(resources->input, Button_LevelEdit))
-        map_scene->level_editor_enabled = !map_scene->level_editor_enabled;
-
-    if (map_scene->level_editor_enabled)
-        lvledit_update(map_scene->editor);
 
     player_update(&map_scene->player, resources, map_scene->freecam);
 
@@ -87,7 +175,6 @@ void map_scene_free(Scene *scene_data, Resources *resources)
     MapScene *map_scene = (MapScene *)scene_data;
     tilemap_free(&map_scene->tilemap, resources->graphics);
     player_free(&map_scene->player, resources);
-    lvledit_free(map_scene->editor);
     free(map_scene);
 }
 

@@ -1,5 +1,5 @@
 struct VertexInput {
-  @location(0) tile_id: u32,
+  @location(0) tile_id: i32,
   @builtin(vertex_index) vertex_index: u32,
   @builtin(instance_index) instance_index: u32,
 }
@@ -49,9 +49,10 @@ const TEX_COORDS = array<vec2f, 6>(
 fn vs_main(input: VertexInput) -> VertexOutput {
   var output: VertexOutput;
 
-  if (input.tile_id == 0) {
+  if (input.tile_id == -1) {
     return output;
   }
+  let tile_id = u32(input.tile_id);
 
   let tile_position = vec2f(
     f32(input.instance_index % push_constants.map_width), 
@@ -73,8 +74,8 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
   let vertex_tex_coord = vertex_tex_coords[input.vertex_index];
   let tex_offset = vec2f(
-    f32(input.tile_id % tileset_width),
-    f32(input.tile_id / tileset_width)
+    f32(tile_id % tileset_width),
+    f32(tile_id / tileset_width)
   ) * 8.0;
   output.tex_coords = (vertex_tex_coord + tex_offset) / vec2f(tex_size);
 
