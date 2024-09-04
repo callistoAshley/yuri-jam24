@@ -153,6 +153,8 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
         layer.data.image.image_path = chunk_read_string(&reader);
         layer.data.image.parallax_x = chunk_read_f32(&reader);
         layer.data.image.parallax_y = chunk_read_f32(&reader);
+        layer.data.image.offset_x = chunk_read_f32(&reader);
+        layer.data.image.offset_y = chunk_read_f32(&reader);
         layer.type = Layer_Image;
 
         into[*current_layer] = layer;

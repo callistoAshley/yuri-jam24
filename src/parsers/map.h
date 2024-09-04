@@ -59,6 +59,7 @@ typedef union
     {
         char *image_path;
         f32 parallax_x, parallax_y;
+        f32 offset_x, offset_y;
     } image;
 } LayerData;
 

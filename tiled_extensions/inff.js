@@ -281,6 +281,8 @@ function write_image_layer_chunks(image_layer, file) {
   chunk_builder.addString(image_layer.imageFileName);
   chunk_builder.addFloat32(); // parallax factor x
   chunk_builder.addFloat32(); // parallax factor y
+  chunk_builder.addFloat32(); // offset x
+  chunk_builder.addFloat32(); // offset y
 
   let chunk_writer = chunk_builder.build();
   chunk_writer.writeString(image_layer.name);
@@ -288,6 +290,8 @@ function write_image_layer_chunks(image_layer, file) {
   chunk_writer.writeString(image_layer.imageFileName);
   chunk_writer.writeFloat32(image_layer.parallaxFactor.x);
   chunk_writer.writeFloat32(image_layer.parallaxFactor.y);
+  chunk_writer.writeFloat32(image_layer.offset.x);
+  chunk_writer.writeFloat32(image_layer.offset.y);
 
   writeChunk("ILYR", chunk_writer.finish(), file);
 }
@@ -542,6 +546,8 @@ function read_map_layers(into, chunk_iter) {
       image_layer.imageFileName = reader.readString();
       image_layer.parallaxFactor.x = reader.readFloat32();
       image_layer.parallaxFactor.y = reader.readFloat32();
+      image_layer.offset.x = reader.readFloat32();
+      image_layer.offset.y = reader.readFloat32();
 
       into.addLayer(image_layer);
       break;

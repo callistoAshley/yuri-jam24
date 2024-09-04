@@ -28,8 +28,8 @@ static void count_tile_map_layers(MapLayer *layer, u32 *tile_layer_count)
     }
 }
 
-static void copy_tile_layer_data(Map *map, MapLayer *layer, u32 *layer_index,
-                                 i32 *tile_ids)
+static void handle_tile_layers(Map *map, MapLayer *layer, u32 *layer_index,
+                               i32 *tile_ids)
 {
     if (layer->type == Layer_Tile)
     {
@@ -40,17 +40,17 @@ static void copy_tile_layer_data(Map *map, MapLayer *layer, u32 *layer_index,
     else if (layer->type == Layer_Group)
     {
         for (u32 i = 0; i < layer->data.group.layer_len; i++)
-            copy_tile_layer_data(map, &layer->data.group.layers[i], layer_index,
-                                 tile_ids);
+            handle_tile_layers(map, &layer->data.group.layers[i], layer_index,
+                               tile_ids);
     }
 }
 
-static void add_collisions(MapLayer *layer, Physics *physics)
+static void handle_object_layers(MapLayer *layer, Resources *resources)
 {
     if (layer->type == Layer_Group)
     {
         for (u32 i = 0; i < layer->data.group.layer_len; i++)
-            add_collisions(&layer->data.group.layers[i], physics);
+            handle_object_layers(&layer->data.group.layers[i], resources);
     }
 
     if (layer->type == Layer_Object)
@@ -68,7 +68,7 @@ static void add_collisions(MapLayer *layer, Physics *physics)
                              -(object->y + object->height / 2) / PX_PER_M};
 
                 b2BodyId groundId =
-                    b2CreateBody(physics->world, &groundBodyDef);
+                    b2CreateBody(resources->physics->world, &groundBodyDef);
                 b2Polygon groundBox = b2MakeBox(object->width / PX_PER_M / 2,
                                                 object->height / PX_PER_M / 2);
                 b2ShapeDef groundShapeDef = b2DefaultShapeDef();
@@ -84,7 +84,7 @@ static void add_collisions(MapLayer *layer, Physics *physics)
                              -(object->y + object->width / 2) / PX_PER_M};
 
                 b2BodyId groundId =
-                    b2CreateBody(physics->world, &groundBodyDef);
+                    b2CreateBody(resources->physics->world, &groundBodyDef);
                 b2Circle groundCircle = {
                     .center = {0, 0},
                     .radius = object->width / PX_PER_M / 2,
@@ -101,7 +101,7 @@ static void add_collisions(MapLayer *layer, Physics *physics)
                              -(object->y + object->height / 2) / PX_PER_M};
 
                 b2BodyId groundId =
-                    b2CreateBody(physics->world, &groundBodyDef);
+                    b2CreateBody(resources->physics->world, &groundBodyDef);
 
                 // we have to scale down the polygon vertices to the physics
                 // scale
@@ -127,12 +127,12 @@ static void add_collisions(MapLayer *layer, Physics *physics)
     }
 }
 
-static void add_image_layer(MapLayer *layer, Resources *resources)
+static void handle_image_layers(MapLayer *layer, Resources *resources)
 {
     if (layer->type == Layer_Group)
     {
         for (u32 i = 0; i < layer->data.group.layer_len; i++)
-            add_image_layer(&layer->data.group.layers[i], resources);
+            handle_image_layers(&layer->data.group.layers[i], resources);
     }
 
     if (layer->type == Layer_Image)
@@ -143,7 +143,8 @@ static void add_image_layer(MapLayer *layer, Resources *resources)
         WGPUTexture texture = texture_manager_get_texture(
             &resources->graphics->texture_manager, texture_entry);
 
-        Transform transform = transform_from_xyz(0, 0, 0);
+        Transform transform = transform_from_xyz(layer->data.image.offset_x,
+                                                 layer->data.image.offset_y, 0);
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
 
@@ -181,12 +182,12 @@ void map_scene_init(Scene **scene_data, Resources *resources)
 
     for (u32 i = 0; i < map.layer_len; i++)
     {
-        add_collisions(&map.layers[i], resources->physics);
+        handle_object_layers(&map.layers[i], resources);
     }
 
     for (u32 i = 0; i < map.layer_len; i++)
     {
-        add_image_layer(&map.layers[i], resources);
+        handle_image_layers(&map.layers[i], resources);
     }
 
     {
@@ -206,8 +207,8 @@ void map_scene_init(Scene **scene_data, Resources *resources)
 
         u32 tile_layer_index = 0;
         for (u32 i = 0; i < map.layer_len; i++)
-            copy_tile_layer_data(&map, &map.layers[i], &tile_layer_index,
-                                 map_data);
+            handle_tile_layers(&map, &map.layers[i], &tile_layer_index,
+                               map_data);
 
         tilemap_init(&map_scene->tilemap, resources->graphics, tileset,
                      tilemap_transform, map.width, map.height, tile_layer_count,
