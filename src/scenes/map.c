@@ -1,5 +1,6 @@
 #include "map.h"
 #include "box2d/collision.h"
+#include "box2d/math_functions.h"
 #include "cglm/struct/vec2.h"
 #include "core_types.h"
 #include "debug/level_editor.h"
@@ -45,12 +46,14 @@ static void handle_tile_layers(Map *map, MapLayer *layer, u32 *layer_index,
     }
 }
 
-static void handle_object_layers(MapLayer *layer, Resources *resources)
+static void handle_object_layers(MapLayer *layer, Resources *resources,
+                                 b2Vec2 *initial_player_pos)
 {
     if (layer->type == Layer_Group)
     {
         for (u32 i = 0; i < layer->data.group.layer_len; i++)
-            handle_object_layers(&layer->data.group.layers[i], resources);
+            handle_object_layers(&layer->data.group.layers[i], resources,
+                                 initial_player_pos);
     }
 
     if (layer->type == Layer_Object)
@@ -120,6 +123,12 @@ static void handle_object_layers(MapLayer *layer, Resources *resources)
                 b2CreatePolygonShape(groundId, &groundShapeDef, &groundPolygon);
                 break;
             }
+            case Obj_Point:
+            {
+                *initial_player_pos =
+                    (b2Vec2){object->x / PX_PER_M, -object->y / PX_PER_M};
+                break;
+            }
             default:
                 break;
             }
@@ -180,9 +189,10 @@ void map_scene_init(Scene **scene_data, Resources *resources)
     parse_map_from(&map, inff);
     inff_free(inff); // map copies inff data, so we can free it now
 
+    b2Vec2 initial_player_pos;
     for (u32 i = 0; i < map.layer_len; i++)
     {
-        handle_object_layers(&map.layers[i], resources);
+        handle_object_layers(&map.layers[i], resources, &initial_player_pos);
     }
 
     for (u32 i = 0; i < map.layer_len; i++)
@@ -222,7 +232,7 @@ void map_scene_init(Scene **scene_data, Resources *resources)
 
     // map_free(&map);
 
-    player_init(&map_scene->player, resources);
+    player_init(&map_scene->player, initial_player_pos, resources);
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)

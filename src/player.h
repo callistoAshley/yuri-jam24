@@ -22,6 +22,6 @@ typedef struct
     f32 jump_timeout;
 } Player;
 
-void player_init(Player *player, Resources *resources);
+void player_init(Player *player, b2Vec2 initial_pos, Resources *resources);
 void player_update(Player *player, Resources *resources, bool disable_input);
 void player_free(Player *player, Resources *resources);

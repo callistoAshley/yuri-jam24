@@ -4,7 +4,7 @@
 #include "utility/common_defines.h"
 #include "utility/log.h"
 
-void player_init(Player *player, Resources *resources)
+void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
 {
     player->transform = transform_from_xyz(0, 0, 0);
     TransformEntry transform_entry = transform_manager_add(
@@ -28,7 +28,7 @@ void player_init(Player *player, Resources *resources)
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;
-    bodyDef.position = (b2Vec2){1, 4};
+    bodyDef.position = initial_pos;
     bodyDef.fixedRotation = true;
     player->body_id = b2CreateBody(resources->physics->world, &bodyDef);
 
