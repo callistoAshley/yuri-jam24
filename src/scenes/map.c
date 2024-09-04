@@ -59,8 +59,8 @@ static void add_collisions(MapLayer *layer, Physics *physics)
             {
                 b2BodyDef groundBodyDef = b2DefaultBodyDef();
                 groundBodyDef.position =
-                    (b2Vec2){(object->height / 2 - object->x) / PX_PER_M + 0.5,
-                             -(object->y + object->width / 2) / PX_PER_M + 0.5};
+                    (b2Vec2){(object->x + object->width / 2) / PX_PER_M,
+                             -(object->y + object->height / 2) / PX_PER_M};
 
                 b2BodyId groundId =
                     b2CreateBody(physics->world, &groundBodyDef);
