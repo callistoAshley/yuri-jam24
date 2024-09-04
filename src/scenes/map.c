@@ -1,6 +1,10 @@
 #include "map.h"
 #include "box2d/collision.h"
+#include "cglm/struct/vec2.h"
+#include "core_types.h"
 #include "debug/level_editor.h"
+#include "graphics/quad_manager.h"
+#include "graphics/tex_manager.h"
 #include "graphics/tilemap.h"
 #include "input/input.h"
 #include "player.h"
@@ -123,6 +127,41 @@ static void add_collisions(MapLayer *layer, Physics *physics)
     }
 }
 
+static void add_image_layer(MapLayer *layer, Resources *resources)
+{
+    if (layer->type == Layer_Group)
+    {
+        for (u32 i = 0; i < layer->data.group.layer_len; i++)
+            add_image_layer(&layer->data.group.layers[i], resources);
+    }
+
+    if (layer->type == Layer_Image)
+    {
+        TextureEntry *texture_entry = texture_manager_load(
+            &resources->graphics->texture_manager, layer->data.image.image_path,
+            &resources->graphics->wgpu);
+        WGPUTexture texture = texture_manager_get_texture(
+            &resources->graphics->texture_manager, texture_entry);
+
+        Transform transform = transform_from_xyz(0, 0, 0);
+        TransformEntry transform_entry = transform_manager_add(
+            &resources->graphics->transform_manager, transform);
+
+        Rect rect = rect_from_min_size(
+            GLMS_VEC2_ZERO, (vec2s){.x = wgpuTextureGetWidth(texture),
+                                    .y = wgpuTextureGetHeight(texture)});
+        Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+        Quad quad = {.rect = rect, .tex_coords = tex_coords};
+
+        QuadEntry quad_entry =
+            quad_manager_add(&resources->graphics->quad_manager, quad);
+
+        Sprite *sprite = malloc(sizeof(Sprite));
+        sprite_init(sprite, texture_entry, transform_entry, quad_entry);
+        layer_add(&resources->graphics->sprite_layers.background, sprite);
+    }
+}
+
 void map_scene_init(Scene **scene_data, Resources *resources)
 {
     MapScene *map_scene = malloc(sizeof(MapScene));
@@ -143,6 +182,11 @@ void map_scene_init(Scene **scene_data, Resources *resources)
     for (u32 i = 0; i < map.layer_len; i++)
     {
         add_collisions(&map.layers[i], resources->physics);
+    }
+
+    for (u32 i = 0; i < map.layer_len; i++)
+    {
+        add_image_layer(&map.layers[i], resources);
     }
 
     {
@@ -172,7 +216,7 @@ void map_scene_init(Scene **scene_data, Resources *resources)
         TilemapLayer *background = malloc(sizeof(TilemapLayer));
         background->tilemap = &map_scene->tilemap;
         background->layer = 0;
-        layer_add(&resources->graphics->tilemap_layers.background, background);
+        layer_add(&resources->graphics->tilemap_layers.middle, background);
     }
 
     // map_free(&map);
