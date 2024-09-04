@@ -98,9 +98,20 @@ static void add_collisions(MapLayer *layer, Physics *physics)
 
                 b2BodyId groundId =
                     b2CreateBody(physics->world, &groundBodyDef);
+
+                // we have to scale down the polygon vertices to the physics
+                // scale
+                // we should proooooooobably restore the original values after
+                // but ehhhhh
+                for (u32 j = 0; j < object->polygon_len; j++)
+                {
+                    object->polygons[j].x /= PX_PER_M;
+                    object->polygons[j].y /= -PX_PER_M;
+                }
+
                 b2Hull groundHull =
                     b2ComputeHull(object->polygons, object->polygon_len);
-                b2Polygon groundPolygon = b2MakePolygon(&groundHull, 1.0);
+                b2Polygon groundPolygon = b2MakePolygon(&groundHull, 0.0);
                 b2ShapeDef groundShapeDef = b2DefaultShapeDef();
                 b2CreatePolygonShape(groundId, &groundShapeDef, &groundPolygon);
                 break;

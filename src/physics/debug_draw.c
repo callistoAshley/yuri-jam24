@@ -61,7 +61,10 @@ void draw_circle(b2Vec2 center, float radius, b2HexColor color, void *context)
 
 void draw_point(b2Vec2 center, float size, b2HexColor color, void *context)
 {
-    draw_maybe_solid_circle(center, size, color, context, 1);
+    Box2DDebugCtx *ctx = context;
+    float scale =
+        (float)ctx->graphics->wgpu.surface_config.width / INTERNAL_SCREEN_WIDTH;
+    draw_maybe_solid_circle(center, size / PX_PER_M / scale, color, context, 1);
 }
 
 void draw_maybe_solid_polygon(b2Transform transform, const b2Vec2 *vertices,
@@ -79,8 +82,8 @@ void draw_maybe_solid_polygon(b2Transform transform, const b2Vec2 *vertices,
 
     // construct the index buffer
     u32 index_count = (vertex_count - 2) * 3;
-    u32 index_buffer_size = sizeof(u16) * index_count;
-    u16 *indices = malloc(index_buffer_size);
+    u32 index_buffer_size = sizeof(u32) * index_count;
+    u32 *indices = malloc(index_buffer_size);
     for (i32 i = 0; i < vertex_count - 2; i++)
     {
         indices[i * 3] = 0;
@@ -90,7 +93,7 @@ void draw_maybe_solid_polygon(b2Transform transform, const b2Vec2 *vertices,
 
     wgpuQueueWriteBuffer(ctx->graphics->wgpu.queue, ctx->index_buffer,
                          ctx->index_index, indices,
-                         sizeof(u16) * (vertex_count - 2) * 3);
+                         sizeof(u32) * (vertex_count - 2) * 3);
     free(indices);
 
     wgpuRenderPassEncoderSetPipeline(
@@ -115,7 +118,7 @@ void draw_maybe_solid_polygon(b2Transform transform, const b2Vec2 *vertices,
     wgpuRenderPassEncoderSetVertexBuffer(ctx->pass, 0, ctx->vertex_buffer,
                                          ctx->vertex_index, vertex_buffer_size);
     wgpuRenderPassEncoderSetIndexBuffer(ctx->pass, ctx->index_buffer,
-                                        WGPUIndexFormat_Uint16,
+                                        WGPUIndexFormat_Uint32,
                                         ctx->index_index, index_buffer_size);
 
     wgpuRenderPassEncoderDrawIndexed(ctx->pass, index_count, 1, 0, 0, 0);
@@ -153,7 +156,7 @@ void physics_debug_draw_init(Box2DDebugCtx *ctx, Graphics *graphics,
     ctx->vertex_buffer =
         wgpuDeviceCreateBuffer(graphics->wgpu.device, &vertex_buffer_desc);
 
-    u32 index_buffer_size = sizeof(u16) * INDEX_COUNT;
+    u32 index_buffer_size = sizeof(u32) * INDEX_COUNT;
     WGPUBufferDescriptor index_buffer_desc = {
         .label = "box2d debug index buffer",
         .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Index,
