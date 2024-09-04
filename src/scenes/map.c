@@ -125,8 +125,9 @@ static void handle_object_layers(MapLayer *layer, Resources *resources,
             }
             case Obj_Point:
             {
-                *initial_player_pos =
-                    (b2Vec2){object->x / PX_PER_M, -object->y / PX_PER_M};
+                if (strcmp(object->name, "spawnpoint") == 0)
+                    *initial_player_pos =
+                        (b2Vec2){object->x / PX_PER_M, -object->y / PX_PER_M};
                 break;
             }
             default:
@@ -189,7 +190,7 @@ void map_scene_init(Scene **scene_data, Resources *resources)
     parse_map_from(&map, inff);
     inff_free(inff); // map copies inff data, so we can free it now
 
-    b2Vec2 initial_player_pos;
+    b2Vec2 initial_player_pos = {0, 0};
     for (u32 i = 0; i < map.layer_len; i++)
     {
         handle_object_layers(&map.layers[i], resources, &initial_player_pos);
@@ -224,13 +225,15 @@ void map_scene_init(Scene **scene_data, Resources *resources)
                      tilemap_transform, map.width, map.height, tile_layer_count,
                      map_data);
 
+        free(map_data);
+
         TilemapLayer *background = malloc(sizeof(TilemapLayer));
         background->tilemap = &map_scene->tilemap;
         background->layer = 0;
         layer_add(&resources->graphics->tilemap_layers.middle, background);
     }
 
-    // map_free(&map);
+    map_free(&map);
 
     player_init(&map_scene->player, initial_player_pos, resources);
 }
