@@ -61,7 +61,7 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
         map->tileset.name = chunk_read_string(&reader);
         map->tileset.image_path = chunk_read_string(&reader);
     }
-    if (IDEQ(chunk.id, "TINF"))
+    else if (IDEQ(chunk.id, "TINF"))
     {
         MapLayer layer;
         layer.name = chunk_read_string(&reader);
@@ -84,7 +84,7 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
         into[*current_layer] = layer;
         (*current_layer)++;
     }
-    if (IDEQ(chunk.id, "OINF"))
+    else if (IDEQ(chunk.id, "OINF"))
     {
         MapLayer layer;
         layer.name = chunk_read_string(&reader);
@@ -125,7 +125,7 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
         into[*current_layer] = layer;
         (*current_layer)++;
     }
-    if (IDEQ(chunk.id, "GLYR"))
+    else if (IDEQ(chunk.id, "GLYR"))
     {
         MapLayer layer;
         layer.name = chunk_read_string(&reader);
@@ -143,7 +143,7 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
         into[*current_layer] = layer;
         (*current_layer)++;
     }
-    if (IDEQ(chunk.id, "ILYR"))
+    else if (IDEQ(chunk.id, "ILYR"))
     {
         MapLayer layer;
         layer.name = chunk_read_string(&reader);
@@ -155,6 +155,10 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
 
         into[*current_layer] = layer;
         (*current_layer)++;
+    }
+    else
+    {
+        FATAL("Unknown chunk id: %s", chunk.id);
     }
 }
 
