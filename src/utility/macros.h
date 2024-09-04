@@ -54,3 +54,6 @@
 #define NULLABLE
 // indicates that this function parameter can be uninitialized
 #define UNINIT
+
+#define STREQ(a, b) !strcmp(a, b)
+#define STRNEQ(a, b) strcmp(a, b)

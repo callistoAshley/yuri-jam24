@@ -340,9 +340,11 @@ function write_map(map, filename) {
   file.write(chunk_buffer.buffer);
 
   // construct map info chunk
-  var map_info_buffer = new Uint32Array(2);
-  map_info_buffer[0] = map.width;
-  map_info_buffer[1] = map.height;
+  var map_info_buffer = new Uint32Array([
+    map.width,
+    map.height,
+    map.layerCount
+  ]);
 
   writeChunk("INFO", map_info_buffer.buffer, file);
 

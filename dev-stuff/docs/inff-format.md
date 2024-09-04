@@ -28,6 +28,7 @@ Only used in maps, always the first chunk.
 |------------|:-------------------:|----------------------:|
 | width      | u32                 |                       |
 | height     | u32                 |                       |
+| layer_len  | u32                 |                       |
 
 ##### TSET
 
@@ -56,7 +57,7 @@ Tilemap layer data. This always comes after a TINF.
 
 | Field      | Type                | Notes                 |
 |------------|:-------------------:|----------------------:|
-| name       | i32\[map.width * map.height\] | List of tile ids. |
+| data       | i32\[map.width * map.height\] | List of tile ids. |
 
 ##### OINF
 
@@ -71,7 +72,6 @@ Object layer info.
 ##### ODAT
 
 Object layer data. Always comes after a OINF.
-Objects are treated as colliders!
 
 Contains an array of `Object[object_len]` (from the previous chunk).
 Object layout is as follows:

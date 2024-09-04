@@ -1,4 +1,6 @@
 #include "SDL3/SDL_events.h"
+#include "parsers/inff.h"
+#include "parsers/map.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -28,6 +30,15 @@
 
 int main(int argc, char **argv)
 {
+    char out_err_msg[256];
+    INFF *inff = inff_parse("assets/maps/untitled.mnff", out_err_msg);
+    if (!inff)
+        FATAL("Failed to parse INFF file: %s", out_err_msg);
+
+    Map map;
+    parse_map_from(&map, inff);
+    map_free(&map);
+
     bool imgui_demo = false;
     bool physics_debug_draw = false;
 
