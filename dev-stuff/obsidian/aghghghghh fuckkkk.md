@@ -5,7 +5,7 @@ they leave their own angel and a panorama graphic of the desolate landscape is s
 they travel to the angel on willow's motorcycle. this could be a good spot for a short characterization scene
 they arrive at the angel and start exploring. literally anything that the level design demands could happen here. this is the Game part of the Game. it's completely fine for everything up to this point to feel slow, i think. 
 whatever happens here in terms of story beats, i think it needs to mentally tear serenity apart. i was thinking of having her say something to willow that she didn't really *mean* to upset her, but it really really did. something like this would lead to them splitting ways and serenity having to explore on her own.
-they discover that the angel is barely alive, and has been on the brink of death for a very long time. the signal they were tasked to investigate was fuelled by intense emotion.. they're drawn deeper into its body where the mechanical innards become more grotesque and flesh-like, ultimately culminating in a personal confrontation with the angel. 
+they discover that the angel is barely alive, and has been on the brink of death for a very long time. the signal they were tasked to investigate was fueled by intense emotion. they're drawn deeper into its body where the mechanical innards become more grotesque and flesh-like, ultimately culminating in a personal confrontation with the angel. 
 
 ...Is the sun setting already?
 It always goes down so early this time of year... mmngh...

@@ -19,3 +19,5 @@ Her ambitious hacking projects keep her busy... but maybe a little *too* busy. S
 They both have casual-ish clothes; the specifics of what that means are up to you, but I don't imagine them prancing around in a ball dress or anything especially sci-fi.
 
 In the events of the game, they are part of a rotating night brigade who go out to check for damage and gather resources from outside
+
+serenity and willow met on the internet
