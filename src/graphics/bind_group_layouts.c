@@ -125,10 +125,41 @@ void build_tilemap_layout(BindGroupLayouts *layouts, WGPUResources *resources)
     bind_group_layout_builder_free(&builder); // free the builder after use
 }
 
+void build_screen_blit_layout(BindGroupLayouts *layouts,
+                              WGPUResources *resources)
+{
+    BindGroupLayoutBuilder builder;
+    bind_group_layout_builder_init(&builder);
+
+    WGPUTextureBindingLayout texture_layout = {
+        .sampleType = WGPUTextureSampleType_Float,
+        .viewDimension = WGPUTextureViewDimension_2D,
+    };
+    WGPUBindGroupLayoutEntry entry = {
+        .texture = texture_layout,
+        .visibility = WGPUShaderStage_Fragment,
+    };
+    bind_group_layout_builder_append(&builder, entry);
+
+    WGPUSamplerBindingLayout sampler_layout = {
+        .type = WGPUSamplerBindingType_Filtering,
+    };
+    entry = (WGPUBindGroupLayoutEntry){
+        .sampler = sampler_layout,
+        .visibility = WGPUShaderStage_Fragment,
+    };
+    bind_group_layout_builder_append(&builder, entry);
+
+    layouts->screen_blit = bind_group_layout_build(
+        &builder, resources->device, "Screen Blit Bind Group Layout");
+    bind_group_layout_builder_free(&builder);
+}
+
 void bind_group_layouts_init(BindGroupLayouts *layouts,
                              WGPUResources *resources)
 {
     build_object_layout(layouts, resources);
     build_light_layout(layouts, resources);
     build_tilemap_layout(layouts, resources);
+    build_screen_blit_layout(layouts, resources);
 }

@@ -108,9 +108,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     desc.label = "lit texture";
     desc.format = graphics->wgpu.surface_config.format;
-    // we'll be copying from this texture to the screen, so we need to make sure
-    // we've got the right usages
-    desc.usage = WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc;
     graphics->lit = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
     graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
 
@@ -199,12 +196,28 @@ void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_free(&builder);
 }
 
+void build_screen_blit_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+{
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_texture_view(&builder, graphics->lit_view);
+    bind_group_builder_append_sampler(&builder, graphics->sampler);
+
+    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
+                                   graphics->bind_group_layouts.screen_blit,
+                                   "Screen Blit Bind Group");
+
+    bind_group_builder_free(&builder);
+}
+
 void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 {
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
 
+    // FIXME we really should not be creating a new bind group every frame
     WGPUBindGroup object_bind_group;
     build_object_bind_group(graphics, &object_bind_group);
 
@@ -213,6 +226,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
     WGPUBindGroup tilemap_bind_group;
     build_tilemap_bind_group(graphics, &tilemap_bind_group);
+
+    WGPUBindGroup screen_blit_bind_group;
+    build_screen_blit_bind_group(graphics, &screen_blit_bind_group);
 
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -363,13 +379,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     if (physics->debug_draw)
         physics_debug_draw_init(&debug_ctx, graphics, raw_camera);
 
-    // copy the lit texture to the screen
-    // we unfortunately can't use wgpuCommandEncoderCopyTextureToTexture because
-    // the lit texture is not the same size as the screen texture
-    // i wish there was some kind of blit function :(
-    {
-    }
-
     // actually draw to the screen
     {
         // this clear is probably unnecessary?
@@ -387,6 +396,19 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         };
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
             command_encoder, &screen_render_pass_desc);
+
+        // copy the lit texture to the screen
+        // we unfortunately can't use wgpuCommandEncoderCopyTextureToTexture
+        // because the lit texture is not the same size as the screen texture
+        // i wish there was some kind of blit function :( we could prooooobably
+        // do this with a compute shader but i honestly could not be bothered
+        // right now
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.screen_blit);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
+                                          screen_blit_bind_group, 0, NULL);
+        // no vertex buffer, just plain drawing
+        wgpuRenderPassEncoderDraw(render_pass, 6, 1, 0, 0);
 
         if (physics->debug_draw)
             physics_debug_draw(&debug_ctx, physics, render_pass);
@@ -450,6 +472,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     wgpuBindGroupRelease(object_bind_group);
     wgpuBindGroupRelease(light_bind_group);
     wgpuBindGroupRelease(tilemap_bind_group);
+    wgpuBindGroupRelease(screen_blit_bind_group);
 
     wgpuCommandBufferRelease(command_buffer);
     wgpuCommandEncoderRelease(command_encoder);

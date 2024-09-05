@@ -676,6 +676,83 @@ void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
     wgpuShaderModuleRelease(module);
 }
 
+// this is extremely simple
+// use this as a reference for creating other shaders if you want
+void create_screen_blit_shader(Shaders *shaders, BindGroupLayouts *layouts,
+                               WGPUResources *resources)
+{
+    char *buf;
+    long buf_len;
+
+    read_entire_file("assets/shaders/screen_blit.wgsl", &buf, &buf_len);
+
+    // this uses null-terminated strings, but read_entire_file returns something
+    // null-terminated anyway, so it's fine (really wish this used a
+    // length-based thing instead!!)
+    WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
+        .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
+        .code = buf,
+    };
+    WGPUShaderModuleDescriptor module_descriptor = {
+        .label = "screen_blit",
+        .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
+    };
+
+    WGPUShaderModule module =
+        wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
+
+    // this shader is relatively simple (just the one bind group) so we don't
+    // need any fancy vertex layouts or push constants
+    WGPUPipelineLayoutDescriptor layout_descriptor = {
+        .label = "screen_blit",
+        .bindGroupLayoutCount = 1,
+        .bindGroupLayouts = &layouts->screen_blit,
+    };
+
+    WGPUPipelineLayout layout =
+        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
+
+    WGPUVertexState vertex_state = {
+        .module = module,
+        .entryPoint = "vs_main",
+    };
+
+    WGPUColorTargetState color_targets[] = {{
+        .format = resources->surface_config.format,
+        .writeMask = WGPUColorWriteMask_All,
+    }};
+
+    WGPUFragmentState fragment_state = {.module = module,
+                                        .entryPoint = "fs_main",
+                                        .targetCount = 1,
+                                        .targets = color_targets};
+
+    WGPUPrimitiveState primitive = {
+        .topology = WGPUPrimitiveTopology_TriangleList,
+    };
+
+    WGPUMultisampleState multisample = {
+        .count = 1,
+        .mask = 0xFFFFFFFF,
+    };
+
+    WGPURenderPipelineDescriptor descriptor = {
+        .label = "screen_blit",
+        .layout = layout,
+        .vertex = vertex_state,
+        .fragment = &fragment_state,
+        .primitive = primitive,
+        .multisample = multisample,
+    };
+
+    shaders->screen_blit =
+        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
+
+    free(buf);
+    wgpuPipelineLayoutRelease(layout);
+    wgpuShaderModuleRelease(module);
+}
+
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources)
 {
@@ -684,6 +761,8 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     create_tilemap_shader(shaders, layouts, resources);
 
     create_ui_object_shader(shaders, layouts, resources);
+
+    create_screen_blit_shader(shaders, layouts, resources);
 
     create_b2d_circle_shader(shaders, resources);
     create_b2d_polygon_shader(shaders, resources);
