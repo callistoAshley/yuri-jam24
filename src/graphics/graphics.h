@@ -41,6 +41,8 @@ typedef struct Graphics
     StandardLayers tilemap_layers;
 
     StandardLayers ui_layers;
+
+    Layer lights;
 } Graphics;
 
 typedef struct

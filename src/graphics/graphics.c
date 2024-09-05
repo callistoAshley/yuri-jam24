@@ -24,8 +24,6 @@
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 
-PointLight light;
-
 void tilemap_layer_draw(void *layer, void *context, Graphics *graphics,
                         WGPURenderPassEncoder pass)
 {
@@ -41,6 +39,14 @@ void sprite_draw(void *thing, void *context, Graphics *graphics,
     (void)graphics;
     Sprite *sprite = thing;
     sprite_render(sprite, *(mat4s *)context, pass);
+}
+
+void point_light_draw(void *thing, void *context, Graphics *graphics,
+                      WGPURenderPassEncoder pass)
+{
+    (void)graphics;
+    PointLight *light = thing;
+    point_light_render(light, graphics, pass, *(Camera *)context);
 }
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
@@ -67,6 +73,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     layer_init(&graphics->ui_layers.background, sprite_draw, NULL);
     layer_init(&graphics->ui_layers.middle, sprite_draw, NULL);
     layer_init(&graphics->ui_layers.foreground, sprite_draw, NULL);
+
+    layer_init(&graphics->lights, point_light_draw, NULL);
 
     // load bearing molly
     // why do we need this? primarily to make sure that at least one texture is
@@ -100,8 +108,13 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
-    point_light_init(&light, graphics, (vec3s){.x = 0.0, .y = 25.0},
-                     GLMS_VEC3_ONE, 50.0f);
+    {
+        PointLight *light = malloc(sizeof(PointLight));
+        point_light_init(light, graphics, (vec3s){.x = 0.0, .y = 25.0},
+                         GLMS_VEC3_ONE, 50.0f);
+
+        layer_add(&graphics->lights, light);
+    }
 
     // screen quad
     {
@@ -335,8 +348,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
 
-        light.position.x += 20.0f / 144.0;
-        point_light_render(&light, graphics, render_pass, raw_camera);
+        layer_draw(&graphics->lights, &raw_camera, graphics, render_pass);
 
         if (physics->debug_draw)
             physics_debug_draw(&debug_ctx, physics, render_pass);
@@ -420,6 +432,8 @@ void graphics_free(Graphics *graphics)
     layer_free(&graphics->sprite_layers.background);
     layer_free(&graphics->sprite_layers.middle);
     layer_free(&graphics->sprite_layers.foreground);
+
+    layer_free(&graphics->ui_layers.background);
 
     wgpuRenderPipelineRelease(graphics->shaders.object);
     wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.object);
