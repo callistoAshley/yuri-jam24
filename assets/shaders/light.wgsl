@@ -14,7 +14,6 @@ struct PushConstants {
   camera_position: vec2f,
 
   radius: f32,
-  internal_scale: f32,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -41,10 +40,10 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-  let screen_size = vec2f(160.0, 90.0) * push_constants.internal_scale;
+  let screen_size = vec2f(160.0, 90.0);
   let tex_coords = in.position.xy / screen_size;
 
-  let frag_world_coord = in.position.xy / push_constants.internal_scale + push_constants.camera_position;
+  let frag_world_coord = in.position.xy + push_constants.camera_position;
   let dist = distance(frag_world_coord, push_constants.position);
 
   let color = textureSample(color, tex_sampler, tex_coords);

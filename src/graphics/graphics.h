@@ -33,6 +33,12 @@ typedef struct Graphics
     WGPUTexture normal;
     WGPUTextureView normal_view;
 
+    // after rendering to the color and normal textures, we do deffered shading
+    // and render the result to the lit texture. this texture is then upscaled
+    // and drawn to the screen.
+    WGPUTexture lit;
+    WGPUTextureView lit_view;
+
     StandardLayers sprite_layers;
 
     // why is this separate from the sprite layers? well, layers are set up to

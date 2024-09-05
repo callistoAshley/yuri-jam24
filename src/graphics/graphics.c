@@ -46,7 +46,7 @@ void point_light_draw(void *thing, void *context, Graphics *graphics,
 {
     (void)graphics;
     PointLight *light = thing;
-    point_light_render(light, graphics, pass, *(Camera *)context);
+    point_light_render(light, pass, *(Camera *)context);
 }
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
@@ -105,6 +105,14 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     desc.format = WGPUTextureFormat_RGBA32Float;
     graphics->normal = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
     graphics->normal_view = wgpuTextureCreateView(graphics->normal, NULL);
+
+    desc.label = "lit texture";
+    desc.format = graphics->wgpu.surface_config.format;
+    // we'll be copying from this texture to the screen, so we need to make sure
+    // we've got the right usages
+    desc.usage = WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_CopySrc;
+    graphics->lit = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+    graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
@@ -322,11 +330,49 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderRelease(render_pass);
     }
 
+    // perform lighting
+    {
+        WGPURenderPassColorAttachment lit_attachments[] = {{
+            .view = graphics->lit_view,
+            .loadOp = WGPULoadOp_Clear,
+            .storeOp = WGPUStoreOp_Store,
+            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f},
+            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+        }};
+        WGPURenderPassDescriptor lit_render_pass_desc = {
+            .label = "lit render pass encoder",
+            .colorAttachmentCount = 1,
+            .colorAttachments = lit_attachments,
+        };
+        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
+            command_encoder, &lit_render_pass_desc);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.lighting);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0,
+                                          0);
+        wgpuRenderPassEncoderSetVertexBuffer(
+            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+
+        layer_draw(&graphics->lights, &raw_camera, graphics, render_pass);
+
+        wgpuRenderPassEncoderEnd(render_pass);
+        wgpuRenderPassEncoderRelease(render_pass);
+    }
+
     Box2DDebugCtx debug_ctx;
     if (physics->debug_draw)
         physics_debug_draw_init(&debug_ctx, graphics, raw_camera);
 
+    // copy the lit texture to the screen
+    // we unfortunately can't use wgpuCommandEncoderCopyTextureToTexture because
+    // the lit texture is not the same size as the screen texture
+    // i wish there was some kind of blit function :(
     {
+    }
+
+    // actually draw to the screen
+    {
+        // this clear is probably unnecessary?
         WGPURenderPassColorAttachment screen_attachments[] = {{
             .view = frame,
             .loadOp = WGPULoadOp_Clear,
@@ -341,14 +387,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         };
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
             command_encoder, &screen_render_pass_desc);
-        wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.lighting);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0,
-                                          0);
-        wgpuRenderPassEncoderSetVertexBuffer(
-            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
-
-        layer_draw(&graphics->lights, &raw_camera, graphics, render_pass);
 
         if (physics->debug_draw)
             physics_debug_draw(&debug_ctx, physics, render_pass);

@@ -26,11 +26,9 @@ void point_light_free(PointLight *light, Graphics *graphics)
     quad_manager_remove(&graphics->quad_manager, light->quad);
 }
 
-void point_light_render(PointLight *light, Graphics *graphics,
-                        WGPURenderPassEncoder pass, Camera camera)
+void point_light_render(PointLight *light, WGPURenderPassEncoder pass,
+                        Camera camera)
 {
-    f32 internal_sale =
-        (f32)graphics->wgpu.surface_config.width / INTERNAL_SCREEN_WIDTH;
     LightPushConstants push_constants = {
         .color = light->color,
 
@@ -38,7 +36,6 @@ void point_light_render(PointLight *light, Graphics *graphics,
         .camera_position = (vec2s){.x = camera.x, .y = camera.y},
 
         .radius = light->radius,
-        .internal_scale = internal_sale,
     };
 
     wgpuRenderPassEncoderSetPushConstants(

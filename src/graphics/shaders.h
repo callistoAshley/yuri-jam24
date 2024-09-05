@@ -73,7 +73,6 @@ typedef struct
     vec2s camera_position;
 
     f32 radius;
-    f32 internal_scale;
 } LightPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
