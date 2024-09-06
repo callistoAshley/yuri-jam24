@@ -28,4 +28,5 @@ add_compile_definitions(
     SDLK_y_renamed_SDLK_Y=SDLK_Y
     SDLK_z_renamed_SDLK_Z=SDLK_Z
     SDL_GL_DeleteContext_renamed_SDL_GL_DestroyContext=SDL_GL_DestroyContext
+    SDL_GetProperty=SDL_GetPointerProperty
 )
