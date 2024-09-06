@@ -3,6 +3,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
+#include "sensible_nums.h"
 #include "utility/linked_list.h"
 
 typedef struct
@@ -15,7 +16,10 @@ typedef struct
 typedef struct
 {
     char magic[4];
-    uint32_t num_chunks;    
+    uint32_t num_chunks;
+    unsigned char *raw_buffer;
+    long raw_buffer_len;
+    // chunks contain a pointer into the raw buffer
     INFFChunk *chunks;
 } INFF;
 

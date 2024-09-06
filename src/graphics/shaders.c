@@ -1,33 +1,13 @@
 #include "shaders.h"
 #include "core_types.h"
 #include "graphics/bind_group_layouts.h"
+#include "sensible_nums.h"
 #include "utility/macros.h"
+#include "utility/files.h"
 #include "webgpu.h"
 
 #include <wgpu.h>
 #include <stdio.h>
-
-void read_entire_file(const char *path, char **out, long *len)
-{
-    FILE *file = fopen(path, "r");
-    if (!file)
-    {
-        FATAL("ERROR: Could not open file %s\n", path);
-    }
-
-    fseek(file, 0, SEEK_END);
-    long length = ftell(file);
-    fseek(file, 0, SEEK_SET);
-
-    char *buffer = malloc(length + 1);
-    fread(buffer, 1, length, file);
-    buffer[length] = '\0';
-
-    fclose(file);
-
-    *out = buffer;
-    *len = length;
-}
 
 void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
                           WGPUResources *resources)
@@ -131,7 +111,7 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
     PTR_ERRCHK(shaders->object, "failed to create render pipeline");
 
-    free(buf);
+    // free(buf);
     wgpuPipelineLayoutRelease(layout);
     wgpuShaderModuleRelease(module);
 }
@@ -235,7 +215,7 @@ void create_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
     shaders->lighting =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
-    free(buf);
+    // free(buf);
     wgpuPipelineLayoutRelease(lighting);
     wgpuShaderModuleRelease(module);
 }
@@ -339,7 +319,7 @@ void create_tilemap_shader(Shaders *shaders, BindGroupLayouts *layouts,
     shaders->tilemap =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
-    free(buf);
+    // free(buf);
     wgpuPipelineLayoutRelease(tilemap);
     wgpuShaderModuleRelease(module);
 }
@@ -457,7 +437,7 @@ void create_b2d_circle_shader(Shaders *shaders, WGPUResources *resources)
     shaders->box2d_debug.circle =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
-    free(buf);
+    // free(buf);
     wgpuPipelineLayoutRelease(layout);
     wgpuShaderModuleRelease(module);
 }
@@ -569,7 +549,7 @@ void create_b2d_polygon_shader(Shaders *shaders, WGPUResources *resources)
     shaders->box2d_debug.polygon =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
-    free(buf);
+    // free(buf);
     wgpuPipelineLayoutRelease(layout);
     wgpuShaderModuleRelease(module);
 }
@@ -671,7 +651,7 @@ void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
     PTR_ERRCHK(shaders->object, "failed to create render pipeline");
 
-    free(buf);
+    // free(buf);
     wgpuPipelineLayoutRelease(layout);
     wgpuShaderModuleRelease(module);
 }
@@ -748,7 +728,7 @@ void create_screen_blit_shader(Shaders *shaders, BindGroupLayouts *layouts,
     shaders->screen_blit =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
-    free(buf);
+    // free(buf);
     wgpuPipelineLayoutRelease(layout);
     wgpuShaderModuleRelease(module);
 }

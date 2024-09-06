@@ -5,6 +5,15 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "type": "gdb",
+      "request": "launch",
+      "name": "Debug with GDB",
+      "target": "${workspaceFolder}/build/game",
+      "cwd": "${workspaceRoot}",
+      "valuesFormatting": "parseText",
+      "gdbpath": "C:/msys64/ucrt64/bin/gdb.exe"
+    },
+    {
       "type": "lldb",
       "request": "launch",
       "name": "Debug",
