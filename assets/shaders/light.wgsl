@@ -43,10 +43,15 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let screen_size = vec2f(160.0, 90.0);
     let tex_coords = in.position.xy / screen_size;
 
-    let frag_world_coord = in.position.xy + push_constants.camera_position;
+    let frag_world_coord_real = in.position.xy + push_constants.camera_position;
+    // unsmooth the lighting by using manhattan distance
+    let frag_world_coord = floor(frag_world_coord_real / 2.0) * 2.0;
     let dist = distance(frag_world_coord, push_constants.position);
 
-    let color = textureSample(color, tex_sampler, tex_coords);
+    var color = textureSample(color, tex_sampler, tex_coords);
+    if color.a < 0.1 {
+        color = vec4f(0.05, 0.05, 0.05, 1.0);
+    }
 
     let light_intensity = 1.0 - dist / push_constants.radius;
     let light_color = push_constants.color * light_intensity;

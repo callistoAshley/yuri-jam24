@@ -40,9 +40,9 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-    var alpha = 1.0;
+    var alpha = 0.1;
     if push_constants.solid == 1u {
-        alpha = 0.5;
+        alpha = 0.25;
     }
 
     let out = vec4f(push_constants.color, alpha);

@@ -34,12 +34,12 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let scaled_radius = push_constants.radius * push_constants.scale * 8;
 
     if scaled_radius < distance {
-    discard;
+      discard;
     }
 
-    var alpha = 1.0;
+    var alpha = 0.1;
     if push_constants.solid == 1u {
-        alpha = 1.0 - (distance - scaled_radius) / 8.0;
+        alpha = 0.5;
     }
 
     let out = vec4f(push_constants.color, alpha);
