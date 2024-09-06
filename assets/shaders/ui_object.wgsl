@@ -26,24 +26,24 @@ var<push_constant> push_constants: PushConstants;
 
 @vertex
 fn vs_main(in: VertexInput) -> VertexOutput {
-  var out: VertexOutput;
+    var out: VertexOutput;
 
-  let transform = transforms[push_constants.transform_index];
-  let world_position = transform * vec4f(in.position, 0.0, 1.0);
+    let transform = transforms[push_constants.transform_index];
+    let world_position = transform * vec4f(in.position, 0.0, 1.0);
 
-  out.position = push_constants.camera * world_position;
-  out.tex_coords = in.tex_coords;
-  return out;
+    out.position = push_constants.camera * world_position;
+    out.tex_coords = in.tex_coords;
+    return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-  let texture = textures[push_constants.texture_index];
-  let color = textureSample(texture, tex_sampler, in.tex_coords);
+    let texture = textures[push_constants.texture_index];
+    let color = textureSample(texture, tex_sampler, in.tex_coords);
 
-  if (color.a < 0.1) {
+    if color.a < 0.1 {
     discard;
-  }
+    }
 
-  return color;
+    return color;
 }

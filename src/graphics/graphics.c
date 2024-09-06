@@ -116,7 +116,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     {
         PointLight *light = malloc(sizeof(PointLight));
         point_light_init(light, graphics, (vec3s){.x = 0.0, .y = 25.0},
-                         GLMS_VEC3_ONE, 50.0f);
+                         (vec3s){.x = 0.0, .y = 1.0, .z = 1.0}, 50.0f);
 
         layer_add(&graphics->lights, light);
     }

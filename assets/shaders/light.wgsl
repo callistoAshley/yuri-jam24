@@ -44,9 +44,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
   let tex_coords = in.position.xy / screen_size;
 
   let frag_world_coord = in.position.xy + push_constants.camera_position;
-  // we ciel the distance to make the light more "pixelated"
-  let dist_raw = distance(frag_world_coord, push_constants.position);
-  let dist = ceil(dist_raw / 4) * 4;
+  let dist = distance(frag_world_coord, push_constants.position);
 
   let color = textureSample(color, tex_sampler, tex_coords);
 
