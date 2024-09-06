@@ -113,10 +113,11 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
+    for (int i = 0; i < 5; i++)
     {
         PointLight *light = malloc(sizeof(PointLight));
-        point_light_init(light, graphics, (vec3s){.x = 0.0, .y = 25.0},
-                         (vec3s){.x = 0.0, .y = 1.0, .z = 1.0}, 50.0f);
+        point_light_init(light, graphics, (vec3s){.x = i * 25.0, .y = 25.0},
+                         (vec3s){.x = i / 5., .y = 0.0, .z = 1.0}, 50.0f);
 
         layer_add(&graphics->lights, light);
     }

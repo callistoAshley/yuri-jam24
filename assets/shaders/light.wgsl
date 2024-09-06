@@ -27,29 +27,29 @@ var tex_sampler: sampler;
 
 @vertex
 fn vs_main(in: VertexInput) -> VertexOutput {
-  var out: VertexOutput;
+    var out: VertexOutput;
 
-  let translated_position = in.position + push_constants.position - push_constants.camera_position;
-  let scaled_position = translated_position / vec2f(160.0, 90.0);
-  let normalized_position = scaled_position * 2.0 - 1.0;
+    let translated_position = in.position + push_constants.position - push_constants.camera_position;
+    let scaled_position = translated_position / vec2f(160.0, 90.0);
+    let normalized_position = scaled_position * 2.0 - 1.0;
 
-  out.position = vec4f(normalized_position.x, -normalized_position.y, 0.0, 1.0);
+    out.position = vec4f(normalized_position.x, -normalized_position.y, 0.0, 1.0);
 
-  return out;
+    return out;
 }
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-  let screen_size = vec2f(160.0, 90.0);
-  let tex_coords = in.position.xy / screen_size;
+    let screen_size = vec2f(160.0, 90.0);
+    let tex_coords = in.position.xy / screen_size;
 
-  let frag_world_coord = in.position.xy + push_constants.camera_position;
-  let dist = distance(frag_world_coord, push_constants.position);
+    let frag_world_coord = in.position.xy + push_constants.camera_position;
+    let dist = distance(frag_world_coord, push_constants.position);
 
-  let color = textureSample(color, tex_sampler, tex_coords);
+    let color = textureSample(color, tex_sampler, tex_coords);
 
-  let light_intensity = 1.0 - dist / push_constants.radius;
-  let light_color = vec3f(1.0, 1.0, 1.0) * light_intensity;
+    let light_intensity = 1.0 - dist / push_constants.radius;
+    let light_color = push_constants.color * light_intensity;
 
-  return vec4f(color.rgb * light_color, 1.0);
+    return vec4f(color.rgb * light_color, 1.0);
 }
