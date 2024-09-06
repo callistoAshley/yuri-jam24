@@ -16,7 +16,12 @@ find_package(WGPU) # creates WGPU_LIBRARY and WGPU_INCLUDE_DIR
 
 # cimgui
 # goofy hack: some internal imgui sources rely on "webgpu/webgpu.h", so create a symlink to it
-file(CREATE_LINK ${WGPU_INCLUDE_DIR}/webgpu-headers ${CMAKE_SOURCE_DIR}/webgpu SYMBOLIC)
+# this doesn't work on windows (complains about some permission thing? so we have to do a different hack instead)
+if (WIN32)
+    file(COPY ${WGPU_INCLUDE_DIR}/webgpu-headers/ DESTINATION ${CMAKE_SOURCE_DIR}/webgpu)
+else()
+    file(CREATE_LINK ${WGPU_INCLUDE_DIR}/webgpu-headers ${CMAKE_SOURCE_DIR}/webgpu SYMBOLIC)
+endif()
 set(IMGUI_STATIC ON)
 add_subdirectory(vendor/cimgui/)
 

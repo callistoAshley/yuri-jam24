@@ -1,8 +1,10 @@
+# FMOD is weird about libs so we have to search in multiple places
+
 # FMOD
 find_library(
     FMOD_LIBRARY 
-    NAMES fmod 
-    PATHS ${CMAKE_SOURCE_DIR}/vendor/fmod/api/core/lib/x86_64 
+    NAMES fmod fmod_vc
+    PATHS ${CMAKE_SOURCE_DIR}/vendor/fmod/api/core/lib/x86_64 ${CMAKE_SOURCE_DIR}/vendor/fmod/api/core/lib/x64
     REQUIRED
 )
 find_path(
@@ -14,8 +16,8 @@ find_path(
 # FMOD Studio
 find_library(
     FMOD_STUDIO_LIBRARY 
-    NAMES fmodstudio 
-    PATHS ${CMAKE_SOURCE_DIR}/vendor/fmod/api/studio/lib/x86_64 
+    NAMES fmodstudio fmodstudio_vc
+    PATHS ${CMAKE_SOURCE_DIR}/vendor/fmod/api/studio/lib/x86_64 ${CMAKE_SOURCE_DIR}/vendor/fmod/api/studio/lib/x64
     REQUIRED
 )
 find_path(
