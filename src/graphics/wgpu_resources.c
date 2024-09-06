@@ -3,6 +3,10 @@
 #include <webgpu.h>
 #include <SDL3/SDL.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#endif
+
 #include "wgpu_resources.h"
 #include "utility/macros.h"
 
@@ -68,6 +72,7 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
 
     // other platforms? what are those
     SDL_PropertiesID props = SDL_GetWindowProperties(window);
+#ifdef __linux__
     void *display = SDL_GetPointerProperty(
         props, SDL_PROP_WINDOW_X11_DISPLAY_POINTER, INVALID_POINTER);
     uint64_t xwindow = SDL_GetNumberProperty(
@@ -81,6 +86,19 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
         .display = display,
         .window = xwindow,
     };
+#elif _WIN32
+    void *hwnd = SDL_GetPointerProperty(
+        props, SDL_PROP_WINDOW_WIN32_HWND_POINTER, INVALID_POINTER);
+    SDL_ERRCHK(hwnd == INVALID_POINTER, "hwnd is null");
+
+    WGPUSurfaceDescriptorFromWindowsHWND raw_surface_desc = {
+        .chain = {.sType = WGPUSType_SurfaceDescriptorFromWindowsHWND},
+        .hinstance = GetModuleHandle(NULL),
+        .hwnd = hwnd,
+    };
+#else
+#error "Unsupported platform"
+#endif
     WGPUSurfaceDescriptor surface_desc = {
         .nextInChain = (const WGPUChainedStruct *)&raw_surface_desc,
     };
