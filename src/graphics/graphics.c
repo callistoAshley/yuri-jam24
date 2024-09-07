@@ -116,7 +116,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     for (int i = 0; i < 5; i++)
     {
         PointLight *light = malloc(sizeof(PointLight));
-        point_light_init(light, graphics, (vec3s){.x = i * 25.0, .y = 25.0},
+        point_light_init(light, (vec3s){.x = i * 25.0, .y = 25.0},
                          (vec3s){.x = i / 5., .y = 0.0, .z = 1.0}, 50.0f);
 
         layer_add(&graphics->lights, light);
@@ -367,8 +367,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                          graphics->shaders.lighting);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0,
                                           0);
-        wgpuRenderPassEncoderSetVertexBuffer(
-            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
 
         layer_draw(&graphics->lights, &raw_camera, graphics, render_pass);
 

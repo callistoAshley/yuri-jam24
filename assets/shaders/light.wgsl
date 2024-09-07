@@ -1,8 +1,3 @@
-struct VertexInput {
-  @location(0) position: vec2f,
-  @location(1) _tex_coords: vec2f,
-}
-
 struct VertexOutput {
   @builtin(position) position: vec4f,
 }
@@ -25,11 +20,23 @@ var normal: texture_2d<f32>;
 @group(0) @binding(2)
 var tex_sampler: sampler;
 
+const POSITIONS: array<vec2f, 6> = array<vec2f, 6>(
+    vec2f(-1.0, 1.0),
+    vec2f(1.0, 1.0),
+    vec2f(-1.0, -1.0),
+    vec2f(-1.0, -1.0),
+    vec2f(1.0, 1.0),
+    vec2f(1.0, -1.0),
+);
+
 @vertex
-fn vs_main(in: VertexInput) -> VertexOutput {
+fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     var out: VertexOutput;
 
-    let translated_position = in.position + push_constants.position - push_constants.camera_position;
+    var positions = POSITIONS;
+    let position = positions[vertex_index] * push_constants.radius;
+
+    let translated_position = position + push_constants.position - push_constants.camera_position;
     let scaled_position = translated_position / vec2f(160.0, 90.0);
     let normalized_position = scaled_position * 2.0 - 1.0;
 

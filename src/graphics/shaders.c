@@ -159,28 +159,9 @@ void create_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
     WGPUPipelineLayout lighting =
         wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
 
-    WGPUVertexAttribute vertex_attributes[] = {
-        (WGPUVertexAttribute){
-            .format = WGPUVertexFormat_Float32x2,
-            .offset = 0,
-            .shaderLocation = 0,
-        },
-        (WGPUVertexAttribute){
-            .format = WGPUVertexFormat_Float32x2,
-            .offset = 2 * sizeof(float),
-            .shaderLocation = 1,
-        }};
-    WGPUVertexBufferLayout vertex_buffer_layout = {
-        .arrayStride = sizeof(Vertex),
-        .stepMode = WGPUVertexStepMode_Vertex,
-        .attributeCount = 2,
-        .attributes = vertex_attributes};
-
     WGPUVertexState vertex_state = {
         .module = module,
         .entryPoint = "vs_main",
-        .buffers = &vertex_buffer_layout,
-        .bufferCount = 1,
     };
 
     // perform additive blending
