@@ -31,8 +31,10 @@ void hashset_init(HashSet *set, hash_function *hash, eq_function *eq,
     // 8 is ok as a starting capacity (but we can always change this behavior
     // later)
     set->capacity = 8;
+
+    usize bucket_size = sizeof(Bucket) + key_size;
     // keys are stored inline with the buckets
-    set->buckets = malloc((sizeof(Bucket) + set->key_size) * set->capacity);
+    set->buckets = calloc(set->capacity, bucket_size);
 
     set->hash = hash;
     set->eq = eq;
