@@ -85,33 +85,64 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
                          "assets/textures/load_bearing_molly.png",
                          &graphics->wgpu);
 
-    WGPUExtent3D extents = {
-        .width = INTERNAL_SCREEN_WIDTH,
-        .height = INTERNAL_SCREEN_HEIGHT,
-        .depthOrArrayLayers = 1,
-    };
-    WGPUTextureDescriptor desc = {
-        .label = "color texture",
-        .size = extents,
-        .dimension = WGPUTextureDimension_2D,
-        .format = WGPUTextureFormat_RGBA8Unorm,
-        .mipLevelCount = 1,
-        .sampleCount = 1,
-        .usage =
-            WGPUTextureUsage_RenderAttachment | WGPUTextureUsage_TextureBinding,
-    };
-    graphics->color = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
-    graphics->color_view = wgpuTextureCreateView(graphics->color, NULL);
+    {
+        WGPUExtent3D extents = {
+            .width = INTERNAL_SCREEN_WIDTH,
+            .height = INTERNAL_SCREEN_HEIGHT,
+            .depthOrArrayLayers = 1,
+        };
+        WGPUTextureDescriptor desc = {
+            .label = "color texture",
+            .size = extents,
+            .dimension = WGPUTextureDimension_2D,
+            .format = WGPUTextureFormat_RGBA8Unorm,
+            .mipLevelCount = 1,
+            .sampleCount = 1,
+            .usage = WGPUTextureUsage_RenderAttachment |
+                     WGPUTextureUsage_TextureBinding,
+        };
+        graphics->color = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+        graphics->color_view = wgpuTextureCreateView(graphics->color, NULL);
 
-    desc.label = "normal texture";
-    desc.format = WGPUTextureFormat_RGBA16Float;
-    graphics->normal = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
-    graphics->normal_view = wgpuTextureCreateView(graphics->normal, NULL);
+        desc.label = "normal texture";
+        desc.format = WGPUTextureFormat_RGBA16Float;
+        graphics->normal =
+            wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+        graphics->normal_view = wgpuTextureCreateView(graphics->normal, NULL);
 
-    desc.label = "lit texture";
-    desc.format = graphics->wgpu.surface_config.format;
-    graphics->lit = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
-    graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
+        desc.label = "lit texture";
+        desc.format = graphics->wgpu.surface_config.format;
+        graphics->lit = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+        graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
+    }
+
+    {
+        WGPUExtent3D extents = {
+            .width = 1024,
+            .height = 64,
+            .depthOrArrayLayers = 1,
+        };
+        // i would much rather use 16 bit depth but it doesn't even appear to be
+        // an option? R16Float would be ideal but we can't even *use* that for
+        // depth testing
+        WGPUTextureDescriptor desc = {
+            .label = "shadowmap texture",
+            .size = extents,
+            .dimension = WGPUTextureDimension_2D,
+            .format = WGPUTextureFormat_Depth32Float,
+
+            .mipLevelCount = 1,
+            .sampleCount = 1,
+            .usage = WGPUTextureUsage_RenderAttachment |
+                     WGPUTextureUsage_TextureBinding,
+        };
+
+        // :D everything is fiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiine
+        graphics->shadowmap =
+            wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+        graphics->shadowmap_view =
+            wgpuTextureCreateView(graphics->shadowmap, NULL);
+    }
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
