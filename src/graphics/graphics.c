@@ -335,13 +335,14 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.tilemap);
+                                         graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
         layer_draw(&graphics->tilemap_layers.background, &camera, graphics,
                    render_pass);
 
-        wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.defferred.object);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
@@ -353,13 +354,14 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                    render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.tilemap);
+                                         graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
         layer_draw(&graphics->tilemap_layers.middle, &camera, graphics,
                    render_pass);
 
-        wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.defferred.object);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
@@ -371,13 +373,14 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                    render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.tilemap);
+                                         graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
         layer_draw(&graphics->tilemap_layers.foreground, &camera, graphics,
                    render_pass);
 
-        wgpuRenderPassEncoderSetPipeline(render_pass, graphics->shaders.object);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.defferred.object);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
@@ -390,6 +393,24 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);
+    }
+
+    // perform shadowmapping (we could probably do this in parallel with the
+    // main pass.)
+    {
+        WGPURenderPassDepthStencilAttachment shadowmap_attachment = {
+            .view = graphics->shadowmap_view,
+            .depthLoadOp = WGPULoadOp_Clear,
+            .depthStoreOp = WGPUStoreOp_Store,
+            .depthClearValue = 1.0f,
+        };
+        // no color attachments! just depth
+        WGPURenderPassDescriptor shadowmap_render_pass_desc = {
+            .label = "shadowmap render pass encoder",
+            .depthStencilAttachment = &shadowmap_attachment,
+        };
+        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
+            command_encoder, &shadowmap_render_pass_desc);
     }
 
     // perform lighting
@@ -453,7 +474,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         // do this with a compute shader but i honestly could not be bothered
         // right now
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.screen_blit);
+                                         graphics->shaders.forward.screen_blit);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
                                           screen_blit_bind_group, 0, NULL);
         // no vertex buffer, just plain drawing
@@ -471,7 +492,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.ui_object);
+                                         graphics->shaders.forward.ui_object);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
@@ -490,7 +511,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.ui_object);
+                                         graphics->shaders.forward.ui_object);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
@@ -551,7 +572,7 @@ void graphics_free(Graphics *graphics)
 
     layer_free(&graphics->ui_layers.background);
 
-    wgpuRenderPipelineRelease(graphics->shaders.object);
+    wgpuRenderPipelineRelease(graphics->shaders.defferred.object);
     wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.object);
 
     wgpu_resources_free(&graphics->wgpu);

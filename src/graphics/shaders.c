@@ -107,9 +107,9 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         .primitive = primitive,
         .multisample = multisample,
     };
-    shaders->object =
+    shaders->defferred.object =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
-    PTR_ERRCHK(shaders->object, "failed to create render pipeline");
+    PTR_ERRCHK(shaders->defferred.object, "failed to create render pipeline");
 
     free(buf);
     wgpuPipelineLayoutRelease(layout);
@@ -417,7 +417,7 @@ void create_tilemap_shader(Shaders *shaders, BindGroupLayouts *layouts,
         .multisample = multisample,
     };
 
-    shaders->tilemap =
+    shaders->defferred.tilemap =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
     free(buf);
@@ -748,9 +748,9 @@ void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         .primitive = primitive,
         .multisample = multisample,
     };
-    shaders->ui_object =
+    shaders->forward.ui_object =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
-    PTR_ERRCHK(shaders->object, "failed to create render pipeline");
+    PTR_ERRCHK(shaders->forward.ui_object, "failed to create render pipeline");
 
     free(buf);
     wgpuPipelineLayoutRelease(layout);
@@ -826,7 +826,7 @@ void create_screen_blit_shader(Shaders *shaders, BindGroupLayouts *layouts,
         .multisample = multisample,
     };
 
-    shaders->screen_blit =
+    shaders->forward.screen_blit =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
     free(buf);

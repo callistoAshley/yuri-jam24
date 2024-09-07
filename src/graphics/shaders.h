@@ -11,16 +11,29 @@
 
 typedef struct Shaders
 {
-    WGPURenderPipeline object;
-    WGPURenderPipeline tilemap;
-    WGPURenderPipeline ui_object;
-    WGPURenderPipeline screen_blit;
+    struct
+    {
+        WGPURenderPipeline ui_object;
+        WGPURenderPipeline screen_blit;
+    } forward;
+
+    struct
+    {
+        WGPURenderPipeline object;
+        WGPURenderPipeline tilemap;
+    } defferred;
 
     struct
     {
         WGPURenderPipeline point;
         WGPURenderPipeline direct;
     } lights;
+
+    struct
+    {
+        WGPURenderPipeline quad;
+        WGPURenderPipeline tilemap;
+    } shadowmapping;
 
     struct
     {
