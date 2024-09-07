@@ -1,5 +1,6 @@
 #include "hashset.h"
 #include "sensible_nums.h"
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
@@ -82,22 +83,25 @@ static void adjust_set_capacity(HashSet *set, usize new_capacity)
     usize bucket_size = sizeof(Bucket) + set->key_size;
     // calloc zeroes out the memory, which is perfect
     Bucket *new_buckets = calloc(new_capacity, bucket_size);
+    Bucket *old_buckets = set->buckets;
+    set->buckets = new_buckets;
 
     // we effectively have to rebuild the set from scratch
     set->len = 0;
     for (usize i = 0; i < set->capacity; i++)
     {
-        Bucket *bucket = &set->buckets[i];
+        Bucket *bucket = &old_buckets[i];
         if (!bucket->occupied)
             continue;
 
         Bucket *new_bucket = find_bucket(set, KEY_OF(bucket), bucket->hash);
         memcpy(new_bucket, bucket, bucket_size);
         new_bucket->occupied = true;
+        new_bucket->dead = false;
         set->len++;
     }
 
-    free(set->buckets);
+    free(old_buckets);
     set->buckets = new_buckets;
     set->capacity = new_capacity;
 }
@@ -160,4 +164,29 @@ void hashset_clear(HashSet *set)
     set->len = 0;
     usize bucket_size = sizeof(Bucket) + set->key_size;
     memset(set->buckets, 0, set->capacity * bucket_size);
+}
+
+void hashset_iter_init(HashSet *set, HashSetIter *iter)
+{
+    iter->set = set;
+    iter->index = 0;
+}
+
+void *hashset_iter_next(HashSetIter *iter)
+{
+
+    HashSet *set = iter->set;
+    usize bucket_size = sizeof(Bucket) + set->key_size;
+    Bucket *buckets = set->buckets;
+
+    while (iter->index < set->capacity)
+    {
+        Bucket *bucket = &buckets[iter->index++];
+        if (bucket->occupied && !bucket->dead)
+        {
+            return KEY_OF(bucket);
+        }
+    }
+
+    return NULL;
 }

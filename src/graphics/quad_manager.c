@@ -1,5 +1,6 @@
 #include "quad_manager.h"
 #include "core_types.h"
+#include "utility/hashset.h"
 #include "utility/vec.h"
 #include "webgpu.h"
 
@@ -34,13 +35,15 @@ void quad_manager_init(QuadManager *manager, WGPUResources *resources)
     vec_init_with_capacity(&manager->entries, sizeof(QuadEntryData),
                            INITIAL_BUFFER_CAP);
     manager->next = 0;
-    manager->dirty = false;
+    hashset_init(&manager->dirty_entries, fnv_hash_function, memcmp_eq_function,
+                 sizeof(QuadEntry));
 }
 
 void quad_manager_free(QuadManager *manager)
 {
     wgpuBufferRelease(manager->buffer);
     vec_free(&manager->entries);
+    hashset_free(&manager->dirty_entries);
 }
 
 // ---  ---
@@ -51,7 +54,7 @@ QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
     quad_into_vertices(quad, vertices);
 
     QuadEntry key = manager->next;
-    manager->dirty = true;
+    hashset_insert(&manager->dirty_entries, &key);
 
     if (manager->next == manager->entries.len)
     {
@@ -83,8 +86,9 @@ void quad_manager_remove(QuadManager *manager, QuadEntry entry)
     data->next.next = manager->next;
     manager->next = entry;
 
-    // we don't need to mark dirty here, because the entry is just marked as
-    // free
+    // remove the entry from the dirty set (this is really not a common case, we
+    // could probably omit this)
+    hashset_remove(&manager->dirty_entries, &entry);
 }
 
 void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad)
@@ -96,7 +100,7 @@ void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad)
     Vertex vertices[VERTICES_PER_QUAD];
     quad_into_vertices(quad, vertices);
     memcpy(data->vertex, vertices, sizeof(vertices));
-    manager->dirty = true;
+    hashset_insert(&manager->dirty_entries, &entry);
 }
 
 Quad quad_manager_get(QuadManager *manager, QuadEntry entry)
@@ -114,9 +118,8 @@ Quad quad_manager_get(QuadManager *manager, QuadEntry entry)
 
 void quad_manager_upload_dirty(QuadManager *manager, WGPUResources *resources)
 {
-    if (!manager->dirty)
+    if (manager->dirty_entries.len == 0)
         return;
-    manager->dirty = false;
 
     u32 buffer_size = wgpuBufferGetSize(manager->buffer);
     bool needs_regen =
@@ -138,10 +141,25 @@ void quad_manager_upload_dirty(QuadManager *manager, WGPUResources *resources)
         manager->buffer =
             wgpuDeviceCreateBuffer(resources->device, &buffer_desc);
     }
-    // While this means we're writing
-    // uninitialized memory, that memory
-    // shouldn't be touched without a use-before-init bug.
-    wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
-                         manager->entries.data,
-                         manager->entries.cap * sizeof(QuadEntryData));
+
+    // write all the dirty entries to the buffer
+    HashSetIter iter;
+    hashset_iter_init(&manager->dirty_entries, &iter);
+    QuadEntry *entry = hashset_iter_next(&iter);
+
+    while (entry != NULL)
+    {
+        QuadEntryData *data = vec_get(&manager->entries, *entry);
+        assert(data != NULL);
+        assert(data->next.is_free != QUAD_ENTRY_FREE);
+
+        wgpuQueueWriteBuffer(resources->queue, manager->buffer,
+                             *entry * sizeof(QuadEntryData), data->vertex,
+                             sizeof(data->vertex));
+
+        entry = hashset_iter_next(&iter);
+    }
+
+    // clear the dirty set
+    hashset_clear(&manager->dirty_entries);
 }

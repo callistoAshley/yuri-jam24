@@ -1,6 +1,5 @@
 #pragma once
 #include "sensible_nums.h"
-#include "utility/vec.h"
 #include <stdbool.h>
 
 typedef u64(hash_function)(void *key, usize key_size);
@@ -44,3 +43,12 @@ bool hashset_remove(HashSet *set, void *key);
 bool hashset_contains(HashSet *set, void *key);
 
 void hashset_clear(HashSet *set);
+
+typedef struct
+{
+    HashSet *set;
+    usize index;
+} HashSetIter;
+
+void hashset_iter_init(HashSet *set, HashSetIter *iter);
+void *hashset_iter_next(HashSetIter *iter);

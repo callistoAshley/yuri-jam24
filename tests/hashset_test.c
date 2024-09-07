@@ -17,6 +17,8 @@ int main()
     hashset_insert(&set, &c);
     hashset_insert(&set, &d);
 
+    assert(set.len == 4);
+
     assert(hashset_contains(&set, &a));
     assert(hashset_contains(&set, &b));
     assert(hashset_contains(&set, &c));
@@ -25,10 +27,46 @@ int main()
     hashset_remove(&set, &a);
     assert(!hashset_contains(&set, &a));
 
+    HashSetIter iter;
+    hashset_iter_init(&set, &iter);
+
+    i32 *key = hashset_iter_next(&iter);
+    bool found_b = false;
+    bool found_c = false;
+    bool found_d = false;
+    while (key != NULL)
+    {
+        switch (*key)
+        {
+        case 2:
+            found_b = true;
+            break;
+        case 3:
+            found_c = true;
+            break;
+        case 4:
+            found_d = true;
+            break;
+        default:
+            assert(false);
+        }
+
+        key = hashset_iter_next(&iter);
+    }
+    assert(found_b);
+    assert(found_c);
+    assert(found_d);
+
     hashset_clear(&set);
     assert(!hashset_contains(&set, &b));
     assert(!hashset_contains(&set, &c));
     assert(!hashset_contains(&set, &d));
+
+    // add a bunch of elements
+    for (i32 i = 0; i < 32; i++)
+    {
+        hashset_insert(&set, &i);
+    }
 
     hashset_free(&set);
 }
