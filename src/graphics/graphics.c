@@ -24,6 +24,8 @@
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 
+DirectionalLight directional_light;
+
 void tilemap_layer_draw(void *layer, void *context, Graphics *graphics,
                         WGPURenderPassEncoder pass)
 {
@@ -121,6 +123,9 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
         layer_add(&graphics->lights, light);
     }
+
+    directional_light_init(&directional_light,
+                           (vec3s){.x = 0.2, .y = 0.2, .z = 0.2}, 0.0);
 
     // screen quad
     {
@@ -372,10 +377,15 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         };
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
             command_encoder, &lit_render_pass_desc);
-        wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.lighting);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, light_bind_group, 0,
                                           0);
+
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.lights.direct);
+        directional_light_render(&directional_light, render_pass);
+
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.lights.point);
 
         layer_draw(&graphics->lights, &raw_camera, graphics, render_pass);
 

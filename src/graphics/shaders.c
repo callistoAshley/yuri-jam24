@@ -116,20 +116,20 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
     wgpuShaderModuleRelease(module);
 }
 
-void create_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
-                         WGPUResources *resources)
+void create_point_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
+                               WGPUResources *resources)
 {
     char *buf;
     long buf_len;
 
-    read_entire_file("assets/shaders/light.wgsl", &buf, &buf_len);
+    read_entire_file("assets/shaders/point_light.wgsl", &buf, &buf_len);
 
     WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
         .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
         .code = buf,
     };
     WGPUShaderModuleDescriptor module_descriptor = {
-        .label = "lighting",
+        .label = "point_light",
         .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
     };
 
@@ -140,7 +140,7 @@ void create_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
         (WGPUPushConstantRange){
             .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
             .start = 0,
-            .end = sizeof(TilemapPushConstants),
+            .end = sizeof(PointLightPushConstants),
         },
     };
     WGPUPipelineLayoutExtras extras = {
@@ -151,12 +151,12 @@ void create_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
 
     WGPUPipelineLayoutDescriptor layout_descriptor = {
         .nextInChain = (WGPUChainedStruct *)&extras,
-        .label = "lighting",
+        .label = "point_light",
         .bindGroupLayoutCount = 1,
         .bindGroupLayouts = &layouts->lighting,
     };
 
-    WGPUPipelineLayout lighting =
+    WGPUPipelineLayout layout =
         wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
 
     WGPUVertexState vertex_state = {
@@ -202,19 +202,122 @@ void create_light_shader(Shaders *shaders, BindGroupLayouts *layouts,
     };
 
     WGPURenderPipelineDescriptor descriptor = {
-        .label = "lighting",
-        .layout = lighting,
+        .label = "point_light",
+        .layout = layout,
         .vertex = vertex_state,
         .fragment = &fragment_state,
         .primitive = primitive,
         .multisample = multisample,
     };
 
-    shaders->lighting =
+    shaders->lights.point =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
 
     free(buf);
-    wgpuPipelineLayoutRelease(lighting);
+    wgpuPipelineLayoutRelease(layout);
+    wgpuShaderModuleRelease(module);
+}
+
+void create_directional_light_shader(Shaders *shaders,
+                                     BindGroupLayouts *layouts,
+                                     WGPUResources *resources)
+{
+    char *buf;
+    long buf_len;
+
+    read_entire_file("assets/shaders/direct_light.wgsl", &buf, &buf_len);
+
+    WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
+        .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
+        .code = buf,
+    };
+    WGPUShaderModuleDescriptor module_descriptor = {
+        .label = "direct_light",
+        .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
+    };
+
+    WGPUShaderModule module =
+        wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
+
+    WGPUPushConstantRange push_constant_ranges[] = {
+        (WGPUPushConstantRange){
+            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+            .start = 0,
+            .end = sizeof(DirectLightPushConstants),
+        },
+    };
+    WGPUPipelineLayoutExtras extras = {
+        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
+        .pushConstantRanges = push_constant_ranges,
+        .pushConstantRangeCount = 1,
+    };
+
+    WGPUPipelineLayoutDescriptor layout_descriptor = {
+        .nextInChain = (WGPUChainedStruct *)&extras,
+        .label = "direct_light",
+        .bindGroupLayoutCount = 1,
+        .bindGroupLayouts = &layouts->lighting,
+    };
+
+    WGPUPipelineLayout layout =
+        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
+
+    WGPUVertexState vertex_state = {
+        .module = module,
+        .entryPoint = "vs_main",
+    };
+
+    // perform additive blending
+    WGPUBlendComponent color = {
+        .srcFactor = WGPUBlendFactor_One,
+        .dstFactor = WGPUBlendFactor_One,
+        .operation = WGPUBlendOperation_Add,
+    };
+    WGPUBlendComponent alpha = {
+        .srcFactor = WGPUBlendFactor_One,
+        .dstFactor = WGPUBlendFactor_One,
+        .operation = WGPUBlendOperation_Add,
+    };
+    WGPUBlendState blend = {
+        .color = color,
+        .alpha = alpha,
+    };
+
+    WGPUColorTargetState color_targets[] = {(WGPUColorTargetState){
+        .format = resources->surface_config.format,
+        .writeMask = WGPUColorWriteMask_All,
+        .blend = &blend,
+    }};
+
+    WGPUFragmentState fragment_state = {
+        .module = module,
+        .entryPoint = "fs_main",
+        .targetCount = 1,
+        .targets = color_targets,
+    };
+
+    WGPUPrimitiveState primitive = {
+        .topology = WGPUPrimitiveTopology_TriangleList,
+    };
+    WGPUMultisampleState multisample = {
+        .count = 1,
+        .mask = 0xFFFFFFFF,
+    };
+
+    WGPURenderPipelineDescriptor descriptor = {
+        .label = "direct_light",
+        .layout = layout,
+        .vertex = vertex_state,
+        .fragment = &fragment_state,
+        .primitive = primitive,
+        .multisample = multisample,
+    };
+
+    shaders->lights.direct =
+        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
+
+    free(buf);
+    wgpuPipelineLayoutRelease(layout);
     wgpuShaderModuleRelease(module);
 }
 
@@ -735,10 +838,12 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources)
 {
     create_object_shader(shaders, layouts, resources);
-    create_light_shader(shaders, layouts, resources);
     create_tilemap_shader(shaders, layouts, resources);
 
     create_ui_object_shader(shaders, layouts, resources);
+
+    create_point_light_shader(shaders, layouts, resources);
+    create_directional_light_shader(shaders, layouts, resources);
 
     create_screen_blit_shader(shaders, layouts, resources);
 

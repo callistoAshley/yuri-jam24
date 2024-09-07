@@ -12,10 +12,15 @@
 typedef struct Shaders
 {
     WGPURenderPipeline object;
-    WGPURenderPipeline lighting;
     WGPURenderPipeline tilemap;
     WGPURenderPipeline ui_object;
     WGPURenderPipeline screen_blit;
+
+    struct
+    {
+        WGPURenderPipeline point;
+        WGPURenderPipeline direct;
+    } lights;
 
     struct
     {
@@ -74,7 +79,13 @@ typedef struct
     vec2s camera_position;
 
     f32 radius;
-} LightPushConstants;
+} PointLightPushConstants;
+
+typedef struct
+{
+    vec3s color;
+    alignas(16) f32 angle;
+} DirectLightPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources);
