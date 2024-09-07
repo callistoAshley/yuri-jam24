@@ -1,4 +1,5 @@
 #include "player.h"
+#include "box2d/box2d.h"
 #include "core_types.h"
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
@@ -43,7 +44,7 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->jump_timeout = 0;
 }
 
-#define WALK_SPEED_MPS 6
+#define WALK_SPEED_MPS 4
 #define WALK_SEED_PXPS M_TO_PX(WALK_SPEED_MPS)
 void player_update(Player *player, Resources *resources, bool disable_input)
 {
@@ -52,17 +53,13 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     bool right_down =
         input_is_down(resources->input, Button_Right) && !disable_input;
 
+    f32 walk_speed = WALK_SEED_PXPS * resources->input->delta_seconds;
     if (left_down)
-        b2Body_ApplyForceToCenter(player->body_id, (b2Vec2){-WALK_SPEED_MPS, 0},
-                                  true);
+        b2Body_ApplyLinearImpulseToCenter(player->body_id,
+                                          (b2Vec2){-walk_speed, 0}, true);
     if (right_down)
-        b2Body_ApplyForceToCenter(player->body_id, (b2Vec2){WALK_SPEED_MPS, 0},
-                                  true);
-    // if we're not moving, we want to stop quickly
-    if (left_down || right_down)
-        b2Shape_SetFriction(player->shape_id, 0.0f);
-    else
-        b2Shape_SetFriction(player->shape_id, 0.5f);
+        b2Body_ApplyLinearImpulseToCenter(player->body_id,
+                                          (b2Vec2){walk_speed, 0}, true);
 
     // check if we're on the ground
     b2ContactData contact_data[8];

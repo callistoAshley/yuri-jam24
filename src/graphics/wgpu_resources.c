@@ -57,6 +57,8 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
     wgpuSetLogCallback(logCallback, NULL);
     wgpuSetLogLevel(WGPULogLevel_Info);
 
+    printf("WGPU Version: %d\n", wgpuGetVersion());
+
     WGPUInstanceExtras instance_extras = {
         .chain = {.sType = (WGPUSType)WGPUSType_InstanceExtras},
         // we can only support these backends because they're the only ones with
