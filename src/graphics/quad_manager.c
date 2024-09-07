@@ -134,12 +134,20 @@ void quad_manager_upload_dirty(QuadManager *manager, WGPUResources *resources)
             // previously this code would do this based on the array
             // length, which would work
             // but would require more resizing operations.
-            .size = manager->entries.cap,
+            .size = manager->entries.cap * sizeof(QuadEntryData),
             .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
             .label = "quad manager buffer",
         };
         manager->buffer =
             wgpuDeviceCreateBuffer(resources->device, &buffer_desc);
+
+        // copy all the entries to the new buffer and reset the dirty set
+        wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
+                             manager->entries.data,
+                             manager->entries.len * sizeof(QuadEntryData));
+        hashset_clear(&manager->dirty_entries);
+
+        return;
     }
 
     // write all the dirty entries to the buffer

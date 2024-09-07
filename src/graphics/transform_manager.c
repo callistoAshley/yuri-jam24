@@ -133,11 +133,19 @@ bool transform_manager_upload_dirty(TransformManager *manager,
             // length, which would work
             // but would require more resizing operations.
             .size = manager->entries.cap * sizeof(TransformEntryData),
-            .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
+            .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Storage,
             .label = "Transform manager buffer",
         };
         manager->buffer =
             wgpuDeviceCreateBuffer(resources->device, &buffer_desc);
+
+        // copy all the entries to the new buffer and reset the dirty set
+        wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
+                             manager->entries.data,
+                             manager->entries.len * sizeof(TransformEntryData));
+        hashset_clear(&manager->dirty_entries);
+
+        return true;
     }
 
     // write all the dirty entries to the buffer
@@ -160,5 +168,5 @@ bool transform_manager_upload_dirty(TransformManager *manager,
 
     hashset_clear(&manager->dirty_entries);
 
-    return needs_regen;
+    return false;
 }
