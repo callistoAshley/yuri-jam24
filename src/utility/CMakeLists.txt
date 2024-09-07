@@ -5,6 +5,7 @@ set(SOURCES
     ${DIR}/list.c
     ${DIR}/log.c
     ${DIR}/vec.c
+    ${DIR}/hashset.c
     ${DIR}/files.c
     ${SOURCES}
     PARENT_SCOPE
