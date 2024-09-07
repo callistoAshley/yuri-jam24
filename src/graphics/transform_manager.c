@@ -1,5 +1,6 @@
 #include "transform_manager.h"
 #include "core_types.h"
+#include "utility/hashset.h"
 #include "utility/vec.h"
 #include "webgpu.h"
 
@@ -34,7 +35,8 @@ void transform_manager_init(TransformManager *manager, WGPUResources *resources)
     vec_init_with_capacity(&manager->entries, sizeof(TransformEntryData),
                            INITIAL_BUFFER_CAP);
     manager->next = 0;
-    manager->dirty = false;
+    hashset_init(&manager->dirty_entries, fnv_hash_function, memcmp_eq_function,
+                 sizeof(TransformEntry));
 }
 
 void transform_manager_free(TransformManager *manager)
@@ -51,7 +53,7 @@ TransformEntry transform_manager_add(TransformManager *manager,
     mat4s matrix = transform_into_matrix(Transform);
 
     TransformEntry key = manager->next;
-    manager->dirty = true;
+    hashset_insert(&manager->dirty_entries, &key);
 
     if (manager->next == manager->entries.len)
     {
@@ -83,8 +85,9 @@ void transform_manager_remove(TransformManager *manager, TransformEntry entry)
     data->next.next = manager->next;
     manager->next = entry;
 
-    // we don't need to mark dirty here, because the entry is just marked as
-    // free
+    // remove the entry from the dirty set (this is really not a common case, we
+    // could probably omit this)
+    hashset_remove(&manager->dirty_entries, &entry);
 }
 
 void transform_manager_update(TransformManager *manager, TransformEntry entry,
@@ -96,7 +99,7 @@ void transform_manager_update(TransformManager *manager, TransformEntry entry,
 
     mat4s matrix = transform_into_matrix(Transform);
     data->transform = matrix;
-    manager->dirty = true;
+    hashset_insert(&manager->dirty_entries, &entry);
 }
 
 Transform transform_manager_get(TransformManager *manager, TransformEntry entry)
@@ -113,9 +116,8 @@ Transform transform_manager_get(TransformManager *manager, TransformEntry entry)
 bool transform_manager_upload_dirty(TransformManager *manager,
                                     WGPUResources *resources)
 {
-    if (!manager->dirty)
+    if (manager->dirty_entries.len == 0)
         return false;
-    manager->dirty = false;
 
     u32 buffer_size = wgpuBufferGetSize(manager->buffer);
     bool needs_regen =
@@ -137,12 +139,26 @@ bool transform_manager_upload_dirty(TransformManager *manager,
         manager->buffer =
             wgpuDeviceCreateBuffer(resources->device, &buffer_desc);
     }
-    // While this means we're writing
-    // uninitialized memory, that memory
-    // shouldn't be touched without a use-before-init bug.
-    wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
-                         manager->entries.data,
-                         manager->entries.cap * sizeof(TransformEntryData));
+
+    // write all the dirty entries to the buffer
+    HashSetIter iter;
+    hashset_iter_init(&manager->dirty_entries, &iter);
+    TransformEntry *entry = hashset_iter_next(&iter);
+
+    while (entry != NULL)
+    {
+        TransformEntryData *data = vec_get(&manager->entries, *entry);
+        assert(data != NULL);
+        assert(data->next.is_free != TRANSFORM_ENTRY_FREE);
+
+        wgpuQueueWriteBuffer(resources->queue, manager->buffer,
+                             *entry * sizeof(TransformEntryData),
+                             &data->transform, sizeof(mat4s));
+
+        entry = hashset_iter_next(&iter);
+    }
+
+    hashset_clear(&manager->dirty_entries);
 
     return needs_regen;
 }

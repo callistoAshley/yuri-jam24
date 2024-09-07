@@ -4,15 +4,14 @@
 #include "graphics/wgpu_resources.h"
 #include "core_types.h"
 #include "sensible_nums.h"
+#include "utility/hashset.h"
 #include "utility/vec.h"
 
 typedef struct
 {
     WGPUBuffer buffer;
     vec entries; // either occupied, or an index to the next free entry
-    // FIXME: more efficient way to track this that doesn't require
-    // a full buffer upload every time?
-    bool dirty;
+    HashSet dirty_entries;
     u32 next;
 } TransformManager;
 
