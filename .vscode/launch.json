@@ -11,7 +11,8 @@
       "target": "${workspaceFolder}/build/game",
       "cwd": "${workspaceRoot}",
       "valuesFormatting": "parseText",
-      "gdbpath": "C:/msys64/ucrt64/bin/gdb.exe"
+      "gdbpath": "C:/msys64/ucrt64/bin/gdb.exe",
+      "preLaunchTask": "build_cmake"
     },
     {
       "type": "lldb",
@@ -19,7 +20,8 @@
       "name": "Debug",
       "program": "${workspaceFolder}/build/game",
       "args": [],
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build_cmake"
     },
     {
       "type": "lldb",
@@ -29,7 +31,8 @@
       "args": [
         "--physics-debug-draw"
       ],
-      "cwd": "${workspaceFolder}"
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build_cmake"
     }
   ]
 }
