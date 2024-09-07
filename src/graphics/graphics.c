@@ -382,12 +382,12 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
     // actually draw to the screen
     {
-        // this clear is probably unnecessary?
+        // we don't need to bother with clearing the screen because we're going
+        // to be drawing over the entire thing anyway
         WGPURenderPassColorAttachment screen_attachments[] = {{
             .view = frame,
-            .loadOp = WGPULoadOp_Clear,
+            .loadOp = WGPULoadOp_Load,
             .storeOp = WGPUStoreOp_Store,
-            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 1.0f},
             .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
         }};
         WGPURenderPassDescriptor screen_render_pass_desc = {
