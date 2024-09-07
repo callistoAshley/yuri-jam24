@@ -102,7 +102,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     graphics->color_view = wgpuTextureCreateView(graphics->color, NULL);
 
     desc.label = "normal texture";
-    desc.format = WGPUTextureFormat_RGBA32Float;
+    desc.format = WGPUTextureFormat_RGBA16Float;
     graphics->normal = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
     graphics->normal_view = wgpuTextureCreateView(graphics->normal, NULL);
 

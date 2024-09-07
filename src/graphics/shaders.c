@@ -83,7 +83,7 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         },
         // normal
         (WGPUColorTargetState){
-            .format = WGPUTextureFormat_RGBA32Float,
+            .format = WGPUTextureFormat_RGBA16Float,
             .writeMask = WGPUColorWriteMask_All,
         }};
     WGPUFragmentState fragment_state = {.module = module,
@@ -288,7 +288,7 @@ void create_tilemap_shader(Shaders *shaders, BindGroupLayouts *layouts,
         },
         // normal
         (WGPUColorTargetState){
-            .format = WGPUTextureFormat_RGBA32Float,
+            .format = WGPUTextureFormat_RGBA16Float,
             .writeMask = WGPUColorWriteMask_All,
         }};
     WGPUFragmentState fragment_state = {.module = module,
