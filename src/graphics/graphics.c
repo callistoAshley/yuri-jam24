@@ -411,6 +411,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         };
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
             command_encoder, &shadowmap_render_pass_desc);
+
+        wgpuRenderPassEncoderEnd(render_pass);
+        wgpuRenderPassEncoderRelease(render_pass);
     }
 
     // perform lighting
