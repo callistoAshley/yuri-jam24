@@ -234,27 +234,7 @@ void quad_into_corners(Quad quad, Vertex corners[4])
     };
 }
 
-void quad_into_vertices(Quad quad, Vertex vertices[6])
-{
-    Vertex corners[4];
-    quad_into_corners(quad, corners);
-
-    // top left
-    vertices[0] = corners[0];
-    // top right
-    vertices[1] = corners[1];
-    // bottom left
-    vertices[2] = corners[3];
-
-    // top right
-    vertices[3] = corners[1];
-    // bottom left
-    vertices[4] = corners[3];
-    // bottom right
-    vertices[5] = corners[2];
-}
-
-Quad quad_from_vertices(Vertex *vertices)
+Quad quad_from_corners(Vertex *vertices)
 {
     Rect rect = rect_init(vertices[0].position, vertices[5].position);
     Rect tex_coords = rect_init(vertices[0].tex_coords, vertices[5].tex_coords);

@@ -7,16 +7,20 @@
 #include "utility/hashset.h"
 #include "utility/vec.h"
 
+// TODO this kind of data structure is used *everywhere*. How can we avoid code
+// duplication?
 typedef struct
 {
     WGPUBuffer buffer;
+    WGPUBuffer index_buffer;
+
     vec entries; // either occupied, or an index to the next free entry
     HashSet dirty_entries;
     u32 next;
 } QuadManager;
 
 #define QUAD_ENTRY_FREE UINT32_MAX
-#define QUAD_ENTRY_TO_VERTEX_INDEX(entry) ((entry) * VERTICES_PER_QUAD)
+#define QUAD_ENTRY_TO_VERTEX_INDEX(entry) ((entry) * CORNERS_PER_QUAD)
 typedef u32 QuadEntry;
 
 void quad_manager_init(QuadManager *manager, WGPUResources *resources);

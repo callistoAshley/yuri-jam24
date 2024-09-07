@@ -310,6 +310,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        wgpuRenderPassEncoderSetIndexBuffer(render_pass,
+                                            graphics->quad_manager.index_buffer,
+                                            WGPUIndexFormat_Uint16, 0, 12);
         layer_draw(&graphics->sprite_layers.background, &camera, graphics,
                    render_pass);
 
@@ -325,6 +328,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        wgpuRenderPassEncoderSetIndexBuffer(render_pass,
+                                            graphics->quad_manager.index_buffer,
+                                            WGPUIndexFormat_Uint16, 0, 12);
         layer_draw(&graphics->sprite_layers.middle, &camera, graphics,
                    render_pass);
 
@@ -340,6 +346,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        wgpuRenderPassEncoderSetIndexBuffer(render_pass,
+                                            graphics->quad_manager.index_buffer,
+                                            WGPUIndexFormat_Uint16, 0, 12);
         layer_draw(&graphics->sprite_layers.foreground, &camera, graphics,
                    render_pass);
 
@@ -426,6 +435,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        wgpuRenderPassEncoderSetIndexBuffer(render_pass,
+                                            graphics->quad_manager.index_buffer,
+                                            WGPUIndexFormat_Uint16, 0, 12);
 
         layer_draw(&graphics->ui_layers.background, &camera, graphics,
                    render_pass);
@@ -442,6 +454,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
+        wgpuRenderPassEncoderSetIndexBuffer(render_pass,
+                                            graphics->quad_manager.index_buffer,
+                                            WGPUIndexFormat_Uint16, 0, 12);
 
         // imgui might set weird viewport and scissor rect values, so we need to
         // reset

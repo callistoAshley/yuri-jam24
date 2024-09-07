@@ -91,6 +91,7 @@ Quad quad_init(Rect rect, Rect tex_coords);
 Quad quad_norm_tex_coords(Quad quad, int tex_width, int tex_height);
 
 #define VERTICES_PER_QUAD 6
+#define CORNERS_PER_QUAD 4
 
 // Quads are made like this:
 // TL------TR
@@ -99,16 +100,5 @@ Quad quad_norm_tex_coords(Quad quad, int tex_width, int tex_height);
 // BL-----BR
 // this function places the corners in clockwise order starting from the top
 // left (TL, TR, BR, BL)
-void quad_into_corners(Quad quad, Vertex corners[4]);
-// like into_corners, but forms two triangles (TL, TR, BR) and (TL, BR, BL)
-// TL-----TR
-//   \    |
-//     \  |
-//        BR
-//
-// TL
-// |  \.
-// |    \.
-// BL-----BR
-void quad_into_vertices(Quad quad, Vertex vertices[VERTICES_PER_QUAD]);
-Quad quad_from_vertices(Vertex vertices[VERTICES_PER_QUAD]);
+void quad_into_corners(Quad quad, Vertex corners[CORNERS_PER_QUAD]);
+Quad quad_from_corners(Vertex vertices[CORNERS_PER_QUAD]);

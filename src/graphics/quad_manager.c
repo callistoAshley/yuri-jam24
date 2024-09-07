@@ -12,7 +12,7 @@
 // a union lets us do both.
 typedef union
 {
-    Vertex vertex[VERTICES_PER_QUAD];
+    Vertex vertex[CORNERS_PER_QUAD];
     struct
     {
         // will be QUAD_ENTRY_FREE if the entry is free
@@ -37,6 +37,17 @@ void quad_manager_init(QuadManager *manager, WGPUResources *resources)
     manager->next = 0;
     hashset_init(&manager->dirty_entries, fnv_hash_function, memcmp_eq_function,
                  sizeof(QuadEntry));
+
+    u16 index_buffer[6] = {0, 1, 2, 0, 2, 3};
+    WGPUBufferDescriptor index_buffer_desc = {
+        .size = sizeof(index_buffer),
+        .usage = WGPUBufferUsage_Index | WGPUBufferUsage_CopyDst,
+        .label = "quad manager index buffer",
+    };
+    manager->index_buffer =
+        wgpuDeviceCreateBuffer(resources->device, &index_buffer_desc);
+    wgpuQueueWriteBuffer(resources->queue, manager->index_buffer, 0,
+                         index_buffer, sizeof(index_buffer));
 }
 
 void quad_manager_free(QuadManager *manager)
@@ -50,8 +61,8 @@ void quad_manager_free(QuadManager *manager)
 
 QuadEntry quad_manager_add(QuadManager *manager, Quad quad)
 {
-    Vertex vertices[VERTICES_PER_QUAD];
-    quad_into_vertices(quad, vertices);
+    Vertex vertices[CORNERS_PER_QUAD];
+    quad_into_corners(quad, vertices);
 
     QuadEntry key = manager->next;
     hashset_insert(&manager->dirty_entries, &key);
@@ -97,8 +108,8 @@ void quad_manager_update(QuadManager *manager, QuadEntry entry, Quad quad)
     assert(data != NULL);
     assert(data->next.is_free != QUAD_ENTRY_FREE);
 
-    Vertex vertices[VERTICES_PER_QUAD];
-    quad_into_vertices(quad, vertices);
+    Vertex vertices[CORNERS_PER_QUAD];
+    quad_into_corners(quad, vertices);
     memcpy(data->vertex, vertices, sizeof(vertices));
     hashset_insert(&manager->dirty_entries, &entry);
 }
@@ -109,9 +120,9 @@ Quad quad_manager_get(QuadManager *manager, QuadEntry entry)
     assert(data != NULL);
     assert(data->next.is_free != QUAD_ENTRY_FREE);
 
-    Vertex vertices[VERTICES_PER_QUAD];
+    Vertex vertices[CORNERS_PER_QUAD];
     memcpy(vertices, data->vertex, sizeof(vertices));
-    return quad_from_vertices(vertices);
+    return quad_from_corners(vertices);
 }
 
 // ---  ---

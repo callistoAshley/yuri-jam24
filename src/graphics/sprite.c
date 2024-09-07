@@ -27,6 +27,7 @@ void sprite_render(Sprite *sprite, mat4s camera, WGPURenderPassEncoder pass)
     wgpuRenderPassEncoderSetPushConstants(
         pass, WGPUShaderStage_Fragment | WGPUShaderStage_Vertex, 0,
         sizeof(ObjectPushConstants), &push_constants);
-    wgpuRenderPassEncoderDraw(pass, VERTICES_PER_QUAD, 1,
-                              QUAD_ENTRY_TO_VERTEX_INDEX(sprite->quad), 0);
+    wgpuRenderPassEncoderDrawIndexed(pass, VERTICES_PER_QUAD, 1, 0,
+                                     QUAD_ENTRY_TO_VERTEX_INDEX(sprite->quad),
+                                     0);
 }

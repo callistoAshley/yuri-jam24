@@ -42,8 +42,11 @@ void draw_maybe_solid_circle(b2Vec2 center, float radius, b2HexColor color,
 
     wgpuRenderPassEncoderSetVertexBuffer(
         ctx->pass, 0, ctx->graphics->quad_manager.buffer, 0, quad_buffer_size);
-    wgpuRenderPassEncoderDraw(
-        ctx->pass, VERTICES_PER_QUAD, 1,
+    wgpuRenderPassEncoderSetIndexBuffer(
+        ctx->pass, ctx->graphics->quad_manager.index_buffer,
+        WGPUIndexFormat_Uint16, 0, 16);
+    wgpuRenderPassEncoderDrawIndexed(
+        ctx->pass, VERTICES_PER_QUAD, 1, 0,
         QUAD_ENTRY_TO_VERTEX_INDEX(graphics_screen_quad_entry()), 0);
 }
 
