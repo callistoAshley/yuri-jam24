@@ -412,6 +412,30 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
             command_encoder, &shadowmap_render_pass_desc);
 
+        // set the viewport to one row of the shadowmap texture (1024x1)
+        wgpuRenderPassEncoderSetViewport(render_pass, 0, 0, 160, 64, 0, 1);
+
+        wgpuRenderPassEncoderSetPipeline(
+            render_pass, graphics->shaders.shadowmapping.tilemap);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
+                                          0);
+
+        mat4s camera_projection =
+            glms_ortho(0.0, 160.0, 64.0, 0.0, 1.0f, 160.0f);
+        // calculate the camera transform for the directional light
+        // we want it to face down the y axis
+
+        vec3s up = (vec3s){.x = 0.0, .y = 0.0, .z = 1.0};
+        vec3s dir = (vec3s){.x = 0.0, .y = 1.0, .z = 0.0};
+
+        mat4s camera_transform =
+            glms_look((vec3s){.x = 0.0, .y = -100.0, .z = -20.0}, dir, up);
+
+        mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
+
+        layer_draw(&graphics->tilemap_layers.middle, &camera, graphics,
+                   render_pass);
+
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);
     }

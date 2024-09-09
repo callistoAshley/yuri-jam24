@@ -22,3 +22,6 @@
 
 #define INTERNAL_SCREEN_WIDTH 160
 #define INTERNAL_SCREEN_HEIGHT 90
+
+#define TO_RAD(x) ((x) / 180.0f * M_PI)
+#define TO_DEG(x) ((x) / M_PI * 180.0f)
