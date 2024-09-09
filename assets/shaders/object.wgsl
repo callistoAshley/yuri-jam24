@@ -25,13 +25,11 @@ struct PushConstants {
 
 var<push_constant> push_constants: PushConstants;
 
-const NORMALS: array<vec2f, 6> = array(
-    vec2f(-1.0, 1.0),
-    vec2f(1.0, 1.0),
-    vec2f(-1.0, -1.0),
-    vec2f(1.0, 1.0),
+const NORMALS: array<vec2f, 4> = array(
     vec2f(-1.0, -1.0),
     vec2f(1.0, -1.0),
+    vec2f(1.0, 1.0),
+    vec2f(-1.0, 1.0),
 );
 
 @vertex
@@ -44,9 +42,8 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
     out.tex_coords = in.tex_coords;
 
-
     var normals = NORMALS;
-    out.normal = normals[in.vertex_index];
+    out.normal = normals[in.vertex_index % 4];
 
     return out;
 }
