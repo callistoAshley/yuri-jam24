@@ -33,11 +33,6 @@ typedef struct Graphics
     WGPUTexture normal;
     WGPUTextureView normal_view;
 
-    // a 1024x64 shadowmap. every y pixel is dedicated to a specific 2D light.
-    // this means we can have up to 64 shadow-casting lights in the scene.
-    WGPUTexture shadowmap;
-    WGPUTextureView shadowmap_view;
-
     // after rendering to the color and normal textures, we do deffered shading
     // and render the result to the lit texture. this texture is then upscaled
     // and drawn to the screen.

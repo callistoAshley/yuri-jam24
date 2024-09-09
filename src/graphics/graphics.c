@@ -116,34 +116,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
     }
 
-    {
-        WGPUExtent3D extents = {
-            .width = 1024,
-            .height = 64,
-            .depthOrArrayLayers = 1,
-        };
-        // i would much rather use 16 bit depth but it doesn't even appear to be
-        // an option? R16Float would be ideal but we can't even *use* that for
-        // depth testing
-        WGPUTextureDescriptor desc = {
-            .label = "shadowmap texture",
-            .size = extents,
-            .dimension = WGPUTextureDimension_2D,
-            .format = WGPUTextureFormat_Depth32Float,
-
-            .mipLevelCount = 1,
-            .sampleCount = 1,
-            .usage = WGPUTextureUsage_RenderAttachment |
-                     WGPUTextureUsage_TextureBinding,
-        };
-
-        // :D everything is fiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiine
-        graphics->shadowmap =
-            wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
-        graphics->shadowmap_view =
-            wgpuTextureCreateView(graphics->shadowmap, NULL);
-    }
-
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
     for (int i = 0; i < 5; i++)
@@ -389,51 +361,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                             graphics->quad_manager.index_buffer,
                                             WGPUIndexFormat_Uint16, 0, 12);
         layer_draw(&graphics->sprite_layers.foreground, &camera, graphics,
-                   render_pass);
-
-        wgpuRenderPassEncoderEnd(render_pass);
-        wgpuRenderPassEncoderRelease(render_pass);
-    }
-
-    // perform shadowmapping (we could probably do this in parallel with the
-    // main pass.)
-    {
-        WGPURenderPassDepthStencilAttachment shadowmap_attachment = {
-            .view = graphics->shadowmap_view,
-            .depthLoadOp = WGPULoadOp_Clear,
-            .depthStoreOp = WGPUStoreOp_Store,
-            .depthClearValue = 1.0f,
-        };
-        // no color attachments! just depth
-        WGPURenderPassDescriptor shadowmap_render_pass_desc = {
-            .label = "shadowmap render pass encoder",
-            .depthStencilAttachment = &shadowmap_attachment,
-        };
-        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
-            command_encoder, &shadowmap_render_pass_desc);
-
-        // set the viewport to one row of the shadowmap texture (1024x1)
-        wgpuRenderPassEncoderSetViewport(render_pass, 0, 0, 160, 64, 0, 1);
-
-        wgpuRenderPassEncoderSetPipeline(
-            render_pass, graphics->shaders.shadowmapping.tilemap);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
-                                          0);
-
-        mat4s camera_projection =
-            glms_ortho(0.0, 160.0, 64.0, 0.0, 1.0f, 160.0f);
-        // calculate the camera transform for the directional light
-        // we want it to face down the y axis
-
-        vec3s up = (vec3s){.x = 0.0, .y = 0.0, .z = 1.0};
-        vec3s dir = (vec3s){.x = 0.0, .y = 1.0, .z = 0.0};
-
-        mat4s camera_transform =
-            glms_look((vec3s){.x = 0.0, .y = -100.0, .z = -20.0}, dir, up);
-
-        mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
-
-        layer_draw(&graphics->tilemap_layers.middle, &camera, graphics,
                    render_pass);
 
         wgpuRenderPassEncoderEnd(render_pass);

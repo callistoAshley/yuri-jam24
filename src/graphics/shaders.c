@@ -834,118 +834,6 @@ void create_screen_blit_shader(Shaders *shaders, BindGroupLayouts *layouts,
     wgpuShaderModuleRelease(module);
 }
 
-// the layout is almost identical to the tilemap shader but with no color
-// outputs
-void create_tilemap_shadowmap_shader(Shaders *shaders,
-                                     BindGroupLayouts *layouts,
-                                     WGPUResources *resources)
-{
-    char *buf;
-    long buf_len;
-
-    read_entire_file("assets/shaders/tilemap_shadowmap.wgsl", &buf, &buf_len);
-
-    WGPUShaderModuleWGSLDescriptor wgsl_descriptor = {
-        .chain = {.sType = WGPUSType_ShaderModuleWGSLDescriptor},
-        .code = buf,
-    };
-
-    WGPUShaderModuleDescriptor module_descriptor = {
-        .label = "tilemap_shadowmap",
-        .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
-    };
-
-    WGPUShaderModule module =
-        wgpuDeviceCreateShaderModule(resources->device, &module_descriptor);
-
-    WGPUPushConstantRange push_constant_ranges[] = {
-        (WGPUPushConstantRange){
-            .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
-            .start = 0,
-            .end = sizeof(TilemapPushConstants),
-        },
-    };
-    WGPUPipelineLayoutExtras extras = {
-        .chain = {.sType = (WGPUSType)WGPUSType_PipelineLayoutExtras},
-        .pushConstantRanges = push_constant_ranges,
-        .pushConstantRangeCount = 1,
-    };
-    WGPUPipelineLayoutDescriptor layout_descriptor = {
-        .nextInChain = (WGPUChainedStruct *)&extras,
-        .label = "tilemap_shadowmap",
-        .bindGroupLayoutCount = 1,
-        .bindGroupLayouts = &layouts->tilemap,
-    };
-
-    WGPUPipelineLayout tilemap =
-        wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
-
-    WGPUVertexAttribute vertex_attributes[] = {(WGPUVertexAttribute){
-        .format = WGPUVertexFormat_Sint32,
-        .offset = 0,
-        .shaderLocation = 0,
-    }};
-    WGPUVertexBufferLayout vertex_buffer_layout = {
-        .arrayStride = sizeof(u32),
-        .stepMode = WGPUVertexStepMode_Instance,
-        .attributeCount = 1,
-        .attributes = vertex_attributes,
-    };
-
-    WGPUVertexState vertex_state = {
-        .module = module,
-        .entryPoint = "vs_main",
-        .buffers = &vertex_buffer_layout,
-        .bufferCount = 1,
-    };
-
-    WGPUFragmentState fragment_state = {
-        .module = module,
-        .entryPoint = "fs_main",
-    };
-
-    WGPUPrimitiveState primitive = {
-        .topology = WGPUPrimitiveTopology_TriangleList,
-    };
-
-    WGPUMultisampleState multisample = {
-        .count = 1,
-        .mask = 0xFFFFFFFF,
-    };
-
-    WGPUStencilFaceState disabled_face_state = {
-        .compare = WGPUCompareFunction_Always,
-        .failOp = WGPUStencilOperation_Keep,
-        .depthFailOp = WGPUStencilOperation_Keep,
-        .passOp = WGPUStencilOperation_Keep,
-    };
-
-    WGPUDepthStencilState depth_stencil = {
-        .format = WGPUTextureFormat_Depth32Float,
-        .depthWriteEnabled = true,
-        .depthCompare = WGPUCompareFunction_Less,
-        .stencilBack = disabled_face_state,
-        .stencilFront = disabled_face_state,
-    };
-
-    WGPURenderPipelineDescriptor descriptor = {
-        .label = "tilemap_shadowmap",
-        .layout = tilemap,
-        .vertex = vertex_state,
-        .fragment = &fragment_state,
-        .primitive = primitive,
-        .multisample = multisample,
-        .depthStencil = &depth_stencil,
-    };
-
-    shaders->shadowmapping.tilemap =
-        wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
-
-    free(buf);
-    wgpuPipelineLayoutRelease(tilemap);
-    wgpuShaderModuleRelease(module);
-}
-
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources)
 {
@@ -956,8 +844,6 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
 
     create_point_light_shader(shaders, layouts, resources);
     create_directional_light_shader(shaders, layouts, resources);
-
-    create_tilemap_shadowmap_shader(shaders, layouts, resources);
 
     create_screen_blit_shader(shaders, layouts, resources);
 

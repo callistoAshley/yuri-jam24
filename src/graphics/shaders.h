@@ -31,12 +31,6 @@ typedef struct Shaders
 
     struct
     {
-        WGPURenderPipeline quad;
-        WGPURenderPipeline tilemap;
-    } shadowmapping;
-
-    struct
-    {
         WGPURenderPipeline line;
         // used for boxes and polygons
         WGPURenderPipeline polygon;
