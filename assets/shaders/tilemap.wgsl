@@ -7,7 +7,7 @@ struct VertexInput {
 struct VertexOutput {
   @builtin(position) position: vec4f,
   @location(0) tex_coords: vec2f,
-  @location(1) normal: vec3f,
+  @location(1) normal: vec2f,
 }
 
 @group(0) @binding(0)
@@ -43,13 +43,13 @@ const TEX_COORDS = array<vec2f, 6>(
     vec2f(0.01, 7.99),
     vec2f(7.99, 7.99),
 );
-const NORMALS: array<vec3f, 6> = array(
-    vec3f(-1.0, 1.0, 1.0),
-    vec3f(1.0, 1.0, 1.0),
-    vec3f(-1.0, -1.0, 1.0),
-    vec3f(1.0, 1.0, 1.0),
-    vec3f(-1.0, -1.0, 1.0),
-    vec3f(1.0, -1.0, 1.0),
+const NORMALS: array<vec2f, 6> = array(
+    vec2f(-1.0, 1.0),
+    vec2f(1.0, 1.0),
+    vec2f(-1.0, -1.0),
+    vec2f(1.0, 1.0),
+    vec2f(-1.0, -1.0),
+    vec2f(1.0, -1.0),
 );
 
 @vertex
@@ -94,7 +94,7 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
 struct FragmentOutput {
   @location(0) color: vec4f,
-  @location(1) normals: vec4f,
+  @location(1) normals: vec2f,
 }
 
 @fragment
@@ -109,7 +109,7 @@ fn fs_main(in: VertexOutput) -> FragmentOutput {
     }
     output.color = color;
 
-    output.normals = vec4f(in.normal, 0.0);
+    output.normals = in.normal;
 
     return output;
 }
