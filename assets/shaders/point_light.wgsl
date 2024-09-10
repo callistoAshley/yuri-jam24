@@ -11,7 +11,9 @@ struct PushConstants {
   intensity: f32,
   radius: f32,
   volumetric_intensity: f32,
-  // min, max angle
+  // min, max angle in radians
+  // these are angles on a circle, so they are in the range of 0 to 2 * PI
+  // we want the light to only be visible inside the min and max angle
   angle: vec2f,
 }
 
@@ -64,14 +66,16 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
     let dist = distance(push_constants.position, frag_world_coord);
     let dist_norm = dist / push_constants.radius;
-    //let angle =
+    let dir = normalize(frag_world_coord - push_constants.position);
+
+    let angle = atan2(dir.y, dir.x);
 
     // we don't render a perfect circle (it's a square), so we need to clamp the factor
     let radial_falloff = pow(clamp(1.0 - dist_norm, 0.0, 1.0), 2.0);
-    let angular_falloff = 1.0;// smoothstep(push_constants.angle.y, push_constants.angle.x, angle);
 
-    let dir = normalize(frag_world_coord - push_constants.position);
-    let normal_falloff = 1.0;// clamp(dot(normal, dir), 0.0, 1.0);
+    let angular_falloff = 1.0;
+
+    let normal_falloff = dot(dir, normal);
 
     let final_intensity = push_constants.intensity * radial_falloff * angular_falloff * normal_falloff;
     let light_color = push_constants.color * final_intensity;

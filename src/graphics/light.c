@@ -13,7 +13,7 @@ void point_light_init(PointLight *light, vec3s position, vec3s color,
     light->radius = radius;
     light->intensity = 0.5f;
     light->volumetric_intensity = 1.0f;
-    light->angle = (vec2s){.x = 0.0f, .y = 360.0f};
+    light->angle = (vec2s){.x = TO_RAD(30.0f), .y = TO_RAD(60.0)};
 }
 
 void point_light_free(PointLight *light)
@@ -45,7 +45,7 @@ void point_light_render(PointLight *light, WGPURenderPassEncoder pass,
 
 void directional_light_init(DirectionalLight *light, vec3s color, f32 angle)
 {
-    light->color = color;
+    light->color = GLMS_VEC3_ZERO;
     light->angle = angle;
 }
 
