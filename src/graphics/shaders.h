@@ -88,7 +88,7 @@ typedef struct
     f32 intensity;
     f32 radius;
     f32 volumetric_intensity;
-    vec2s angle;
+    alignas(16) vec2s angle;
 } PointLightPushConstants;
 
 typedef struct
