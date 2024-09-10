@@ -11,6 +11,9 @@ void point_light_init(PointLight *light, vec3s position, vec3s color,
     light->position = position;
     light->color = color;
     light->radius = radius;
+    light->intensity = 0.5f;
+    light->volumetric_intensity = 1.0f;
+    light->angle = (vec2s){.x = 0.0f, .y = 360.0f};
 }
 
 void point_light_free(PointLight *light)
@@ -29,6 +32,9 @@ void point_light_render(PointLight *light, WGPURenderPassEncoder pass,
         .camera_position = (vec2s){.x = camera.x, .y = camera.y},
 
         .radius = light->radius,
+        .intensity = light->intensity,
+        .volumetric_intensity = light->volumetric_intensity,
+        .angle = light->angle,
     };
 
     wgpuRenderPassEncoderSetPushConstants(

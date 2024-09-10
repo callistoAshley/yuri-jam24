@@ -9,7 +9,10 @@ typedef struct
     vec3s position;
     vec3s color;
 
+    f32 intensity;
     f32 radius;
+    f32 volumetric_intensity;
+    vec2s angle;
 } PointLight;
 
 void point_light_init(PointLight *light, vec3s position, vec3s color,

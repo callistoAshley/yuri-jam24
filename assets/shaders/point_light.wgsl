@@ -8,7 +8,11 @@ struct PushConstants {
   position: vec2f,
   camera_position: vec2f,
 
+  intensity: f32,
   radius: f32,
+  volumetric_intensity: f32,
+  // min, max angle
+  angle: vec2f,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -45,23 +49,35 @@ fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     return out;
 }
 
+const SCREEN_SIZE: vec2f = vec2f(160.0, 90.0);
+
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-    let screen_size = vec2f(160.0, 90.0);
-    let tex_coords = in.position.xy / screen_size;
+    let frag_world_coord = in.position.xy + push_constants.camera_position;
 
-    let frag_world_coord_real = in.position.xy + push_constants.camera_position;
-    // unsmooth the lighting by using manhattan distance
-    let frag_world_coord = floor(frag_world_coord_real / 2.0) * 2.0;
-    let dist = distance(frag_world_coord, push_constants.position);
+    let tex_coords = in.position.xy / SCREEN_SIZE;
 
-    var color = textureSample(color, tex_sampler, tex_coords);
-    if color.a < 0.1 {
-        color = vec4f(0.05, 0.05, 0.05, 1.0);
-    }
+    let color = textureSample(color, tex_sampler, tex_coords);
+    // normal is already normalized to -1.0, 1.0
+    let wrong_normal = textureSample(normal, tex_sampler, tex_coords).rg;
+    let normal = vec2f(wrong_normal.x, -wrong_normal.y);
 
-    let light_intensity = 1.0 - dist / push_constants.radius;
-    let light_color = push_constants.color * light_intensity;
+    let dist = distance(push_constants.position, frag_world_coord);
+    let dist_norm = dist / push_constants.radius;
+    //let angle =
 
-    return vec4f(color.rgb * light_color, 1.0);
+    // we don't render a perfect circle (it's a square), so we need to clamp the factor
+    let radial_falloff = pow(clamp(1.0 - dist_norm, 0.0, 1.0), 2.0);
+    let angular_falloff = 1.0;// smoothstep(push_constants.angle.y, push_constants.angle.x, angle);
+
+    let dir = normalize(frag_world_coord - push_constants.position);
+    let normal_falloff = 1.0;// clamp(dot(normal, dir), 0.0, 1.0);
+
+    let final_intensity = push_constants.intensity * radial_falloff * angular_falloff * normal_falloff;
+    let light_color = push_constants.color * final_intensity;
+
+    let shaded_color = color.rgb * light_color;
+    let volumetric_color = light_color * push_constants.volumetric_intensity;
+
+    return vec4f(shaded_color + volumetric_color, 1.0);
 }
