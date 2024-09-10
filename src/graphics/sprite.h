@@ -5,7 +5,6 @@
 typedef struct
 {
     TextureEntry *texture;
-    TextureEntry *normal_tex;
     TransformEntry transform;
     QuadEntry quad;
 } Sprite;

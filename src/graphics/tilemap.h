@@ -6,7 +6,6 @@ typedef struct
 {
     // Tiles are 8x8
     TextureEntry *tileset;
-    TextureEntry *normal_tex;
     TransformEntry transform;
     int map_w, map_h, layers;
     // 1 instance per tile. instances have just the tile ID

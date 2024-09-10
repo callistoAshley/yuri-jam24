@@ -20,7 +20,6 @@ struct PushConstants {
   camera: mat4x4f,
   transform_index: u32,
   texture_index: i32,
-  normal_texture_index: i32,
   map_width: u32,
 }
 
@@ -83,7 +82,6 @@ fn vs_main(input: VertexInput) -> VertexOutput {
 
 struct FragmentOutput {
   @location(0) color: vec4f,
-  @location(1) normals: vec4f,
 }
 
 @fragment
@@ -97,14 +95,6 @@ fn fs_main(in: VertexOutput) -> FragmentOutput {
       discard;
     }
     output.color = color;
-
-    if push_constants.normal_texture_index == -1 {
-        output.normals = vec4f(0.0, 0.0, 0.0, 1.0); // disable normal mapping entirely
-    } else {
-        let normal_texture = textures[push_constants.normal_texture_index];
-        let normal = textureSample(normal_texture, tex_sampler, in.tex_coords);
-        output.normals = normal;
-    }
 
     return output;
 }

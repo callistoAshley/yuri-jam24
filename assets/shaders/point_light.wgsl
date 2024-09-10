@@ -22,8 +22,6 @@ var<push_constant> push_constants: PushConstants;
 @group(0) @binding(0)
 var color: texture_2d<f32>;
 @group(0) @binding(1)
-var normal: texture_2d<f32>;
-@group(0) @binding(2)
 var tex_sampler: sampler;
 
 const POSITIONS: array<vec2f, 6> = array<vec2f, 6>(
@@ -60,9 +58,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let tex_coords = in.position.xy / SCREEN_SIZE;
 
     let color = textureSample(color, tex_sampler, tex_coords);
-    let normal_sample = textureSample(normal, tex_sampler, tex_coords);
-    let normal = vec2f(normal_sample.r, normal_sample.g) * 2.0 - 1.0;
-    let normal_intensity = normal_sample.b; // 0.0 means normals do not affect shading, 1.0 means they do, anything in between is a mix
 
     let dist = distance(push_constants.position, frag_world_coord);
     let dist_norm = dist / push_constants.radius;
@@ -75,17 +70,13 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
     let angular_falloff = 1.0;
 
-    let normal_factor = clamp(dot(dir, normal), 0.0, 1.0);
-    // need to factor in the normal intensity
-    let normal_falloff = mix(1.0, normal_factor, normal_intensity);
-
-    let final_intensity = push_constants.intensity * normal_falloff;
+    let final_intensity = push_constants.intensity * angular_falloff * radial_falloff;
     let light_color = push_constants.color * final_intensity;
 
     let shaded_color = color.rgb * light_color;
     var volumetric_color = vec3f(0.0);
     if color.a < 0.1 {
-        //volumetric_color = light_color * push_constants.volumetric_intensity;
+        volumetric_color = light_color * push_constants.volumetric_intensity;
     }
 
     return vec4f(shaded_color + volumetric_color, 1.0);

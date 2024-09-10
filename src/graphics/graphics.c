@@ -104,12 +104,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         graphics->color = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
         graphics->color_view = wgpuTextureCreateView(graphics->color, NULL);
 
-        desc.label = "normal texture";
-        desc.format = WGPUTextureFormat_RGBA16Float;
-        graphics->normal =
-            wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
-        graphics->normal_view = wgpuTextureCreateView(graphics->normal, NULL);
-
         desc.label = "lit texture";
         desc.format = graphics->wgpu.surface_config.format;
         graphics->lit = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
@@ -118,11 +112,11 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
-    for (int i = 0; i < 1; i++)
+    for (int i = 0; i < 10; i++)
     {
         PointLight *light = malloc(sizeof(PointLight));
         point_light_init(light, (vec3s){.x = i * 25.0 + 50.0, .y = 75.0},
-                         (vec3s){.x = 1.0, .y = 1.0, .z = 1.0}, 75.0f);
+                         (vec3s){.x = i / 10.0, .y = 0.1, .z = 1.0}, 50.0f);
 
         layer_add(&graphics->lights, light);
     }
@@ -173,7 +167,6 @@ void build_light_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_init(&builder);
 
     bind_group_builder_append_texture_view(&builder, graphics->color_view);
-    bind_group_builder_append_texture_view(&builder, graphics->normal_view);
     bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     *bind_group = bind_group_build(&builder, graphics->wgpu.device,
@@ -274,24 +267,16 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     {
-        WGPURenderPassColorAttachment object_attachments[] = {
-            {
-                .view = graphics->color_view,
-                .loadOp = WGPULoadOp_Clear,
-                .storeOp = WGPUStoreOp_Store,
-                .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
-                .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
-            },
-            {
-                .view = graphics->normal_view,
-                .loadOp = WGPULoadOp_Clear,
-                .storeOp = WGPUStoreOp_Store,
-                .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
-                .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
-            }};
+        WGPURenderPassColorAttachment object_attachments[] = {{
+            .view = graphics->color_view,
+            .loadOp = WGPULoadOp_Clear,
+            .storeOp = WGPUStoreOp_Store,
+            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
+        }};
         WGPURenderPassDescriptor object_render_pass_desc = {
             .label = "object render pass encoder",
-            .colorAttachmentCount = 2,
+            .colorAttachmentCount = 1,
             .colorAttachments = object_attachments,
         };
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(

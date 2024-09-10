@@ -80,15 +80,10 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         (WGPUColorTargetState){
             .format = WGPUTextureFormat_RGBA8Unorm,
             .writeMask = WGPUColorWriteMask_All,
-        },
-        // normal
-        (WGPUColorTargetState){
-            .format = WGPUTextureFormat_RGBA16Float,
-            .writeMask = WGPUColorWriteMask_All,
         }};
     WGPUFragmentState fragment_state = {.module = module,
                                         .entryPoint = "fs_main",
-                                        .targetCount = 2,
+                                        .targetCount = 1,
                                         .targets = color_targets};
 
     WGPUPrimitiveState primitive = {
@@ -388,15 +383,10 @@ void create_tilemap_shader(Shaders *shaders, BindGroupLayouts *layouts,
         (WGPUColorTargetState){
             .format = WGPUTextureFormat_RGBA8Unorm,
             .writeMask = WGPUColorWriteMask_All,
-        },
-        // normal
-        (WGPUColorTargetState){
-            .format = WGPUTextureFormat_RGBA16Float,
-            .writeMask = WGPUColorWriteMask_All,
         }};
     WGPUFragmentState fragment_state = {.module = module,
                                         .entryPoint = "fs_main",
-                                        .targetCount = 2,
+                                        .targetCount = 1,
                                         .targets = color_targets};
 
     WGPUPrimitiveState primitive = {

@@ -20,10 +20,6 @@ void tilemap_init(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
     usize map_data_size = map_w * map_h * layers * sizeof(i32);
     log_info("map data size: %lu", map_data_size);
 
-    tilemap->normal_tex = texture_manager_load(
-        &graphics->texture_manager, "assets/textures/red_start_normal.png",
-        &graphics->wgpu);
-
     WGPUBufferDescriptor buffer_desc = {
         .label = "tilemap instance buffer",
         .size = map_data_size,
@@ -49,15 +45,10 @@ void tilemap_render(Tilemap *tilemap, mat4s camera, int layer,
     wgpuRenderPassEncoderSetVertexBuffer(pass, 0, tilemap->instances,
                                          layer_size * layer, layer_size);
 
-    i32 normal_index = -1;
-    if (tilemap->normal_tex)
-        normal_index = tilemap->normal_tex->index;
-
     TilemapPushConstants constants = {
         .camera = camera,
         .transform_index = tilemap->transform,
         .texture_index = tilemap->tileset->index,
-        .normal_texture_index = normal_index,
         .map_width = tilemap->map_w,
     };
 
