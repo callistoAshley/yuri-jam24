@@ -11,8 +11,8 @@ void point_light_init(PointLight *light, vec3s position, vec3s color,
     light->position = position;
     light->color = color;
     light->radius = radius;
-    light->intensity = 0.5f;
-    light->volumetric_intensity = 1.0f;
+    light->intensity = 1.0f;
+    light->volumetric_intensity = 0.1f;
     light->angle = (vec2s){.x = TO_RAD(30.0f), .y = TO_RAD(60.0)};
 }
 

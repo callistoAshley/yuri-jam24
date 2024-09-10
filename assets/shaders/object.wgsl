@@ -26,10 +26,10 @@ struct PushConstants {
 var<push_constant> push_constants: PushConstants;
 
 const NORMALS: array<vec2f, 4> = array(
-    vec2f(-1.0, -1.0),
-    vec2f(1.0, -1.0),
     vec2f(1.0, 1.0),
     vec2f(-1.0, 1.0),
+    vec2f(-1.0, -1.0),
+    vec2f(1.0, -1.0),
 );
 
 @vertex
@@ -50,7 +50,7 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 
 struct FragmentOutput {
   @location(0) color: vec4f,
-  @location(1) normals: vec2f,
+  @location(1) normals: vec4f,
 }
 
 @fragment
@@ -63,7 +63,7 @@ fn fs_main(in: VertexOutput) -> FragmentOutput {
       discard;
     }
     out.color = color;
-    out.normals = in.normal;
+    out.normals = vec4f(in.normal, 1.0, 1.0);
 
     return out;
 }
