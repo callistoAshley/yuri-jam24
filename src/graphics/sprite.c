@@ -8,6 +8,8 @@ void sprite_init(Sprite *sprite, TextureEntry *texture,
     sprite->texture = texture;
     sprite->transform = transform;
     sprite->quad = quad;
+
+    sprite->normal_tex = NULL;
 }
 
 void sprite_free(Sprite *sprite, Graphics *graphics)
@@ -18,9 +20,14 @@ void sprite_free(Sprite *sprite, Graphics *graphics)
 
 void sprite_render(Sprite *sprite, mat4s camera, WGPURenderPassEncoder pass)
 {
+    i32 normal_index = -1;
+    if (sprite->normal_tex)
+        normal_index = sprite->normal_tex->index;
+
     ObjectPushConstants push_constants = {
         .camera = camera,
         .texture_index = sprite->texture->index,
+        .normal_texture_index = normal_index,
         .transform_index = sprite->transform,
     };
 

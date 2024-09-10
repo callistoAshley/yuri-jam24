@@ -68,6 +68,7 @@ typedef struct
     mat4s camera;
     u32 transform_index;
     u32 texture_index;
+    i32 normal_texture_index;
 } ObjectPushConstants;
 
 typedef struct
@@ -75,6 +76,7 @@ typedef struct
     mat4s camera;
     u32 transform_index;
     u32 texture_index;
+    i32 normal_texture_index;
     u32 map_width;
 } TilemapPushConstants;
 

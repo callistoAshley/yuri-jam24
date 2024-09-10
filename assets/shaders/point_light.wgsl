@@ -60,7 +60,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let tex_coords = in.position.xy / SCREEN_SIZE;
 
     let color = textureSample(color, tex_sampler, tex_coords);
-    // normal is already normalized to -1.0, 1.0
     let normal_sample = textureSample(normal, tex_sampler, tex_coords);
     let normal = vec2f(normal_sample.r, normal_sample.g);
     let normal_intensity = normal_sample.b; // 0.0 means normals do not affect shading, 1.0 means they do, anything in between is a mix
@@ -76,7 +75,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
     let angular_falloff = 1.0;
 
-    let normal_factor = 1.0 // dot(normal, dir);
+    let normal_factor = dot(dir, normal);
     // need to factor in the normal intensity
     let normal_falloff = mix(1.0, normal_factor, normal_intensity);
 
