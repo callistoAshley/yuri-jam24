@@ -31,6 +31,7 @@ add_subdirectory(vendor/box2d/)
 include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/tests.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/tools.cmake)
 
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
