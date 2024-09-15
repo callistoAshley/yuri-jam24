@@ -32,6 +32,7 @@ include(${CMAKE_CURRENT_SOURCE_DIR}/cmake/sdl.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/tests.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/tools.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/shadowcasters.cmake)
 
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
