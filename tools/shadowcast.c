@@ -197,19 +197,45 @@ i32 main(i32 argc, char *args[])
             }
         }
 
+        free(cases);
+
+        // TODO
         // order the points in a clockwise fashion
         // this is done by sorting the points by their angle from the center of
         // the cell
-        Point center = {cell_width / 2.0, cell_height / 2.0};
-        qsort(points.data, points.len, sizeof(Point), point_angular_sort_fn);
+        // Point center = {cell_width / 2.0, cell_height / 2.0};
+        // qsort(points.data, points.len, sizeof(Point), point_angular_sort_fn);
 
-        // pretty print the lines
+        // output the points to the file
+        SDL_WriteU32LE(output, points.len);
         for (u32 i = 0; i < points.len; i++)
         {
-            i32 cell_x = cell_index % cell_count_x * cell_width * 2;
-            i32 cell_y = cell_index / cell_count_x * cell_height * 2;
+            union bitcast
+            {
+                f32 f;
+                u32 u;
+            };
             Point *point = vec_get(&points, i);
-            printf("%f, %f\n", point->x + cell_x, -point->y - cell_y);
+            union bitcast x, y;
+            x.f = point->x;
+            y.f = point->y;
+            SDL_WriteU32LE(output, x.u);
+            SDL_WriteU32LE(output, y.u);
         }
+
+        vec_free(&points);
     }
+
+    for (u32 i = 0; i < cell_count_x * cell_count_y; i++)
+    {
+        SDL_DestroySurface(surfaces[i]);
+    }
+    free(surfaces);
+
+    SDL_DestroySurface(surf);
+    SDL_CloseIO(output);
+
+    IMG_Quit();
+
+    return 0;
 }
