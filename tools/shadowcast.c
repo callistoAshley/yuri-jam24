@@ -4,8 +4,10 @@
 
 #include <SDL3_image/SDL_image.h>
 #include <SDL3/SDL_iostream.h>
+#include <math.h>
 #include <stdio.h>
 #include <stdbool.h>
+#include <stdlib.h>
 
 #define EXPECTED_ARGC 3
 #define MAX_ARGC 5
@@ -14,12 +16,31 @@ typedef struct
 {
     f32 x, y;
 } Point;
+Point cell_center_point;
 
-typedef struct
+int point_angular_sort_fn(const void *p1, const void *p2)
 {
-    SDL_Surface *surface;
-    u32 cell_width, cell_height;
-} Image;
+    Point *point1 = (Point *)p1;
+    Point *point2 = (Point *)p2;
+
+    f32 angle1 =
+        atan2(point1->y - cell_center_point.y, point1->x - cell_center_point.x);
+    f32 angle2 =
+        atan2(point2->y - cell_center_point.y, point2->x - cell_center_point.x);
+
+    if (angle1 < angle2)
+    {
+        return -1;
+    }
+    else if (angle1 > angle2)
+    {
+        return 1;
+    }
+    else
+    {
+        return 0;
+    }
+}
 
 // this program creates a list of lines that outline a provided image, for use
 // in shadowcasting it can be passed a cell width and height, or it will use the
@@ -54,7 +75,8 @@ i32 main(i32 argc, char *args[])
         cell_width = atoi(args[3]);
         cell_height = atoi(args[4]);
     }
-    Image image = {surf, cell_width, cell_height};
+
+    cell_center_point = (Point){cell_width / 2.0, cell_height / 2.0};
 
     // write the magic number
     SDL_WriteIO(output, "SHDW", 4);
@@ -71,108 +93,123 @@ i32 main(i32 argc, char *args[])
     i32 cell_count_x = surf->w / cell_width;
     i32 cell_count_y = surf->h / cell_height;
 
-    // cells are laid out by row, column
-    for (i32 cell_y = 0; cell_y < cell_count_y; ++cell_y)
+    SDL_Surface **surfaces =
+        malloc(cell_count_x * cell_count_y * sizeof(SDL_Surface *));
+    for (u32 x = 0; x < cell_count_x; x++)
     {
-        for (i32 cell_x = 0; cell_x < cell_count_x; ++cell_x)
+        for (u32 y = 0; y < cell_count_y; y++)
         {
-            // use marching squares to find the outline of the cell
+            // create a surface with padding around the cell
+            // so that we can use marching squares to find the outline
+            SDL_Surface *cell_surf = SDL_CreateSurface(
+                cell_width + 2, cell_height + 2, surf->format);
+            SDL_Rect src = {x * cell_width, y * cell_height, cell_width,
+                            cell_height};
+            SDL_Rect dest = {1, 1, cell_width, cell_height};
+            SDL_BlitSurface(surf, &src, cell_surf, &dest);
+            surfaces[x + y * cell_count_x] = cell_surf;
+        }
+    }
+    u32 padded_cell_width = cell_width + 2;
+    u32 padded_cell_height = cell_height + 2;
 
-            const i32 OFFSETS[][2] = {
-                {0, 0},
-                {1, 0},
-                {1, 1},
-                {0, 1},
-            };
+    // use marching squares to find the outline of the cell
+    for (u32 cell_index = 0; cell_index < cell_count_x * cell_count_y;
+         cell_index++)
+    {
+        SDL_Surface *cell = surfaces[cell_index];
+        const i32 OFFSETS[][2] = {
+            {0, 0},
+            {1, 0},
+            {1, 1},
+            {0, 1},
+        };
 
-            // all the marching squares cases
-            const Point CASES[16][4] = {
-                {}, // no points
-                {{0.0, 0.5}, {0.5, 1.0}},
-                {{1.0, 0.5}, {0.5, 1.0}},
-                {{0.0, 0.5}, {1.0, 0.5}},
-                {{0.5, 0.0}, {1.0, 0.5}},
-                {{0.0, 0.5}, {0.5, 0.0}, {0.5, 1.0}, {1.0, 0.5}},
-                {{0.5, 0.0}, {0.5, 1.0}},
-                {{0.0, 0.5}, {0.5, 0.0}},
-                {{0.0, 0.5}, {0.5, 0.0}},
-                {{0.5, 0.0}, {0.5, 1.0}},
-                {{0.0, 0.5}, {0.5, 0.0}, {0.5, 1.0}, {1.0, 0.5}},
-                {{0.5, 0.0}, {1.0, 0.5}},
-                {{0.0, 0.5}, {1.0, 0.5}},
-                {{1.0, 0.5}, {0.5, 1.0}},
-                {{0.0, 0.5}, {0.5, 1.0}},
-                {}, // no points
+        // all the marching squares cases
+        const Point CASES[16][4] = {
+            {}, // no points
+            {{0.0, 0.5}, {0.5, 1.0}},
+            {{1.0, 0.5}, {0.5, 1.0}},
+            {{0.0, 0.5}, {1.0, 0.5}},
+            {{0.5, 0.0}, {1.0, 0.5}},
+            {{0.0, 0.5}, {0.5, 0.0}, {0.5, 1.0}, {1.0, 0.5}},
+            {{0.5, 0.0}, {0.5, 1.0}},
+            {{0.0, 0.5}, {0.5, 0.0}},
+            {{0.0, 0.5}, {0.5, 0.0}},
+            {{0.5, 0.0}, {0.5, 1.0}},
+            {{0.0, 0.5}, {0.5, 0.0}, {0.5, 1.0}, {1.0, 0.5}},
+            {{0.5, 0.0}, {1.0, 0.5}},
+            {{0.0, 0.5}, {1.0, 0.5}},
+            {{1.0, 0.5}, {0.5, 1.0}},
+            {{0.0, 0.5}, {0.5, 1.0}},
+            {}, // no points
 
-            };
-            const u32 CASE_POINT_COUNTS[16] = {
-                0, 2, 2, 2, 2, 4, 2, 2, 2, 2, 4, 2, 2, 2, 2, 0,
-            };
+        };
+        const u32 CASE_POINT_COUNTS[16] = {
+            0, 2, 2, 2, 2, 4, 2, 2, 2, 2, 4, 2, 2, 2, 2, 0,
+        };
 
-            u8 *cases = malloc(cell_width * cell_height);
-            i32 cell_px = cell_x * cell_width;
-            i32 cell_py = cell_y * cell_height;
-            for (u32 y = 0; y < cell_height; y++)
+        u8 *cases = malloc(padded_cell_width * padded_cell_height);
+        for (u32 y = 0; y < padded_cell_width; y++)
+        {
+            for (u32 x = 0; x < padded_cell_height + 2; x++)
             {
-                for (u32 x = 0; x < cell_width; x++)
+                u8 current = 0;
+                for (int i = 0; i < 4; i++)
                 {
-                    u8 current = 0;
-                    for (int i = 0; i < 4; i++)
+                    i32 px = x + OFFSETS[i][0];
+                    i32 py = y + OFFSETS[i][1];
+
+                    if (px < 0 || px >= cell->w || py < 0 || py >= cell->h)
                     {
-                        i32 px = cell_px + x + OFFSETS[i][0];
-                        i32 py = cell_py + y + OFFSETS[i][1];
-
-                        if (px < 0 || px >= surf->w || py < 0 || py >= surf->h)
-                        {
-                            current = current << 1;
-                            continue;
-                        }
-
-                        if (px < cell_px || px >= cell_px + cell_width ||
-                            py < cell_py || py >= cell_py + cell_height)
-                        {
-                            current = current << 1;
-                            continue;
-                        }
-
-                        u8 alpha = 0;
-                        SDL_ReadSurfacePixel(surf, px, py, NULL, NULL, NULL,
-                                             &alpha);
-                        current = current << 1 | (alpha > 0);
+                        current = current << 1;
+                        continue;
                     }
-                    cases[y * cell_width + x] = current;
+
+                    u8 alpha = 0;
+                    SDL_ReadSurfacePixel(cell, px, py, NULL, NULL, NULL,
+                                         &alpha);
+                    current = current << 1 | (alpha > 0);
+                }
+                cases[y * padded_cell_width + x] = current;
+            }
+        }
+
+        // now that we've created all our cases, we can construct the lines
+        // that make up the outline of the cell
+        vec points;
+        vec_init(&points, sizeof(Point));
+
+        // now handle all of the marching squares cases
+        for (i32 x = 0; x < padded_cell_width; x++)
+        {
+            for (i32 y = 0; y < padded_cell_height; y++)
+            {
+                u8 current = cases[x + y * padded_cell_width];
+                u32 case_point_count = CASE_POINT_COUNTS[current];
+                for (u32 i = 0; i < case_point_count; i++)
+                {
+                    Point point = CASES[current][i];
+                    point.x += x - 0.5;
+                    point.y += y - 0.5;
+                    vec_push(&points, &point);
                 }
             }
+        }
 
-            // now that we've created all our cases, we can construct the lines
-            // that make up the outline of the cell
-            vec lines;
-            vec_init(&lines, sizeof(Point));
+        // order the points in a clockwise fashion
+        // this is done by sorting the points by their angle from the center of
+        // the cell
+        Point center = {cell_width / 2.0, cell_height / 2.0};
+        qsort(points.data, points.len, sizeof(Point), point_angular_sort_fn);
 
-            // now handle all of the marching squares cases
-            for (i32 x = 0; x < cell_width; x++)
-            {
-                for (i32 y = 0; y < cell_height; y++)
-                {
-                    u8 current = cases[x + y * cell_width];
-                    u32 case_point_count = CASE_POINT_COUNTS[current];
-                    for (u32 i = 0; i < case_point_count; i++)
-                    {
-                        Point point = CASES[current][i];
-                        point.x += x;
-                        point.y += y;
-                        vec_push(&lines, &point);
-                    }
-                }
-            }
-
-            // pretty print the lines
-            for (u32 i = 0; i < lines.len; i++)
-            {
-                Point *point = vec_get(&lines, i);
-                printf("%f, %f\n", point->x + cell_x * cell_width,
-                       -point->y - cell_y * cell_height);
-            }
+        // pretty print the lines
+        for (u32 i = 0; i < points.len; i++)
+        {
+            i32 cell_x = cell_index % cell_count_x * cell_width * 2;
+            i32 cell_y = cell_index / cell_count_x * cell_height * 2;
+            Point *point = vec_get(&points, i);
+            printf("%f, %f\n", point->x + cell_x, -point->y - cell_y);
         }
     }
 }

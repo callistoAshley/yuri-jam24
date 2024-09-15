@@ -33,6 +33,20 @@
       ],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "build_cmake"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug shadowcaster",
+      "program": "${workspaceFolder}/build/shadowcast",
+      "args": [
+        "assets/textures/red_start.png",
+        "assets/shadowcasters/player.shdw",
+        "8",
+        "8",
+      ],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build_cmake"
     }
   ]
 }
