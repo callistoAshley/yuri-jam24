@@ -95,21 +95,21 @@ i32 main(i32 argc, char *args[])
 
     SDL_Surface **surfaces =
         malloc(cell_count_x * cell_count_y * sizeof(SDL_Surface *));
-    for (u32 x = 0; x < cell_count_x; x++)
-    {
-        for (u32 y = 0; y < cell_count_y; y++)
+    for (u32 y = 0; y < cell_count_y; y++)
+        for (u32 x = 0; x < cell_count_x; x++)
         {
-            // create a surface with padding around the cell
-            // so that we can use marching squares to find the outline
-            SDL_Surface *cell_surf = SDL_CreateSurface(
-                cell_width + 2, cell_height + 2, surf->format);
-            SDL_Rect src = {x * cell_width, y * cell_height, cell_width,
-                            cell_height};
-            SDL_Rect dest = {1, 1, cell_width, cell_height};
-            SDL_BlitSurface(surf, &src, cell_surf, &dest);
-            surfaces[x + y * cell_count_x] = cell_surf;
+            {
+                // create a surface with padding around the cell
+                // so that we can use marching squares to find the outline
+                SDL_Surface *cell_surf = SDL_CreateSurface(
+                    cell_width + 2, cell_height + 2, surf->format);
+                SDL_Rect src = {x * cell_width, y * cell_height, cell_width,
+                                cell_height};
+                SDL_Rect dest = {1, 1, cell_width, cell_height};
+                SDL_BlitSurface(surf, &src, cell_surf, &dest);
+                surfaces[x + y * cell_count_x] = cell_surf;
+            }
         }
-    }
     u32 padded_cell_width = cell_width + 2;
     u32 padded_cell_height = cell_height + 2;
 
@@ -150,9 +150,9 @@ i32 main(i32 argc, char *args[])
         };
 
         u8 *cases = malloc(padded_cell_width * padded_cell_height);
-        for (u32 y = 0; y < padded_cell_width; y++)
+        for (u32 y = 0; y < padded_cell_height; y++)
         {
-            for (u32 x = 0; x < padded_cell_height + 2; x++)
+            for (u32 x = 0; x < padded_cell_width + 2; x++)
             {
                 u8 current = 0;
                 for (int i = 0; i < 4; i++)
@@ -181,21 +181,21 @@ i32 main(i32 argc, char *args[])
         vec_init(&points, sizeof(Point));
 
         // now handle all of the marching squares cases
-        for (i32 x = 0; x < padded_cell_width; x++)
-        {
-            for (i32 y = 0; y < padded_cell_height; y++)
+        for (i32 y = 0; y < padded_cell_height; y++)
+            for (i32 x = 0; x < padded_cell_width; x++)
             {
-                u8 current = cases[x + y * padded_cell_width];
-                u32 case_point_count = CASE_POINT_COUNTS[current];
-                for (u32 i = 0; i < case_point_count; i++)
                 {
-                    Point point = CASES[current][i];
-                    point.x += x - 0.5;
-                    point.y += y - 0.5;
-                    vec_push(&points, &point);
+                    u8 current = cases[x + y * padded_cell_width];
+                    u32 case_point_count = CASE_POINT_COUNTS[current];
+                    for (u32 i = 0; i < case_point_count; i++)
+                    {
+                        Point point = CASES[current][i];
+                        point.x += x - 0.5;
+                        point.y += y - 0.5;
+                        vec_push(&points, &point);
+                    }
                 }
             }
-        }
 
         free(cases);
 
