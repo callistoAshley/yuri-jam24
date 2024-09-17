@@ -85,7 +85,7 @@ i32 main(i32 argc, char *args[])
     i32 cell_count_y = surf->h / cell_height;
 
     // write the cell dimensions && cell count
-    SDL_WriteU32LE(output, cell_count_x);
+    SDL_WriteU32LE(output, cell_count_x * cell_count_y);
     SDL_WriteU32LE(output, cell_width);
     SDL_WriteU32LE(output, cell_height);
 
