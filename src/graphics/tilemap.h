@@ -8,6 +8,7 @@ typedef struct
     TextureEntry *tileset;
     TransformEntry transform;
     int map_w, map_h, layers;
+    i32 *map_data;
     // 1 instance per tile. instances have just the tile ID
     WGPUBuffer instances;
 } Tilemap;
@@ -25,5 +26,3 @@ void tilemap_free(Tilemap *tilemap, Graphics *graphics);
 
 void tilemap_render(Tilemap *tilemap, mat4s camera, int layer,
                     WGPURenderPassEncoder pass);
-void tilemap_set_tile(Tilemap *tilemap, Graphics *graphics, int x, int y,
-                      int layer, i32 tile);

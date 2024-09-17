@@ -29,6 +29,7 @@ QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 DirectionalLight directional_light;
 
 CasterEntry *test;
+CasterEntry *test2;
 
 void tilemap_layer_draw(void *layer, void *context, Graphics *graphics,
                         WGPURenderPassEncoder pass)
@@ -71,6 +72,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     test = caster_manager_load(&graphics->caster_manager,
                                "assets/shadowcasters/player.shdw");
+    test2 = caster_manager_load(&graphics->caster_manager,
+                                "assets/shadowcasters/red_start.shdw");
 
     layer_init(&graphics->tilemap_layers.background, tilemap_layer_draw, free);
     layer_init(&graphics->tilemap_layers.middle, tilemap_layer_draw, free);
@@ -396,6 +399,39 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         CasterCell cell = test->cells[0];
         wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
                                   cell.start, 0);
+
+        wgpuRenderPassEncoderSetPipeline(
+            render_pass, graphics->shaders.shadowmapping.tilemap);
+
+        TilemapLayer *layer =
+            *(TilemapLayer **)graphics->tilemap_layers.middle.entries.data;
+        Tilemap *tilemap = layer->tilemap;
+
+        for (i32 y = 0; y < tilemap->map_h; y++)
+        {
+            for (i32 x = 0; x < tilemap->map_w; x++)
+            {
+                i32 tile = tilemap->map_data[y * tilemap->map_w + x];
+                if (tile < 0)
+                    continue;
+
+                CasterCell cell = test2->cells[tile];
+
+                TilemapShadowmapPushConstants push_constants = {
+                    .camera = camera,
+                    .transform_index = tilemap->transform,
+                    .tile_x = x,
+                    .tile_y = y,
+                };
+                wgpuRenderPassEncoderSetPushConstants(
+                    render_pass,
+                    WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+                    sizeof(TilemapShadowmapPushConstants), &push_constants);
+
+                wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
+                                          cell.start, 0);
+            }
+        }
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);

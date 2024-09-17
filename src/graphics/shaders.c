@@ -272,4 +272,12 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         &layouts->shadowmapping, 1, shadowmapping_sprite_constants, 1,
         &shadow_vertex_buffer_layout, 1, defferred_targets, 1, NULL,
         &shadow_primitive, resources);
+
+    WGPUPushConstantRange shadowmapping_tilemap_constants[] =
+        PUSH_CONSTANTS_FOR(TilemapPushConstants);
+    shaders->shadowmapping.tilemap = create_shader(
+        "assets/shaders/tilemap_shadowmap.wgsl", "tilemap_shadowmap",
+        &layouts->shadowmapping, 1, shadowmapping_tilemap_constants, 1,
+        &shadow_vertex_buffer_layout, 1, defferred_targets, 1, NULL,
+        &shadow_primitive, resources);
 }

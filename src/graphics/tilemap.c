@@ -18,6 +18,8 @@ void tilemap_init(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
     tilemap->layers = layers;
 
     usize map_data_size = map_w * map_h * layers * sizeof(i32);
+    tilemap->map_data = malloc(map_data_size);
+    memcpy(tilemap->map_data, map_data, map_data_size);
     log_info("map data size: %lu", map_data_size);
 
     WGPUBufferDescriptor buffer_desc = {
@@ -57,14 +59,4 @@ void tilemap_render(Tilemap *tilemap, mat4s camera, int layer,
         sizeof(TilemapPushConstants), &constants);
     wgpuRenderPassEncoderDraw(pass, VERTICES_PER_QUAD,
                               tilemap->map_w * tilemap->map_h, 0, 0);
-}
-
-void tilemap_set_tile(Tilemap *tilemap, Graphics *graphics, int x, int y,
-                      int layer, i32 tile)
-{
-    u64 byte_offset =
-        (y * tilemap->map_w + x + (tilemap->map_w * tilemap->map_h) * layer) *
-        sizeof(i32);
-    wgpuQueueWriteBuffer(graphics->wgpu.queue, tilemap->instances, byte_offset,
-                         &tile, sizeof(i32));
 }

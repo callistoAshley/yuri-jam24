@@ -37,7 +37,7 @@ CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
 {
     for (u32 i = 0; i < manager->entries.len; i++)
     {
-        CasterEntry *entry = vec_get(&manager->entries, i);
+        CasterEntry *entry = *(CasterEntry **)vec_get(&manager->entries, i);
         if (strcmp(entry->path, path) == 0)
         {
             return entry;
@@ -59,16 +59,15 @@ CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
     entry->cell_count = shdw->cell_count;
     entry->cells = malloc(sizeof(CasterCell) * shdw->cell_count);
 
-    u32 start = manager->casters.len;
     for (u32 i = 0; i < shdw->cell_count; i++)
     {
         Cell *cell = &shdw->cells[i];
         vec_resize(&manager->casters, manager->casters.len + cell->point_count);
-        memcpy(manager->casters.data + start * sizeof(vec2s), cell->points,
-               sizeof(vec2s) * cell->point_count);
-        entry->cells[i].start = start;
-        entry->cells[i].end = start + cell->point_count;
-        start += cell->point_count;
+        memcpy(manager->casters.data + manager->casters.len * sizeof(vec2s),
+               cell->points, sizeof(vec2s) * cell->point_count);
+        entry->cells[i].start = manager->casters.len;
+        entry->cells[i].end = manager->casters.len + cell->point_count;
+        manager->casters.len += cell->point_count;
     }
     vec_push(&manager->entries, &entry);
 
