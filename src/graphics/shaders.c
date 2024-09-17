@@ -73,6 +73,9 @@ create_shader(const char *path, const char *label, WGPUBindGroupLayout *layouts,
                                         .entryPoint = "fs_main",
                                         .targetCount = target_count,
                                         .targets = color_targets};
+    WGPUFragmentState *fragment = &fragment_state;
+    if (target_count == 0)
+        fragment = NULL;
 
     WGPUPrimitiveState primitive = {
         .topology = WGPUPrimitiveTopology_TriangleList,
@@ -90,7 +93,7 @@ create_shader(const char *path, const char *label, WGPUBindGroupLayout *layouts,
         .label = label,
         .layout = layout,
         .vertex = vertex_state,
-        .fragment = &fragment_state,
+        .fragment = fragment,
         .primitive = primitive,
         .multisample = multisample,
         .depthStencil = depth_state,
@@ -192,6 +195,20 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .topology = WGPUPrimitiveTopology_LineList,
     };
 
+    WGPUStencilFaceState ignore_stencil = {
+        .compare = WGPUCompareFunction_Always,
+        .failOp = WGPUStencilOperation_Keep,
+        .depthFailOp = WGPUStencilOperation_Keep,
+        .passOp = WGPUStencilOperation_Keep,
+    };
+    WGPUDepthStencilState shadow_depth_state = {
+        .format = WGPUTextureFormat_Depth24Plus,
+        .depthWriteEnabled = true,
+        .depthCompare = WGPUCompareFunction_Less,
+        .stencilFront = ignore_stencil,
+        .stencilBack = ignore_stencil,
+    };
+
     WGPUPushConstantRange sprite_constants[] =
         PUSH_CONSTANTS_FOR(SpritePushConstants);
     shaders->defferred.sprite =
@@ -270,7 +287,7 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     shaders->shadowmapping.sprite = create_shader(
         "assets/shaders/sprite_shadowmap.wgsl", "sprite_shadowmap",
         &layouts->shadowmapping, 1, shadowmapping_sprite_constants, 1,
-        &shadow_vertex_buffer_layout, 1, defferred_targets, 1, NULL,
+        &shadow_vertex_buffer_layout, 1, NULL, 0, &shadow_depth_state,
         &shadow_primitive, resources);
 
     WGPUPushConstantRange shadowmapping_tilemap_constants[] =
@@ -278,6 +295,6 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     shaders->shadowmapping.tilemap = create_shader(
         "assets/shaders/tilemap_shadowmap.wgsl", "tilemap_shadowmap",
         &layouts->shadowmapping, 1, shadowmapping_tilemap_constants, 1,
-        &shadow_vertex_buffer_layout, 1, defferred_targets, 1, NULL,
+        &shadow_vertex_buffer_layout, 1, NULL, 0, &shadow_depth_state,
         &shadow_primitive, resources);
 }

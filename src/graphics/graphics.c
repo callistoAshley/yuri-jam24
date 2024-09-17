@@ -121,6 +121,27 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
     }
 
+    {
+        WGPUExtent3D extents = {
+            .width = 1024,
+            .height = 64,
+            .depthOrArrayLayers = 1,
+        };
+        WGPUTextureDescriptor desc = {
+            .label = "shadowmap texture",
+            .size = extents,
+            .dimension = WGPUTextureDimension_2D,
+            .format = WGPUTextureFormat_Depth24Plus,
+            .mipLevelCount = 1,
+            .sampleCount = 1,
+            .usage = WGPUTextureUsage_RenderAttachment |
+                     WGPUTextureUsage_TextureBinding,
+        };
+        graphics->shadows =
+            wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+        graphics->shadows_view = wgpuTextureCreateView(graphics->shadows, NULL);
+    }
+
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
     for (int i = 0; i < 10; i++)
@@ -379,6 +400,33 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                             WGPUIndexFormat_Uint16, 0, 12);
         layer_draw(&graphics->sprite_layers.foreground, &camera, graphics,
                    render_pass);
+
+        wgpuRenderPassEncoderEnd(render_pass);
+        wgpuRenderPassEncoderRelease(render_pass);
+    }
+
+    // perform shadowmapping
+    {
+        WGPURenderPassDepthStencilAttachment depth_stencil = {
+            .view = graphics->shadows_view,
+            .depthClearValue = 1.0f,
+            .depthLoadOp = WGPULoadOp_Clear,
+            .depthStoreOp = WGPUStoreOp_Store,
+        };
+        WGPURenderPassDescriptor shadowmap_pass_desc = {
+            .label = "shadowmap render pass encoder",
+            .depthStencilAttachment = &depth_stencil,
+        };
+        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
+            command_encoder, &shadowmap_pass_desc);
+        wgpuRenderPassEncoderSetViewport(render_pass, 0, 0, 160, 1, 0, 1);
+
+        mat4s camera_projection = glms_ortho(0.0, 160, 1, 0.0, -1.0f, 200.0f);
+        mat4s camera_transform =
+            glms_look((vec3s){.x = 200.0, .y = -100.0, .z = 0.5},
+                      (vec3s){.x = 0.0, .y = 1.0, .z = 0.0},
+                      (vec3s){.x = 0.0, .y = 0.0, .z = -1.0});
+        mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
         wgpuRenderPassEncoderSetPipeline(
             render_pass, graphics->shaders.shadowmapping.sprite);
