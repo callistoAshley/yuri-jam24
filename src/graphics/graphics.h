@@ -1,5 +1,6 @@
 #pragma once
 
+#include "graphics/caster_manager.h"
 #include "graphics/layer.h"
 #include "graphics/tex_manager.h"
 #include "physics/physics.h"
@@ -26,6 +27,7 @@ typedef struct Graphics
     QuadManager quad_manager;
     TransformManager transform_manager;
     TextureManager texture_manager;
+    CasterManager caster_manager;
     WGPUSampler sampler;
 
     WGPUTexture color;

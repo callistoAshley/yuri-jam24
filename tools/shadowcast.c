@@ -81,17 +81,17 @@ i32 main(i32 argc, char *args[])
     // write the magic number
     SDL_WriteIO(output, "SHDW", 4);
 
-    // write the cell dimensions
-    // no need to write the cell count, it can be inferred from the image size
+    i32 cell_count_x = surf->w / cell_width;
+    i32 cell_count_y = surf->h / cell_height;
+
+    // write the cell dimensions && cell count
+    SDL_WriteU32LE(output, cell_count_x);
     SDL_WriteU32LE(output, cell_width);
     SDL_WriteU32LE(output, cell_height);
 
     // iterate over the image, cell by cell
     // create a list of points along the edges of the cell
     // and then simplify the list of points, removing any that are redundant
-
-    i32 cell_count_x = surf->w / cell_width;
-    i32 cell_count_y = surf->h / cell_height;
 
     SDL_Surface **surfaces =
         malloc(cell_count_x * cell_count_y * sizeof(SDL_Surface *));

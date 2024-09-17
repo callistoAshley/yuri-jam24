@@ -60,6 +60,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     quad_manager_init(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_init(&graphics->transform_manager, &graphics->wgpu);
+    caster_manager_init(&graphics->caster_manager, &graphics->wgpu);
     // texture manager has no gpu side resources allocated initially so no need
     // to pass wgpu
     texture_manager_init(&graphics->texture_manager);
