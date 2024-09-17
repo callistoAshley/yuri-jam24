@@ -3,7 +3,7 @@
 #include "webgpu.h"
 #include "wgpu.h"
 
-void build_object_layout(BindGroupLayouts *layouts, WGPUResources *resources)
+void build_sprite_layout(BindGroupLayouts *layouts, WGPUResources *resources)
 {
     BindGroupLayoutBuilder builder;
     bind_group_layout_builder_init(&builder);
@@ -43,8 +43,8 @@ void build_object_layout(BindGroupLayouts *layouts, WGPUResources *resources)
     };
     bind_group_layout_builder_append(&builder, entry);
 
-    layouts->object = bind_group_layout_build(&builder, resources->device,
-                                              "Basic Bind Group Layout");
+    layouts->sprite = bind_group_layout_build(&builder, resources->device,
+                                              "Sprite Bind Group Layout");
     bind_group_layout_builder_free(&builder); // free the builder after use
 }
 
@@ -157,7 +157,7 @@ void build_screen_blit_layout(BindGroupLayouts *layouts,
 void bind_group_layouts_init(BindGroupLayouts *layouts,
                              WGPUResources *resources)
 {
-    build_object_layout(layouts, resources);
+    build_sprite_layout(layouts, resources);
     build_light_layout(layouts, resources);
     build_tilemap_layout(layouts, resources);
     build_screen_blit_layout(layouts, resources);

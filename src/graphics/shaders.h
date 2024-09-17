@@ -13,13 +13,13 @@ typedef struct Shaders
 {
     struct
     {
-        WGPURenderPipeline ui_object;
+        WGPURenderPipeline ui_sprite;
         WGPURenderPipeline screen_blit;
     } forward;
 
     struct
     {
-        WGPURenderPipeline object;
+        WGPURenderPipeline sprite;
         WGPURenderPipeline tilemap;
     } defferred;
 
@@ -68,7 +68,7 @@ typedef struct
     mat4s camera;
     u32 transform_index;
     u32 texture_index;
-} ObjectPushConstants;
+} SpritePushConstants;
 
 typedef struct
 {

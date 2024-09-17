@@ -7,7 +7,7 @@
 
 typedef struct
 {
-    WGPUBindGroupLayout object;
+    WGPUBindGroupLayout sprite;
     WGPUBindGroupLayout lighting;
     WGPUBindGroupLayout tilemap;
     WGPUBindGroupLayout screen_blit;

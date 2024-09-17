@@ -9,13 +9,13 @@
 #include <wgpu.h>
 #include <stdio.h>
 
-void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
+void create_sprite_shader(Shaders *shaders, BindGroupLayouts *layouts,
                           WGPUResources *resources)
 {
     char *buf;
     long buf_len;
 
-    read_entire_file("assets/shaders/object.wgsl", &buf, &buf_len);
+    read_entire_file("assets/shaders/sprite.wgsl", &buf, &buf_len);
 
     // this uses null-terminated strings, but read_entire_file returns something
     // null-terminated anyway, so it's fine (really wish this used a
@@ -25,7 +25,7 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         .code = buf,
     };
     WGPUShaderModuleDescriptor module_descriptor = {
-        .label = "object",
+        .label = "sprite",
         .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
     };
 
@@ -36,7 +36,7 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         (WGPUPushConstantRange){
             .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
             .start = 0,
-            .end = sizeof(ObjectPushConstants),
+            .end = sizeof(SpritePushConstants),
         },
     };
     WGPUPipelineLayoutExtras extras = {
@@ -48,7 +48,7 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         .nextInChain = (WGPUChainedStruct *)&extras,
         .label = "basic",
         .bindGroupLayoutCount = 1,
-        .bindGroupLayouts = &layouts->object,
+        .bindGroupLayouts = &layouts->sprite,
     };
     WGPUPipelineLayout layout =
         wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
@@ -95,16 +95,16 @@ void create_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
     };
 
     WGPURenderPipelineDescriptor descriptor = {
-        .label = "object",
+        .label = "sprite",
         .layout = layout,
         .vertex = vertex_state,
         .fragment = &fragment_state,
         .primitive = primitive,
         .multisample = multisample,
     };
-    shaders->defferred.object =
+    shaders->defferred.sprite =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
-    PTR_ERRCHK(shaders->defferred.object, "failed to create render pipeline");
+    PTR_ERRCHK(shaders->defferred.sprite, "failed to create render pipeline");
 
     free(buf);
     wgpuPipelineLayoutRelease(layout);
@@ -645,13 +645,13 @@ void create_b2d_polygon_shader(Shaders *shaders, WGPUResources *resources)
     wgpuShaderModuleRelease(module);
 }
 
-void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
+void create_ui_sprite_shader(Shaders *shaders, BindGroupLayouts *layouts,
                              WGPUResources *resources)
 {
     char *buf;
     long buf_len;
 
-    read_entire_file("assets/shaders/ui_object.wgsl", &buf, &buf_len);
+    read_entire_file("assets/shaders/ui_sprite.wgsl", &buf, &buf_len);
 
     // this uses null-terminated strings, but read_entire_file returns something
     // null-terminated anyway, so it's fine (really wish this used a
@@ -661,7 +661,7 @@ void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         .code = buf,
     };
     WGPUShaderModuleDescriptor module_descriptor = {
-        .label = "ui_object",
+        .label = "ui_sprite",
         .nextInChain = (WGPUChainedStruct *)&wgsl_descriptor,
     };
 
@@ -672,7 +672,7 @@ void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         (WGPUPushConstantRange){
             .stages = WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
             .start = 0,
-            .end = sizeof(ObjectPushConstants),
+            .end = sizeof(SpritePushConstants),
         },
     };
     WGPUPipelineLayoutExtras extras = {
@@ -684,7 +684,7 @@ void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
         .nextInChain = (WGPUChainedStruct *)&extras,
         .label = "basic",
         .bindGroupLayoutCount = 1,
-        .bindGroupLayouts = &layouts->object,
+        .bindGroupLayouts = &layouts->sprite,
     };
     WGPUPipelineLayout layout =
         wgpuDeviceCreatePipelineLayout(resources->device, &layout_descriptor);
@@ -731,16 +731,16 @@ void create_ui_object_shader(Shaders *shaders, BindGroupLayouts *layouts,
     };
 
     WGPURenderPipelineDescriptor descriptor = {
-        .label = "ui_object",
+        .label = "ui_sprite",
         .layout = layout,
         .vertex = vertex_state,
         .fragment = &fragment_state,
         .primitive = primitive,
         .multisample = multisample,
     };
-    shaders->forward.ui_object =
+    shaders->forward.ui_sprite =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
-    PTR_ERRCHK(shaders->forward.ui_object, "failed to create render pipeline");
+    PTR_ERRCHK(shaders->forward.ui_sprite, "failed to create render pipeline");
 
     free(buf);
     wgpuPipelineLayoutRelease(layout);
@@ -827,10 +827,10 @@ void create_screen_blit_shader(Shaders *shaders, BindGroupLayouts *layouts,
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources)
 {
-    create_object_shader(shaders, layouts, resources);
+    create_sprite_shader(shaders, layouts, resources);
     create_tilemap_shader(shaders, layouts, resources);
 
-    create_ui_object_shader(shaders, layouts, resources);
+    create_ui_sprite_shader(shaders, layouts, resources);
 
     create_point_light_shader(shaders, layouts, resources);
     create_directional_light_shader(shaders, layouts, resources);

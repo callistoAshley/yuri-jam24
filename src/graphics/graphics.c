@@ -141,7 +141,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     }
 }
 
-void build_object_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+void build_sprite_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
 {
     BindGroupBuilder builder;
     bind_group_builder_init(&builder);
@@ -155,8 +155,8 @@ void build_object_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     *bind_group = bind_group_build(&builder, graphics->wgpu.device,
-                                   graphics->bind_group_layouts.object,
-                                   "Transform Bind Group");
+                                   graphics->bind_group_layouts.sprite,
+                                   "Sprite Bind Group");
 
     bind_group_builder_free(&builder);
 }
@@ -181,7 +181,7 @@ void build_light_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
 void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
 {
     // FIXME it's a waste to create a new bind group every frame + this has the
-    // same layout as the regular object bind group
+    // same layout as the regular sprite bind group
     BindGroupBuilder builder;
     bind_group_builder_init(&builder);
 
@@ -223,8 +223,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     caster_manager_write_dirty(&graphics->caster_manager, &graphics->wgpu);
 
     // FIXME we really should not be creating a new bind group every frame
-    WGPUBindGroup object_bind_group;
-    build_object_bind_group(graphics, &object_bind_group);
+    WGPUBindGroup sprite_bind_group;
+    build_sprite_bind_group(graphics, &sprite_bind_group);
 
     WGPUBindGroup light_bind_group;
     build_light_bind_group(graphics, &light_bind_group);
@@ -270,20 +270,20 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     {
-        WGPURenderPassColorAttachment object_attachments[] = {{
+        WGPURenderPassColorAttachment defferred_attachments[] = {{
             .view = graphics->color_view,
             .loadOp = WGPULoadOp_Clear,
             .storeOp = WGPUStoreOp_Store,
             .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
             .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
         }};
-        WGPURenderPassDescriptor object_render_pass_desc = {
-            .label = "object render pass encoder",
+        WGPURenderPassDescriptor deferred_render_pass_desc = {
+            .label = "defferred render pass encoder",
             .colorAttachmentCount = 1,
-            .colorAttachments = object_attachments,
+            .colorAttachments = defferred_attachments,
         };
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
-            command_encoder, &object_render_pass_desc);
+            command_encoder, &deferred_render_pass_desc);
 
         mat4s camera_projection =
             glms_ortho(0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0,
@@ -302,8 +302,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                    render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.defferred.object);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                         graphics->shaders.defferred.sprite);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, sprite_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
@@ -321,8 +321,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                    render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.defferred.object);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                         graphics->shaders.defferred.sprite);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, sprite_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
@@ -340,8 +340,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                    render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.defferred.object);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                         graphics->shaders.defferred.sprite);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, sprite_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
@@ -434,8 +434,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.forward.ui_object);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                         graphics->shaders.forward.ui_sprite);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, sprite_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
@@ -453,8 +453,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.forward.ui_object);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, object_bind_group, 0,
+                                         graphics->shaders.forward.ui_sprite);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, sprite_bind_group, 0,
                                           NULL);
         wgpuRenderPassEncoderSetVertexBuffer(
             render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
@@ -487,7 +487,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     if (physics->debug_draw)
         physics_debug_draw_free(&debug_ctx);
 
-    wgpuBindGroupRelease(object_bind_group);
+    wgpuBindGroupRelease(sprite_bind_group);
     wgpuBindGroupRelease(light_bind_group);
     wgpuBindGroupRelease(tilemap_bind_group);
     wgpuBindGroupRelease(screen_blit_bind_group);
@@ -514,8 +514,8 @@ void graphics_free(Graphics *graphics)
 
     layer_free(&graphics->ui_layers.background);
 
-    wgpuRenderPipelineRelease(graphics->shaders.defferred.object);
-    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.object);
+    wgpuRenderPipelineRelease(graphics->shaders.defferred.sprite);
+    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.sprite);
 
     wgpu_resources_free(&graphics->wgpu);
 }
