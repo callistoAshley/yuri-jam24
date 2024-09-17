@@ -6,6 +6,7 @@
 #include "cglm/types-struct.h"
 #include "core_types.h"
 #include "binding_helper.h"
+#include "graphics/caster_manager.h"
 #include "graphics/layer.h"
 #include "graphics/light.h"
 #include "graphics/quad_manager.h"
@@ -219,6 +220,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
+    caster_manager_write_dirty(&graphics->caster_manager, &graphics->wgpu);
 
     // FIXME we really should not be creating a new bind group every frame
     WGPUBindGroup object_bind_group;
