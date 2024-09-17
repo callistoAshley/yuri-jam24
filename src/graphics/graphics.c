@@ -10,6 +10,7 @@
 #include "graphics/layer.h"
 #include "graphics/light.h"
 #include "graphics/quad_manager.h"
+#include "graphics/shaders.h"
 #include "graphics/sprite.h"
 #include "graphics/tex_manager.h"
 #include "graphics/tilemap.h"
@@ -26,6 +27,8 @@ QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 
 DirectionalLight directional_light;
+
+CasterEntry *test;
 
 void tilemap_layer_draw(void *layer, void *context, Graphics *graphics,
                         WGPURenderPassEncoder pass)
@@ -65,6 +68,9 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     // texture manager has no gpu side resources allocated initially so no need
     // to pass wgpu
     texture_manager_init(&graphics->texture_manager);
+
+    test = caster_manager_load(&graphics->caster_manager,
+                               "assets/shadowcasters/player.shdw");
 
     layer_init(&graphics->tilemap_layers.background, tilemap_layer_draw, free);
     layer_init(&graphics->tilemap_layers.middle, tilemap_layer_draw, free);
@@ -215,6 +221,22 @@ void build_screen_blit_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_free(&builder);
 }
 
+void build_shadowmapping_bind_group(Graphics *graphics,
+                                    WGPUBindGroup *bind_group)
+{
+    BindGroupBuilder builder;
+    bind_group_builder_init(&builder);
+
+    bind_group_builder_append_buffer(&builder,
+                                     graphics->transform_manager.buffer);
+
+    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
+                                   graphics->bind_group_layouts.shadowmapping,
+                                   "Shadowmapping Bind Group");
+
+    bind_group_builder_free(&builder);
+}
+
 void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 {
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
@@ -234,6 +256,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
     WGPUBindGroup screen_blit_bind_group;
     build_screen_blit_bind_group(graphics, &screen_blit_bind_group);
+
+    WGPUBindGroup shadowmapping_bind_group;
+    build_shadowmapping_bind_group(graphics, &shadowmapping_bind_group);
 
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -269,6 +294,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuDeviceCreateCommandEncoder(graphics->wgpu.device, NULL);
 
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
+    u64 caster_buffer_size = wgpuBufferGetSize(graphics->caster_manager.buffer);
     {
         WGPURenderPassColorAttachment defferred_attachments[] = {{
             .view = graphics->color_view,
@@ -350,6 +376,26 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                             WGPUIndexFormat_Uint16, 0, 12);
         layer_draw(&graphics->sprite_layers.foreground, &camera, graphics,
                    render_pass);
+
+        wgpuRenderPassEncoderSetPipeline(
+            render_pass, graphics->shaders.shadowmapping.sprite);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
+                                          shadowmapping_bind_group, 0, NULL);
+        wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0,
+                                             graphics->caster_manager.buffer, 0,
+                                             caster_buffer_size);
+
+        SpriteShadowmapPushConstants push_constants = {
+            .camera = camera,
+            .transform_index = 3,
+        };
+        wgpuRenderPassEncoderSetPushConstants(
+            render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+            sizeof(SpriteShadowmapPushConstants), &push_constants);
+
+        CasterCell cell = test->cells[0];
+        wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
+                                  cell.start, 0);
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);
@@ -491,6 +537,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     wgpuBindGroupRelease(light_bind_group);
     wgpuBindGroupRelease(tilemap_bind_group);
     wgpuBindGroupRelease(screen_blit_bind_group);
+    wgpuBindGroupRelease(shadowmapping_bind_group);
 
     wgpuCommandBufferRelease(command_buffer);
     wgpuCommandEncoderRelease(command_encoder);

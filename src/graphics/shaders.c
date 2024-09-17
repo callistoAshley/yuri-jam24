@@ -25,13 +25,15 @@ create_shader(const char *path, const char *label, WGPUBindGroupLayout *layouts,
               u32 layout_count, WGPUPushConstantRange *push_constant_ranges,
               u32 push_constant_range_count, WGPUVertexBufferLayout *buffers,
               u32 buffer_count, WGPUColorTargetState *color_targets,
-              u32 target_count, WGPUResources *resources)
+              u32 target_count, WGPUDepthStencilState *depth_state,
+              WGPUPrimitiveState *primitive_state, WGPUResources *resources)
 {
-
     char *buf;
     long buf_len;
 
     read_entire_file(path, &buf, &buf_len);
+    if (!buf)
+        FATAL("failed to read shader file %s", path);
 
     // this uses null-terminated strings, but read_entire_file returns something
     // null-terminated anyway, so it's fine (really wish this used a
@@ -75,18 +77,23 @@ create_shader(const char *path, const char *label, WGPUBindGroupLayout *layouts,
     WGPUPrimitiveState primitive = {
         .topology = WGPUPrimitiveTopology_TriangleList,
     };
+    if (primitive_state)
+        primitive = *primitive_state;
+
+    // Antialiasing is for losers
     WGPUMultisampleState multisample = {
         .count = 1,
         .mask = 0xFFFFFFFF,
     };
 
     WGPURenderPipelineDescriptor descriptor = {
-        .label = "sprite",
+        .label = label,
         .layout = layout,
         .vertex = vertex_state,
         .fragment = &fragment_state,
         .primitive = primitive,
         .multisample = multisample,
+        .depthStencil = depth_state,
     };
     WGPURenderPipeline pipeline =
         wgpuDeviceCreateRenderPipeline(resources->device, &descriptor);
@@ -169,16 +176,32 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .blend = &alpha_blend,
     }};
 
+    // specific to shadow mapping
+    WGPUVertexAttribute shadow_vertex_attributes[] = {(WGPUVertexAttribute){
+        .format = WGPUVertexFormat_Float32x2,
+        .offset = 0,
+        .shaderLocation = 0,
+    }};
+    WGPUVertexBufferLayout shadow_vertex_buffer_layout = {
+        .arrayStride = sizeof(vec2s),
+        .stepMode = WGPUVertexStepMode_Vertex,
+        .attributeCount = 1,
+        .attributes = shadow_vertex_attributes,
+    };
+    WGPUPrimitiveState shadow_primitive = {
+        .topology = WGPUPrimitiveTopology_LineList,
+    };
+
     WGPUPushConstantRange sprite_constants[] =
         PUSH_CONSTANTS_FOR(SpritePushConstants);
     shaders->defferred.sprite =
         create_shader("assets/shaders/sprite.wgsl", "sprite", &layouts->sprite,
                       1, sprite_constants, 1, &quad_vertex_buffer_layout, 1,
-                      defferred_targets, 1, resources);
+                      defferred_targets, 1, NULL, NULL, resources);
     shaders->forward.ui_sprite = create_shader(
         "assets/shaders/ui_sprite.wgsl", "ui_sprite", &layouts->sprite, 1,
         sprite_constants, 1, &quad_vertex_buffer_layout, 1, surface_targets, 1,
-        resources);
+        NULL, NULL, resources);
 
     WGPUVertexAttribute tilemap_vertex_attributes[] = {(WGPUVertexAttribute){
         .format = WGPUVertexFormat_Sint32,
@@ -197,31 +220,32 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     shaders->defferred.tilemap = create_shader(
         "assets/shaders/tilemap.wgsl", "tilemap", &layouts->tilemap, 1,
         tilemap_constants, 1, &tilemap_vertex_buffer_layout, 1,
-        defferred_targets, 1, resources);
+        defferred_targets, 1, NULL, NULL, resources);
 
     WGPUPushConstantRange light_constants[] =
         PUSH_CONSTANTS_FOR(PointLightPushConstants);
-    shaders->lights.point = create_shader(
-        "assets/shaders/point_light.wgsl", "point_light", &layouts->lighting, 1,
-        light_constants, 1, NULL, 0, additive_surface_targets, 1, resources);
+    shaders->lights.point =
+        create_shader("assets/shaders/point_light.wgsl", "point_light",
+                      &layouts->lighting, 1, light_constants, 1, NULL, 0,
+                      additive_surface_targets, 1, NULL, NULL, resources);
 
     WGPUPushConstantRange direct_constants[] =
         PUSH_CONSTANTS_FOR(DirectLightPushConstants);
     shaders->lights.direct =
         create_shader("assets/shaders/direct_light.wgsl", "direct_light",
                       &layouts->lighting, 1, direct_constants, 1, NULL, 0,
-                      additive_surface_targets, 1, resources);
+                      additive_surface_targets, 1, NULL, NULL, resources);
 
     shaders->forward.screen_blit = create_shader(
         "assets/shaders/screen_blit.wgsl", "screen_blit", &layouts->screen_blit,
-        1, NULL, 0, NULL, 0, surface_targets, 1, resources);
+        1, NULL, 0, NULL, 0, surface_targets, 1, NULL, NULL, resources);
 
     WGPUPushConstantRange b2d_circle_constants[] =
         PUSH_CONSTANTS_FOR(B2DCirclePushConstants);
     shaders->box2d_debug.circle =
         create_shader("assets/shaders/b2d_circle.wgsl", "b2d_circle", NULL, 0,
                       b2d_circle_constants, 1, &quad_vertex_buffer_layout, 1,
-                      alpha_surface_targets, 1, resources);
+                      alpha_surface_targets, 1, NULL, NULL, resources);
 
     WGPUVertexAttribute b2d_polygon_attributes[] = {(WGPUVertexAttribute){
         .format = WGPUVertexFormat_Float32x2,
@@ -239,5 +263,13 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     shaders->box2d_debug.polygon =
         create_shader("assets/shaders/b2d_polygon.wgsl", "b2d_polygon", NULL, 0,
                       b2d_polygon_push_constants, 1, &b2d_buffer_layout, 1,
-                      alpha_surface_targets, 1, resources);
+                      alpha_surface_targets, 1, NULL, NULL, resources);
+
+    WGPUPushConstantRange shadowmapping_sprite_constants[] =
+        PUSH_CONSTANTS_FOR(SpriteShadowmapPushConstants);
+    shaders->shadowmapping.sprite = create_shader(
+        "assets/shaders/sprite_shadowmap.wgsl", "sprite_shadowmap",
+        &layouts->shadowmapping, 1, shadowmapping_sprite_constants, 1,
+        &shadow_vertex_buffer_layout, 1, defferred_targets, 1, NULL,
+        &shadow_primitive, resources);
 }

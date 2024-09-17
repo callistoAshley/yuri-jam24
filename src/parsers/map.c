@@ -166,66 +166,6 @@ static void parse_map_layers(INFF *inff, Map *map, MapLayer *into,
     }
 }
 
-void pretty_print_layer(MapLayer *layer)
-{
-    log_info("Layer: %s", layer->name);
-    log_info("Class: %s", layer->class_name);
-
-    switch (layer->type)
-    {
-    case Layer_Tile:
-        log_info("Type: Tile");
-        log_info("Parallax: %f, %f", layer->data.tile.parallax_x,
-                 layer->data.tile.parallax_y);
-        break;
-    case Layer_Object:
-        log_info("Type: Object");
-        log_info("Object count: %d", layer->data.object.object_len);
-        for (u32 i = 0; i < layer->data.object.object_len; i++)
-        {
-            Object *object = &layer->data.object.objects[i];
-            log_info("Object %d:", i);
-            log_info("Name: %s", object->name);
-            log_info("Class: %s", object->class_name);
-            log_info("Position: %f, %f", object->x, object->y);
-            log_info("Size: %f, %f", object->width, object->height);
-            log_info("Type: %d", object->type);
-            log_info("Vertex count: %d", object->polygon_len);
-            for (u32 j = 0; j < object->polygon_len; j++)
-            {
-                log_info("Vertex %d: %f, %f", j, object->polygons[j].x,
-                         object->polygons[j].y);
-            }
-        }
-        break;
-    case Layer_Image:
-        log_info("Type: Image");
-        log_info("Image path: %s", layer->data.image.image_path);
-        log_info("Parallax: %f, %f", layer->data.image.parallax_x,
-                 layer->data.image.parallax_y);
-        break;
-    case Layer_Group:
-        log_info("Type: Group");
-        log_info("Layer count: %d", layer->data.group.layer_len);
-        for (u32 i = 0; i < layer->data.group.layer_len; i++)
-        {
-            pretty_print_layer(&layer->data.group.layers[i]);
-        }
-        break;
-    }
-}
-
-void pretty_print_map(Map *map)
-{
-    log_info("Tileset: %s", map->tileset.name);
-    log_info("Image: %s", map->tileset.image_path);
-    log_info("Width: %d", map->width);
-    log_info("Height: %d", map->height);
-
-    for (u32 i = 0; i < map->layer_len; i++)
-        pretty_print_layer(&map->layers[i]);
-}
-
 void parse_map_from(Map *map, INFF *inff)
 {
     INFFChunk info = inff->chunks[0];
@@ -242,8 +182,6 @@ void parse_map_from(Map *map, INFF *inff)
     u32 current_layer = 0;
     for (u32 i = 1; i < inff->num_chunks;)
         parse_map_layers(inff, map, map->layers, &current_layer, &i);
-
-    pretty_print_map(map);
 }
 
 void map_layer_free(MapLayer *layer)

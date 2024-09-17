@@ -64,7 +64,7 @@ CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
     {
         Cell *cell = &shdw->cells[i];
         vec_resize(&manager->casters, manager->casters.len + cell->point_count);
-        memcpy(vec_get(&manager->casters, start), cell->points,
+        memcpy(manager->casters.data + start * sizeof(vec2s), cell->points,
                sizeof(vec2s) * cell->point_count);
         entry->cells[i].start = start;
         entry->cells[i].end = start + cell->point_count;
@@ -112,6 +112,6 @@ void caster_manager_write_dirty(CasterManager *manager,
     }
     wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
                          manager->casters.data,
-                         sizeof(vec2s) * manager->casters.len);
+                         sizeof(vec2s) * manager->casters.cap);
     manager->dirty = false;
 }

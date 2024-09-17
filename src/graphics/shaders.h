@@ -31,6 +31,11 @@ typedef struct Shaders
 
     struct
     {
+        WGPURenderPipeline sprite;
+    } shadowmapping;
+
+    struct
+    {
         WGPURenderPipeline line;
         // used for boxes and polygons
         WGPURenderPipeline polygon;
@@ -96,6 +101,12 @@ typedef struct
     vec3s color;
     alignas(16) f32 angle;
 } DirectLightPushConstants;
+
+typedef struct
+{
+    mat4s camera;
+    u32 transform_index;
+} SpriteShadowmapPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources);

@@ -10,6 +10,12 @@ SHDWFile *shdw_parse(const char *path, char out_err_msg[256])
     isize buffer_len;
     read_entire_file(path, &buffer, &buffer_len);
 
+    if (!buffer)
+    {
+        snprintf(out_err_msg, 256, "Failed to read file: %s", path);
+        return NULL;
+    }
+
     u64 offset = 0;
     memcpy(shdw->magic, buffer, 4);
     offset += 4;

@@ -11,6 +11,7 @@ typedef struct
     WGPUBindGroupLayout lighting;
     WGPUBindGroupLayout tilemap;
     WGPUBindGroupLayout screen_blit;
+    WGPUBindGroupLayout shadowmapping;
 } BindGroupLayouts;
 
 void bind_group_layouts_init(BindGroupLayouts *layouts,
