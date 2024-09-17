@@ -419,11 +419,11 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         };
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
             command_encoder, &shadowmap_pass_desc);
-        wgpuRenderPassEncoderSetViewport(render_pass, 0, 0, 160, 1, 0, 1);
+        wgpuRenderPassEncoderSetViewport(render_pass, 0, 0, 1024, 1, 0, 1);
 
-        mat4s camera_projection = glms_ortho(0.0, 160, 1, 0.0, -1.0f, 200.0f);
+        mat4s camera_projection = glms_ortho(0.0, 1024, 1, 0.0, -1.0f, 200.0f);
         mat4s camera_transform =
-            glms_look((vec3s){.x = 200.0, .y = -100.0, .z = 0.5},
+            glms_look((vec3s){.x = 512.0, .y = -100.0, .z = 0.5},
                       (vec3s){.x = 0.0, .y = 1.0, .z = 0.0},
                       (vec3s){.x = 0.0, .y = 0.0, .z = -1.0});
         mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
