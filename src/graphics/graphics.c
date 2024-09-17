@@ -121,27 +121,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
     }
 
-    {
-        WGPUExtent3D extents = {
-            .width = 1024,
-            .height = 64,
-            .depthOrArrayLayers = 1,
-        };
-        WGPUTextureDescriptor desc = {
-            .label = "shadowmap texture",
-            .size = extents,
-            .dimension = WGPUTextureDimension_2D,
-            .format = WGPUTextureFormat_Depth24Plus,
-            .mipLevelCount = 1,
-            .sampleCount = 1,
-            .usage = WGPUTextureUsage_RenderAttachment |
-                     WGPUTextureUsage_TextureBinding,
-        };
-        graphics->shadows =
-            wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
-        graphics->shadows_view = wgpuTextureCreateView(graphics->shadows, NULL);
-    }
-
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
     for (int i = 0; i < 10; i++)
@@ -318,7 +297,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuDeviceCreateCommandEncoder(graphics->wgpu.device, NULL);
 
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
-    u64 caster_buffer_size = wgpuBufferGetSize(graphics->caster_manager.buffer);
     {
         WGPURenderPassColorAttachment defferred_attachments[] = {{
             .view = graphics->color_view,
@@ -400,86 +378,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                             WGPUIndexFormat_Uint16, 0, 12);
         layer_draw(&graphics->sprite_layers.foreground, &camera, graphics,
                    render_pass);
-
-        wgpuRenderPassEncoderEnd(render_pass);
-        wgpuRenderPassEncoderRelease(render_pass);
-    }
-
-    // perform shadowmapping
-    {
-        WGPURenderPassDepthStencilAttachment depth_stencil = {
-            .view = graphics->shadows_view,
-            .depthClearValue = 1.0f,
-            .depthLoadOp = WGPULoadOp_Clear,
-            .depthStoreOp = WGPUStoreOp_Store,
-        };
-        WGPURenderPassDescriptor shadowmap_pass_desc = {
-            .label = "shadowmap render pass encoder",
-            .depthStencilAttachment = &depth_stencil,
-        };
-        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
-            command_encoder, &shadowmap_pass_desc);
-        wgpuRenderPassEncoderSetViewport(render_pass, 0, 0, 1024, 1, 0, 1);
-
-        mat4s camera_projection = glms_ortho(0.0, 1024, 1, 0.0, -1.0f, 200.0f);
-        mat4s camera_transform =
-            glms_look((vec3s){.x = 512.0, .y = -100.0, .z = 0.5},
-                      (vec3s){.x = 0.0, .y = 1.0, .z = 0.0},
-                      (vec3s){.x = 0.0, .y = 0.0, .z = -1.0});
-        mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
-
-        wgpuRenderPassEncoderSetPipeline(
-            render_pass, graphics->shaders.shadowmapping.sprite);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
-                                          shadowmapping_bind_group, 0, NULL);
-        wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0,
-                                             graphics->caster_manager.buffer, 0,
-                                             caster_buffer_size);
-
-        SpriteShadowmapPushConstants push_constants = {
-            .camera = camera,
-            .transform_index = 3,
-        };
-        wgpuRenderPassEncoderSetPushConstants(
-            render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-            sizeof(SpriteShadowmapPushConstants), &push_constants);
-
-        CasterCell cell = test->cells[0];
-        wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
-                                  cell.start, 0);
-
-        wgpuRenderPassEncoderSetPipeline(
-            render_pass, graphics->shaders.shadowmapping.tilemap);
-
-        TilemapLayer *layer =
-            *(TilemapLayer **)graphics->tilemap_layers.middle.entries.data;
-        Tilemap *tilemap = layer->tilemap;
-
-        for (i32 y = 0; y < tilemap->map_h; y++)
-        {
-            for (i32 x = 0; x < tilemap->map_w; x++)
-            {
-                i32 tile = tilemap->map_data[y * tilemap->map_w + x];
-                if (tile < 0)
-                    continue;
-
-                CasterCell cell = test2->cells[tile];
-
-                TilemapShadowmapPushConstants push_constants = {
-                    .camera = camera,
-                    .transform_index = tilemap->transform,
-                    .tile_x = x,
-                    .tile_y = y,
-                };
-                wgpuRenderPassEncoderSetPushConstants(
-                    render_pass,
-                    WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-                    sizeof(TilemapShadowmapPushConstants), &push_constants);
-
-                wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
-                                          cell.start, 0);
-            }
-        }
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);
