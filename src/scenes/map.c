@@ -183,9 +183,11 @@ void map_scene_init(Scene **scene_data, Resources *resources)
     map_scene->type = Scene_Map;
     *scene_data = (Scene *)map_scene;
 
-    fr = FMOD_Studio_System_GetEvent(resources->audio->system, "event:/bgm_test", &test_bgm);
+    fr = FMOD_Studio_System_GetEvent(resources->audio->system,
+                                     "event:/bgm_test", &test_bgm);
     FMOD_ERRCHK(fr, "fhasjdf");
-    fr = FMOD_Studio_EventDescription_CreateInstance(test_bgm, &test_bgm_instance);
+    fr = FMOD_Studio_EventDescription_CreateInstance(test_bgm,
+                                                     &test_bgm_instance);
     FMOD_ERRCHK(fr, "gasdfhuhu");
     fr = FMOD_Studio_EventInstance_Start(test_bgm_instance);
     FMOD_ERRCHK(fr, "juihuij");
@@ -257,9 +259,10 @@ void map_scene_update(Scene *scene_data, Resources *resources)
         map_scene->freecam = !map_scene->freecam;
 
     player_update(&map_scene->player, resources, map_scene->freecam);
-    printf("%f\n", map_scene->player.transform.position.x);
 
-    FMOD_Studio_EventInstance_SetParameterByName(test_bgm_instance, "test", map_scene->player.transform.position.x / 300.0f, false);
+    FMOD_Studio_EventInstance_SetParameterByName(
+        test_bgm_instance, "test",
+        map_scene->player.transform.position.x / 300.0f, false);
 
     if (map_scene->freecam)
     {
