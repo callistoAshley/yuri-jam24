@@ -15,6 +15,7 @@ struct PushConstants {
   // these are angles on a circle, so they are in the range of 0 to 2 * PI
   // we want the light to only be visible inside the min and max angle
   angle: vec2f,
+  shadowmap_offset: vec2f,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -83,6 +84,9 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
     let tex_coords = in.position.xy / SCREEN_SIZE;
 
+    let mask_tex_coords = (tex_coords + push_constants.shadowmap_offset / SCREEN_SIZE) / 16.0;
+    var mask = textureSample(shadow, tex_sampler, mask_tex_coords);
+
     let color = textureSample(color, tex_sampler, tex_coords);
 
     let dist = distance(push_constants.position, frag_world_coord);
@@ -97,7 +101,12 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
     let angular_falloff = angular_falloff(push_constants.angle.x, push_constants.angle.y, angle);
 
-    let final_intensity = push_constants.intensity * angular_falloff * radial_falloff;
+    var mask_intensity = 1.0;
+    if mask.r > 0.1 {
+        mask_intensity = 0.25;
+    }
+
+    let final_intensity = push_constants.intensity * angular_falloff * radial_falloff * mask_intensity;
     let light_color = push_constants.color * final_intensity;
 
     let shaded_color = color.rgb * light_color;

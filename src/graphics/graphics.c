@@ -149,14 +149,14 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     for (int i = 0; i < 10; i++)
     {
         PointLight *light = malloc(sizeof(PointLight));
-        point_light_init(light, (vec3s){.x = i * 25.0 + 50.0, .y = 75.0},
-                         (vec3s){.x = i / 10.0, .y = 0.1, .z = 1.0}, 50.0f);
+        point_light_init(light, (vec3s){.x = i * 25.0 + 50.0, .y = 50.0},
+                         (vec3s){.x = i / 10.0, .y = 0.1, .z = 1.0}, 100.0f);
 
         layer_add(&graphics->lights, light);
     }
 
     directional_light_init(&directional_light,
-                           (vec3s){.x = 1.0, .y = 1.0, .z = 1.0}, 0.0);
+                           (vec3s){.x = 0.1, .y = 0.1, .z = 0.1}, 0.0);
 
     // screen quad
     {
@@ -423,9 +423,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         };
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
             command_encoder, &render_pass_desc);
-        wgpuRenderPassEncoderSetViewport(render_pass, 0, 0,
-                                         INTERNAL_SCREEN_WIDTH,
-                                         INTERNAL_SCREEN_HEIGHT, 0, 1);
+
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.lights.shadowmap);
 
         mat4s camera_projection =
             glms_ortho(0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0,
@@ -436,50 +436,113 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
             (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
         mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
-        wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.lights.shadowmap);
-
-        ShadowmapPushConstants push_constants = {
-            .camera = camera,
-            .transform_index = 3,
-            .light_position = (vec2s){.x = 100.0, .y = 0.0},
-            .offset = (vec2s){.x = 0.0, .y = 0.0}};
-
-        wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0,
-                                             graphics->caster_manager.buffer, 0,
-                                             caster_buffer_size);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
-                                          shadowmapping_bind_group, 0, 0);
-        wgpuRenderPassEncoderSetPushConstants(
-            render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-            sizeof(ShadowmapPushConstants), &push_constants);
-
-        CasterCell cell = test->cells[0];
-        wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
-                                  cell.start, 0);
-
-        TilemapLayer *layer =
-            *(TilemapLayer **)graphics->tilemap_layers.middle.entries.data;
-        Tilemap *tilemap = layer->tilemap;
-        push_constants.transform_index = tilemap->transform;
-
-        for (i32 y = 0; y < tilemap->map_h; y++)
+        // perform shadowmapping for the direct light
         {
-            for (i32 x = 0; x < tilemap->map_w; x++)
+            wgpuRenderPassEncoderSetViewport(render_pass, 0, 0,
+                                             INTERNAL_SCREEN_WIDTH,
+                                             INTERNAL_SCREEN_HEIGHT, 0, 1);
+
+            ShadowmapPushConstants push_constants = {
+                .camera = camera,
+                .transform_index = 3,
+                .light_position = (vec2s){.x = -100000.0, .y = -100000.0},
+                .offset = (vec2s){.x = 0.0, .y = 0.0}};
+
+            wgpuRenderPassEncoderSetVertexBuffer(
+                render_pass, 0, graphics->caster_manager.buffer, 0,
+                caster_buffer_size);
+            wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
+                                              shadowmapping_bind_group, 0, 0);
+            wgpuRenderPassEncoderSetPushConstants(
+                render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+                0, sizeof(ShadowmapPushConstants), &push_constants);
+
+            CasterCell cell = test->cells[0];
+            wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
+                                      cell.start, 0);
+
+            TilemapLayer *layer =
+                *(TilemapLayer **)graphics->tilemap_layers.middle.entries.data;
+            Tilemap *tilemap = layer->tilemap;
+            push_constants.transform_index = tilemap->transform;
+
+            for (i32 y = 0; y < tilemap->map_h; y++)
             {
-                i32 tile = tilemap->map_data[y * tilemap->map_w + x];
-                if (tile < 0)
-                    continue;
+                for (i32 x = 0; x < tilemap->map_w; x++)
+                {
+                    i32 tile = tilemap->map_data[y * tilemap->map_w + x];
+                    if (tile < 0)
+                        continue;
 
-                CasterCell cell = test2->cells[tile];
-                push_constants.offset = (vec2s){.x = x * 8, .y = y * 8};
-                wgpuRenderPassEncoderSetPushConstants(
-                    render_pass,
-                    WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-                    sizeof(ShadowmapPushConstants), &push_constants);
+                    CasterCell cell = test2->cells[tile];
+                    push_constants.offset = (vec2s){.x = x * 8, .y = y * 8};
+                    wgpuRenderPassEncoderSetPushConstants(
+                        render_pass,
+                        WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+                        sizeof(ShadowmapPushConstants), &push_constants);
 
-                wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
-                                          cell.start, 0);
+                    wgpuRenderPassEncoderDraw(
+                        render_pass, cell.end - cell.start, 1, cell.start, 0);
+                }
+            }
+        }
+
+        for (u32 i = 0; i < graphics->lights.entries.len; i++)
+        {
+            u32 actual_index = i + 1;
+            u32 vx = actual_index % 16 * INTERNAL_SCREEN_WIDTH;
+            u32 vy = actual_index / 16 * INTERNAL_SCREEN_HEIGHT;
+
+            wgpuRenderPassEncoderSetViewport(render_pass, vx, vy,
+                                             INTERNAL_SCREEN_WIDTH,
+                                             INTERNAL_SCREEN_HEIGHT, 0.0, 1.0);
+
+            PointLight *light =
+                *(PointLight **)vec_get(&graphics->lights.entries, i);
+
+            ShadowmapPushConstants push_constants = {
+                .camera = camera,
+                .transform_index = 3,
+                .light_position =
+                    (vec2s){.x = light->position.x, .y = light->position.y},
+                .offset = (vec2s){.x = 0.0, .y = 0.0}};
+
+            wgpuRenderPassEncoderSetVertexBuffer(
+                render_pass, 0, graphics->caster_manager.buffer, 0,
+                caster_buffer_size);
+            wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
+                                              shadowmapping_bind_group, 0, 0);
+            wgpuRenderPassEncoderSetPushConstants(
+                render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment,
+                0, sizeof(ShadowmapPushConstants), &push_constants);
+
+            CasterCell cell = test->cells[0];
+            wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
+                                      cell.start, 0);
+
+            TilemapLayer *layer =
+                *(TilemapLayer **)graphics->tilemap_layers.middle.entries.data;
+            Tilemap *tilemap = layer->tilemap;
+            push_constants.transform_index = tilemap->transform;
+
+            for (i32 y = 0; y < tilemap->map_h; y++)
+            {
+                for (i32 x = 0; x < tilemap->map_w; x++)
+                {
+                    i32 tile = tilemap->map_data[y * tilemap->map_w + x];
+                    if (tile < 0)
+                        continue;
+
+                    CasterCell cell = test2->cells[tile];
+                    push_constants.offset = (vec2s){.x = x * 8, .y = y * 8};
+                    wgpuRenderPassEncoderSetPushConstants(
+                        render_pass,
+                        WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+                        sizeof(ShadowmapPushConstants), &push_constants);
+
+                    wgpuRenderPassEncoderDraw(
+                        render_pass, cell.end - cell.start, 1, cell.start, 0);
+                }
             }
         }
 
@@ -513,7 +576,34 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.lights.point);
 
-        layer_draw(&graphics->lights, &raw_camera, graphics, render_pass);
+        for (u32 i = 0; i < graphics->lights.entries.len; i++)
+        {
+            PointLight *light =
+                *(PointLight **)vec_get(&graphics->lights.entries, i);
+
+            u32 actual_index = i + 1;
+            u32 vx = actual_index % 16 * INTERNAL_SCREEN_WIDTH;
+            u32 vy = actual_index / 16 * INTERNAL_SCREEN_HEIGHT;
+
+            PointLightPushConstants push_constants = {
+                .color = light->color,
+
+                .position =
+                    (vec2s){.x = light->position.x, .y = light->position.y},
+                .camera_position =
+                    (vec2s){.x = raw_camera.x, .y = raw_camera.y},
+
+                .radius = light->radius,
+                .intensity = light->intensity,
+                .volumetric_intensity = light->volumetric_intensity,
+                .angle = light->angle,
+                .shadowmap_offset = (vec2s){.x = vx, .y = vy}};
+
+            wgpuRenderPassEncoderSetPushConstants(
+                render_pass, WGPUShaderStage_Fragment | WGPUShaderStage_Vertex,
+                0, sizeof(PointLightPushConstants), &push_constants);
+            wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1, 0, 0);
+        }
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);
