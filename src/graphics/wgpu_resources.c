@@ -110,13 +110,20 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
 
     WGPURequestAdapterOptions adapter_options = {
         .compatibleSurface = resources->surface,
-        .powerPreference = WGPUPowerPreference_HighPerformance,
+        .powerPreference = WGPUPowerPreference_LowPower,
     };
     // handle_request_adapter is called asynchronously, and is expected to set
     // graphics->adapter
     wgpuInstanceRequestAdapter(resources->instance, &adapter_options,
                                handle_request_adapter, resources);
     PTR_ERRCHK(resources->adapter, "failed to request WGPU adapter");
+
+    WGPUAdapterInfo adapter_info;
+    wgpuAdapterGetInfo(resources->adapter, &adapter_info);
+    printf("Selected %s: %d\n", adapter_info.device, adapter_info.deviceID);
+    printf("%s\n", adapter_info.description);
+    printf("Vendor %s\n", adapter_info.vendor);
+    printf("Arch %s\n", adapter_info.architecture);
 
     // SIGNIFICANTLY reduce the hardware we can support. still runs on my shitty
     // macbook from 2014 though

@@ -179,6 +179,11 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .blend = &alpha_blend,
     }};
 
+    WGPUColorTargetState shadowmap_targets[] = {(WGPUColorTargetState){
+        .format = WGPUTextureFormat_R8Unorm,
+        .writeMask = WGPUColorWriteMask_All,
+    }};
+
     WGPUPushConstantRange sprite_constants[] =
         PUSH_CONSTANTS_FOR(SpritePushConstants);
     shaders->defferred.sprite =
@@ -251,4 +256,28 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         create_shader("assets/shaders/b2d_polygon.wgsl", "b2d_polygon", NULL, 0,
                       b2d_polygon_push_constants, 1, &b2d_buffer_layout, 1,
                       alpha_surface_targets, 1, NULL, NULL, resources);
+
+    WGPUVertexAttribute shadowmap_vertex_attributes[] = {(WGPUVertexAttribute){
+        .format = WGPUVertexFormat_Float32x3,
+        .offset = 0,
+        .shaderLocation = 0,
+    }};
+    WGPUVertexBufferLayout shadowmap_vertex_buffer_layout = {
+        .arrayStride = sizeof(vec3s),
+        .stepMode = WGPUVertexStepMode_Vertex,
+        .attributeCount = 1,
+        .attributes = shadowmap_vertex_attributes};
+    WGPUPrimitiveState shadowmap_primitive = {
+        .topology = WGPUPrimitiveTopology_TriangleList,
+        .stripIndexFormat = WGPUIndexFormat_Undefined,
+        .frontFace = WGPUFrontFace_CCW,
+        .cullMode = WGPUCullMode_None,
+    };
+
+    WGPUPushConstantRange shadowmap_constants[] =
+        PUSH_CONSTANTS_FOR(ShadowmapPushConstants);
+    shaders->lights.shadowmap = create_shader(
+        "assets/shaders/shadowmap.wgsl", "shadowmap", &layouts->shadowmap, 1,
+        shadowmap_constants, 1, &shadowmap_vertex_buffer_layout, 1,
+        shadowmap_targets, 1, NULL, &shadowmap_primitive, resources);
 }

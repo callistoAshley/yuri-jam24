@@ -33,6 +33,9 @@ typedef struct Graphics
     WGPUTexture color;
     WGPUTextureView color_view;
 
+    WGPUTexture shadow_mask;
+    WGPUTextureView shadow_mask_view;
+
     // after rendering to the color and normal textures, we do deffered shading
     // and render the result to the lit texture. this texture is then upscaled
     // and drawn to the screen.

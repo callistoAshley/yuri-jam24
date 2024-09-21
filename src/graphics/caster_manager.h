@@ -23,7 +23,7 @@ typedef struct
 
 typedef struct
 {
-    vec casters; // vec<vec2s>
+    vec casters; // vec<vec3s>
     vec entries; // a list of CasterEntry
     WGPUBuffer buffer;
     bool dirty;

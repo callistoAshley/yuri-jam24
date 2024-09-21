@@ -27,6 +27,7 @@ typedef struct Shaders
     {
         WGPURenderPipeline point;
         WGPURenderPipeline direct;
+        WGPURenderPipeline shadowmap;
     } lights;
 
     struct
@@ -96,6 +97,14 @@ typedef struct
     vec3s color;
     alignas(16) f32 angle;
 } DirectLightPushConstants;
+
+typedef struct
+{
+    mat4s camera;
+    u32 transform_index;
+    alignas(8) vec2s offset;
+    vec2s light_position;
+} ShadowmapPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources);

@@ -121,6 +121,29 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
     }
 
+    {
+        // support 16*16 = 256 lights
+        WGPUExtent3D extents = {
+            .width = INTERNAL_SCREEN_WIDTH * 16,
+            .height = INTERNAL_SCREEN_HEIGHT * 16,
+            .depthOrArrayLayers = 1,
+        };
+        WGPUTextureDescriptor desc = {
+            .label = "shadow mask texture",
+            .size = extents,
+            .dimension = WGPUTextureDimension_2D,
+            .format = WGPUTextureFormat_R8Unorm,
+            .mipLevelCount = 1,
+            .sampleCount = 1,
+            .usage = WGPUTextureUsage_RenderAttachment |
+                     WGPUTextureUsage_TextureBinding,
+        };
+        graphics->shadow_mask =
+            wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
+        graphics->shadow_mask_view =
+            wgpuTextureCreateView(graphics->shadow_mask, NULL);
+    }
+
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
 
     for (int i = 0; i < 10; i++)
@@ -234,7 +257,7 @@ void build_shadowmapping_bind_group(Graphics *graphics,
                                      graphics->transform_manager.buffer);
 
     *bind_group = bind_group_build(&builder, graphics->wgpu.device,
-                                   graphics->bind_group_layouts.shadowmapping,
+                                   graphics->bind_group_layouts.shadowmap,
                                    "Shadowmapping Bind Group");
 
     bind_group_builder_free(&builder);
@@ -297,6 +320,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuDeviceCreateCommandEncoder(graphics->wgpu.device, NULL);
 
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
+    u64 caster_buffer_size = wgpuBufferGetSize(graphics->caster_manager.buffer);
     {
         WGPURenderPassColorAttachment defferred_attachments[] = {{
             .view = graphics->color_view,
@@ -378,6 +402,87 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                             WGPUIndexFormat_Uint16, 0, 12);
         layer_draw(&graphics->sprite_layers.foreground, &camera, graphics,
                    render_pass);
+
+        wgpuRenderPassEncoderEnd(render_pass);
+        wgpuRenderPassEncoderRelease(render_pass);
+    }
+
+    {
+        WGPURenderPassColorAttachment attachments[] = {{
+            .view = graphics->shadow_mask_view,
+            .loadOp = WGPULoadOp_Clear,
+            .storeOp = WGPUStoreOp_Store,
+            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+        }};
+        WGPURenderPassDescriptor render_pass_desc = {
+            .label = "shadowmap render pass encoder",
+            .colorAttachmentCount = 1,
+            .colorAttachments = attachments,
+        };
+        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
+            command_encoder, &render_pass_desc);
+        wgpuRenderPassEncoderSetViewport(render_pass, 0, 0,
+                                         INTERNAL_SCREEN_WIDTH,
+                                         INTERNAL_SCREEN_HEIGHT, 0, 1);
+
+        mat4s camera_projection =
+            glms_ortho(0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0,
+                       -1.0f, 1.0f);
+        mat4s camera_transform = glms_look(
+            (vec3s){.x = raw_camera.x, .y = raw_camera.y, .z = raw_camera.z},
+            (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+            (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
+        mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
+
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.lights.shadowmap);
+
+        ShadowmapPushConstants push_constants = {
+            .camera = camera,
+            .transform_index = 3,
+            .light_position = (vec2s){.x = 0.0, .y = -200000.0},
+            .offset = (vec2s){.x = 0.0, .y = 0.0}};
+
+        wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0,
+                                             graphics->caster_manager.buffer, 0,
+                                             caster_buffer_size);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
+                                          shadowmapping_bind_group, 0, 0);
+        wgpuRenderPassEncoderSetPushConstants(
+            render_pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+            sizeof(ShadowmapPushConstants), &push_constants);
+
+        CasterCell cell = test->cells[0];
+        wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
+                                  cell.start, 0);
+
+        TilemapLayer *layer =
+            *(TilemapLayer **)graphics->tilemap_layers.middle.entries.data;
+        Tilemap *tilemap = layer->tilemap;
+
+        for (i32 y = 0; y < tilemap->map_h; y++)
+        {
+            for (i32 x = 0; x < tilemap->map_w; x++)
+            {
+                i32 tile = tilemap->map_data[y * tilemap->map_w + x];
+                if (tile < 0)
+                    continue;
+
+                CasterCell cell = test2->cells[tile];
+
+                ShadowmapPushConstants push_constants = {
+                    .camera = camera,
+                    .transform_index = tilemap->transform,
+                    .offset = (vec2s){.x = x * 8, .y = y * 8}};
+                wgpuRenderPassEncoderSetPushConstants(
+                    render_pass,
+                    WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+                    sizeof(ShadowmapPushConstants), &push_constants);
+
+                wgpuRenderPassEncoderDraw(render_pass, cell.end - cell.start, 1,
+                                          cell.start, 0);
+            }
+        }
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);

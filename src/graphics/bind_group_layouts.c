@@ -155,8 +155,7 @@ void build_screen_blit_layout(BindGroupLayouts *layouts,
 }
 
 // just the transform buffer, nothing else
-void build_shadowmapping_layout(BindGroupLayouts *layouts,
-                                WGPUResources *resources)
+void build_shadowmap_layout(BindGroupLayouts *layouts, WGPUResources *resources)
 {
     BindGroupLayoutBuilder builder;
     bind_group_layout_builder_init(&builder);
@@ -170,7 +169,7 @@ void build_shadowmapping_layout(BindGroupLayouts *layouts,
     };
     bind_group_layout_builder_append(&builder, entry);
 
-    layouts->shadowmapping = bind_group_layout_build(
+    layouts->shadowmap = bind_group_layout_build(
         &builder, resources->device, "Shadowmapping Bind Group Layout");
     bind_group_layout_builder_free(&builder);
 }
@@ -182,5 +181,5 @@ void bind_group_layouts_init(BindGroupLayouts *layouts,
     build_light_layout(layouts, resources);
     build_tilemap_layout(layouts, resources);
     build_screen_blit_layout(layouts, resources);
-    build_shadowmapping_layout(layouts, resources);
+    build_shadowmap_layout(layouts, resources);
 }

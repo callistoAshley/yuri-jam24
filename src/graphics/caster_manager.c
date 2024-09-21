@@ -3,11 +3,11 @@
 #include "utility/macros.h"
 
 #define INITIAL_BUFFER_CAP 256
-#define INITIAL_BUFFER_SIZE sizeof(vec2s) * INITIAL_BUFFER_CAP
+#define INITIAL_BUFFER_SIZE sizeof(vec3s) * INITIAL_BUFFER_CAP
 
 void caster_manager_init(CasterManager *manager, WGPUResources *resources)
 {
-    vec_init(&manager->casters, sizeof(vec2s));
+    vec_init(&manager->casters, sizeof(vec3s));
     // need to store pointers to make sure they have a stable address
     vec_init(&manager->entries, sizeof(CasterEntry *));
     WGPUBufferDescriptor buffer_desc = {
@@ -57,17 +57,50 @@ CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
     CasterEntry *entry = malloc(sizeof(CasterEntry));
     entry->path = strdup(path);
     entry->cell_count = shdw->cell_count;
-    entry->cells = malloc(sizeof(CasterCell) * shdw->cell_count);
+    entry->cells = calloc(shdw->cell_count, sizeof(CasterCell));
 
+    // upload everything as vec3 triangle strips
     for (u32 i = 0; i < shdw->cell_count; i++)
     {
         Cell *cell = &shdw->cells[i];
-        vec_resize(&manager->casters, manager->casters.len + cell->point_count);
-        memcpy(manager->casters.data + manager->casters.len * sizeof(vec2s),
-               cell->points, sizeof(vec2s) * cell->point_count);
         entry->cells[i].start = manager->casters.len;
-        entry->cells[i].end = manager->casters.len + cell->point_count;
-        manager->casters.len += cell->point_count;
+        for (u32 j = 0; j < cell->point_count; j += 2)
+        {
+            // 0
+            vec3s point;
+            point.x = cell->points[j].x;
+            point.y = cell->points[j].y;
+            point.z = 0;
+            vec_push(&manager->casters, &point);
+
+            // 1
+            point.x = cell->points[j + 1].x;
+            point.y = cell->points[j + 1].y;
+            point.z = 0;
+            vec_push(&manager->casters, &point);
+
+            // 2
+            point.x = cell->points[j].x;
+            point.y = cell->points[j].y;
+            point.z = 1;
+            vec_push(&manager->casters, &point);
+
+            // 2
+            vec_push(&manager->casters, &point);
+
+            // 1
+            point.x = cell->points[j + 1].x;
+            point.y = cell->points[j + 1].y;
+            point.z = 0;
+            vec_push(&manager->casters, &point);
+
+            // 3
+            point.x = cell->points[j + 1].x;
+            point.y = cell->points[j + 1].y;
+            point.z = 1;
+            vec_push(&manager->casters, &point);
+        }
+        entry->cells[i].end = manager->casters.len;
     }
     vec_push(&manager->entries, &entry);
 
@@ -97,12 +130,12 @@ void caster_manager_write_dirty(CasterManager *manager,
         return;
 
     u32 buffer_size = wgpuBufferGetSize(manager->buffer);
-    bool needs_regen = buffer_size < sizeof(vec2s) * manager->casters.cap;
+    bool needs_regen = buffer_size < sizeof(vec3s) * manager->casters.cap;
     if (needs_regen)
     {
         wgpuBufferRelease(manager->buffer);
         WGPUBufferDescriptor buffer_desc = {
-            .size = sizeof(vec2s) * manager->casters.cap,
+            .size = sizeof(vec3s) * manager->casters.cap,
             .usage = WGPUBufferUsage_CopyDst | WGPUBufferUsage_Vertex,
             .label = "caster manager buffer",
         };
@@ -111,6 +144,6 @@ void caster_manager_write_dirty(CasterManager *manager,
     }
     wgpuQueueWriteBuffer(resources->queue, manager->buffer, 0,
                          manager->casters.data,
-                         sizeof(vec2s) * manager->casters.cap);
+                         sizeof(vec3s) * manager->casters.cap);
     manager->dirty = false;
 }
