@@ -156,7 +156,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     }
 
     directional_light_init(&directional_light,
-                           (vec3s){.x = 0.2, .y = 0.2, .z = 0.2}, 0.0);
+                           (vec3s){.x = 1.0, .y = 1.0, .z = 1.0}, 0.0);
 
     // screen quad
     {
@@ -201,6 +201,8 @@ void build_light_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_init(&builder);
 
     bind_group_builder_append_texture_view(&builder, graphics->color_view);
+    bind_group_builder_append_texture_view(&builder,
+                                           graphics->shadow_mask_view);
     bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     *bind_group = bind_group_build(&builder, graphics->wgpu.device,
@@ -440,7 +442,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         ShadowmapPushConstants push_constants = {
             .camera = camera,
             .transform_index = 3,
-            .light_position = (vec2s){.x = 0.0, .y = -200000.0},
+            .light_position = (vec2s){.x = 100.0, .y = 0.0},
             .offset = (vec2s){.x = 0.0, .y = 0.0}};
 
         wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0,
@@ -459,6 +461,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         TilemapLayer *layer =
             *(TilemapLayer **)graphics->tilemap_layers.middle.entries.data;
         Tilemap *tilemap = layer->tilemap;
+        push_constants.transform_index = tilemap->transform;
 
         for (i32 y = 0; y < tilemap->map_h; y++)
         {
@@ -469,11 +472,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                     continue;
 
                 CasterCell cell = test2->cells[tile];
-
-                ShadowmapPushConstants push_constants = {
-                    .camera = camera,
-                    .transform_index = tilemap->transform,
-                    .offset = (vec2s){.x = x * 8, .y = y * 8}};
+                push_constants.offset = (vec2s){.x = x * 8, .y = y * 8};
                 wgpuRenderPassEncoderSetPushConstants(
                     render_pass,
                     WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,

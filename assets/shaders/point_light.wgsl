@@ -22,6 +22,8 @@ var<push_constant> push_constants: PushConstants;
 @group(0) @binding(0)
 var color: texture_2d<f32>;
 @group(0) @binding(1)
+var shadow: texture_2d<f32>;
+@group(0) @binding(2)
 var tex_sampler: sampler;
 
 const POSITIONS: array<vec2f, 6> = array<vec2f, 6>(

@@ -12,6 +12,8 @@ var<push_constant> push_constants: PushConstants;
 @group(0) @binding(0)
 var color: texture_2d<f32>;
 @group(0) @binding(1)
+var shadow: texture_2d<f32>;
+@group(0) @binding(2)
 var tex_sampler: sampler;
 
 const POSITIONS: array<vec2f, 6> = array<vec2f, 6>(
@@ -38,7 +40,15 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let screen_size = vec2f(160.0, 90.0);
     let tex_coords = in.position.xy / screen_size;
 
+    let mask_tex_coords = tex_coords / 16.0;
+
     var color = textureSample(color, tex_sampler, tex_coords);
+    var mask = textureSample(shadow, tex_sampler, mask_tex_coords);
+
+    if mask.r > 0.1 {
+      discard;
+    }
+
     if color.a < 0.1 {
         color = vec4f(0.05, 0.05, 0.05, 1.0);
     }

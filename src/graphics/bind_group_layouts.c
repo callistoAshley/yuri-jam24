@@ -63,6 +63,7 @@ void build_light_layout(BindGroupLayouts *layouts, WGPUResources *resources)
         .visibility = WGPUShaderStage_Fragment,
     };
     bind_group_layout_builder_append(&builder, entry);
+    bind_group_layout_builder_append(&builder, entry);
 
     WGPUSamplerBindingLayout sampler_layout = {
         .type = WGPUSamplerBindingType_NonFiltering,
