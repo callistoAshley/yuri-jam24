@@ -110,6 +110,13 @@ void title_scene_update(Scene *scene_data, Resources *resources)
                 INTERNAL_SCREEN_WIDTH;
     f32 start_y = 70 * scale;
 
+    if (resources->graphics->was_resized)
+    {
+        Transform transform = transform_from_scale(VEC3_SPLAT(scale));
+        transform_manager_update(&resources->graphics->transform_manager,
+                                 title_scene->background.transform, transform);
+    }
+
     bool selected_option = false;
     for (u32 i = 0; i < 3; i++)
     {
@@ -121,6 +128,15 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         u32 height = wgpuTextureGetHeight(texture);
 
         f32 sprite_x = (INTERNAL_SCREEN_WIDTH * scale - width) / 2;
+
+        // uh oh, looks like we've resized. we need to reposition the options
+        if (resources->graphics->was_resized)
+        {
+            Transform transform = transform_from_xyz(sprite_x, start_y, 0);
+            transform_manager_update(&resources->graphics->transform_manager,
+                                     option->transform, transform);
+        }
+
         bool outside_y = mouse_y < start_y || mouse_y > start_y + height;
         bool outside_x = mouse_x < sprite_x || mouse_x > sprite_x + width;
         if (outside_x || outside_y)

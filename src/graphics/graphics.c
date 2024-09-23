@@ -159,6 +159,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         };
         screen_quad_index = quad_manager_add(&graphics->quad_manager, quad);
     }
+
+    graphics->was_resized = false;
 }
 
 void build_sprite_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
@@ -560,6 +562,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     wgpuCommandEncoderRelease(command_encoder);
     wgpuTextureViewRelease(frame);
     wgpuTextureRelease(surface_texture.texture);
+
+    graphics->was_resized = false;
 }
 
 void graphics_free(Graphics *graphics)
@@ -590,4 +594,6 @@ void graphics_resize(Graphics *graphics, int width, int height)
     graphics->wgpu.surface_config.height = height;
     wgpuSurfaceConfigure(graphics->wgpu.surface,
                          &graphics->wgpu.surface_config);
+
+    graphics->was_resized = true;
 }

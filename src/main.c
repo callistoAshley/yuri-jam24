@@ -139,6 +139,12 @@ int main(int argc, char **argv)
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
             input_process(&event, &input);
+
+            if (event.type == SDL_EVENT_WINDOW_RESIZED)
+            {
+                graphics_resize(&graphics, event.window.data1,
+                                event.window.data2);
+            }
         }
 
         if (input_is_pressed(&input, Button_Fullscreen))
