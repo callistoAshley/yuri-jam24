@@ -121,7 +121,7 @@ int main(int argc, char **argv)
     const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;
 
     bool fullscreen = false;
-    while (!input_is_down(&input, Button_Quit))
+    while (!input_is_down(&input, Button_Quit) && !input.requested_quit)
     {
         SDL_Event event;
 

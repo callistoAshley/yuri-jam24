@@ -14,6 +14,7 @@
 #include "graphics/sprite.h"
 #include "graphics/tex_manager.h"
 #include "graphics/tilemap.h"
+#include "graphics/ui_sprite.h"
 #include "imgui_wgpu.h"
 #include "input/input.h"
 #include "physics/debug_draw.h"
@@ -41,6 +42,14 @@ void sprite_draw(void *thing, void *context, Graphics *graphics,
     (void)graphics;
     Sprite *sprite = thing;
     sprite_render(sprite, *(mat4s *)context, pass);
+}
+
+void ui_sprite_draw(void *thing, void *context, Graphics *graphics,
+                    WGPURenderPassEncoder pass)
+{
+    (void)graphics;
+    UiSprite *sprite = thing;
+    ui_sprite_render(sprite, *(mat4s *)context, pass);
 }
 
 void point_light_draw(void *thing, void *context, Graphics *graphics,
@@ -73,9 +82,10 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     layer_init(&graphics->sprite_layers.middle, sprite_draw, NULL);
     layer_init(&graphics->sprite_layers.foreground, sprite_draw, NULL);
 
-    layer_init(&graphics->ui_layers.background, sprite_draw, NULL);
-    layer_init(&graphics->ui_layers.middle, sprite_draw, NULL);
-    layer_init(&graphics->ui_layers.foreground, sprite_draw, NULL);
+    // TODO add free fns
+    layer_init(&graphics->ui_layers.background, ui_sprite_draw, NULL);
+    layer_init(&graphics->ui_layers.middle, ui_sprite_draw, NULL);
+    layer_init(&graphics->ui_layers.foreground, ui_sprite_draw, NULL);
 
     layer_init(&graphics->lights, point_light_draw, NULL);
 
@@ -300,7 +310,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuDeviceCreateCommandEncoder(graphics->wgpu.device, NULL);
 
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
-    u64 caster_buffer_size = wgpuBufferGetSize(graphics->caster_manager.buffer);
     {
         WGPURenderPassColorAttachment defferred_attachments[] = {{
             .view = graphics->color_view,

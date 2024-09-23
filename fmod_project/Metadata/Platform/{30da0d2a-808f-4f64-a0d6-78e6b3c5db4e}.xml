@@ -8,7 +8,7 @@
 			<value>Desktop</value>
 		</property>
 		<property name="subDirectory">
-			<value>audio</value>
+			<value>Desktop</value>
 		</property>
 		<property name="speakerFormat">
 			<value>5</value>

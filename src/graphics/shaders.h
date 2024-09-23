@@ -76,6 +76,14 @@ typedef struct
     mat4s camera;
     u32 transform_index;
     u32 texture_index;
+    f32 opacity;
+} UiSpritePushConstants;
+
+typedef struct
+{
+    mat4s camera;
+    u32 transform_index;
+    u32 texture_index;
     u32 map_width;
 } TilemapPushConstants;
 

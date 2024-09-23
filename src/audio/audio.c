@@ -21,16 +21,16 @@ void audio_init(Audio *audio)
            fmod_version >> 8 & 0xFF, fmod_version & 0xFF);
 
     result = FMOD_Studio_System_LoadBankFile(
-        audio->system, "assets/audio/Master.bank", FMOD_STUDIO_LOAD_BANK_NORMAL,
-        &audio->master_bank);
+        audio->system, "assets/audio/Desktop/Master.bank",
+        FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->master_bank);
     FMOD_ERRCHK(result, "Loading Master Bank");
     result = FMOD_Studio_System_LoadBankFile(
-        audio->system, "assets/audio/Master.strings.bank",
+        audio->system, "assets/audio/Desktop/Master.strings.bank",
         FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->strings_bank);
     FMOD_ERRCHK(result, "Loading Master Strings Bank");
     result = FMOD_Studio_System_LoadBankFile(
-        audio->system, "assets/audio/BGM.bank", FMOD_STUDIO_LOAD_BANK_NORMAL,
-        &audio->bgm_bank);
+        audio->system, "assets/audio/Desktop/BGM.bank",
+        FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->bgm_bank);
     FMOD_ERRCHK(result, "Loading Master BGM Bank");
 }
 

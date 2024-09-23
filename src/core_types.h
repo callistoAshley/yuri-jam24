@@ -52,6 +52,9 @@ typedef struct
 
 Rect rect_init(vec2s min, vec2s max);
 Rect rect_from_min_size(vec2s min, vec2s size);
+Rect rect_from_size(vec2s size);
+
+#define RECT_UNIT_TEX_COORDS rect_from_size((vec2s){.x = 1, .y = 1})
 
 // c is weird with arrays so we need to pass a pointer
 float rect_area(Rect rect);

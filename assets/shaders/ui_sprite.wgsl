@@ -20,6 +20,8 @@ struct PushConstants {
   camera: mat4x4f,
   transform_index: u32,
   texture_index: i32,
+
+  opacity: f32,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -39,10 +41,11 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let texture = textures[push_constants.texture_index];
-    let color = textureSample(texture, tex_sampler, in.tex_coords);
+    let raw_color = textureSample(texture, tex_sampler, in.tex_coords);
+    let color = vec4(raw_color.rgb, raw_color.a * push_constants.opacity);
 
     if color.a < 0.1 {
-    discard;
+      discard;
     }
 
     return color;

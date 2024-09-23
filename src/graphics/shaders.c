@@ -190,10 +190,13 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         create_shader("assets/shaders/sprite.wgsl", "sprite", &layouts->sprite,
                       1, sprite_constants, 1, &quad_vertex_buffer_layout, 1,
                       defferred_targets, 1, NULL, NULL, resources);
+
+    WGPUPushConstantRange ui_sprite_constants[] =
+        PUSH_CONSTANTS_FOR(UiSpritePushConstants);
     shaders->forward.ui_sprite = create_shader(
         "assets/shaders/ui_sprite.wgsl", "ui_sprite", &layouts->sprite, 1,
-        sprite_constants, 1, &quad_vertex_buffer_layout, 1, surface_targets, 1,
-        NULL, NULL, resources);
+        ui_sprite_constants, 1, &quad_vertex_buffer_layout, 1,
+        alpha_surface_targets, 1, NULL, NULL, resources);
 
     WGPUVertexAttribute tilemap_vertex_attributes[] = {(WGPUVertexAttribute){
         .format = WGPUVertexFormat_Sint32,

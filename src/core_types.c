@@ -144,6 +144,11 @@ Rect rect_from_min_size(vec2s min, vec2s size)
     return rect;
 }
 
+Rect rect_from_size(vec2s size)
+{
+    return rect_from_min_size(GLMS_VEC2_ZERO, size);
+}
+
 // ----
 
 float rect_area(Rect rect)

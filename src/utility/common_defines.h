@@ -23,5 +23,12 @@
 #define INTERNAL_SCREEN_WIDTH 160
 #define INTERNAL_SCREEN_HEIGHT 90
 
+#define VEC3_SPLAT(val)                                                        \
+    (vec3s) { .x = val, .y = val, .z = val }
+#define VEC2_SPLAT(val)                                                        \
+    (vec2s) { .x = val, .y = val }
+
+#define TEXTURE_PATH(path) "assets/textures/" path
+
 #define TO_RAD(x) ((x) / 180.0f * M_PI)
 #define TO_DEG(x) ((x) / M_PI * 180.0f)

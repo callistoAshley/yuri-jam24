@@ -8,6 +8,7 @@ set(SOURCES
     ${DIR}/quad_manager.c
     ${DIR}/shaders.c
     ${DIR}/sprite.c
+    ${DIR}/ui_sprite.c
     ${DIR}/tex_manager.c
     ${DIR}/tilemap.c
     ${DIR}/transform_manager.c
