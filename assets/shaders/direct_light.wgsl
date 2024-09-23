@@ -43,16 +43,10 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let mask_tex_coords = tex_coords / 16.0;
 
     var color = textureSample(color, tex_sampler, tex_coords);
-    var mask = textureSample(shadow, tex_sampler, mask_tex_coords);
-
-    var light_color = push_constants.color;
-    if mask.r > 0.1 {
-        light_color *= 0.5;
-    }
 
     if color.a < 0.1 {
         color = vec4f(0.05, 0.05, 0.05, 1.0);
     }
 
-    return vec4f(color.rgb * light_color, 1.0);
+    return vec4f(color.rgb * push_constants.color, 1.0);
 }

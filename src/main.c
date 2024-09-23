@@ -1,4 +1,5 @@
 #include "SDL3/SDL_events.h"
+#include "scenes/title.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -75,38 +76,7 @@ int main(int argc, char **argv)
                               SDL_WINDOW_HIDDEN);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
-    // SDL_SetWindowRelativeMouseMode(window, true);
-
     graphics_init(&graphics, window);
-
-    Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
-    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 24., .y = 24.});
-    Quad quad = {.rect = rect, .tex_coords = tex_coords};
-
-    QuadEntry quad_entry = quad_manager_add(&graphics.quad_manager, quad);
-
-    f32 mouse_x, mouse_y;
-    i32 window_x, window_y;
-    i32 window_width, window_height;
-    SDL_GetWindowPosition(window, &window_x, &window_y);
-    SDL_GetWindowSize(window, &window_width, &window_height);
-    SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
-
-    mouse_x -= window_x;
-    mouse_y -= window_y;
-
-    Transform transform =
-        transform_from_pos((vec3s){.x = mouse_x, .y = mouse_y, .z = 0});
-    TransformEntry transform_entry =
-        transform_manager_add(&graphics.transform_manager, transform);
-
-    TextureEntry *texture_entry =
-        texture_manager_load(&graphics.texture_manager,
-                             "assets/textures/cursor.png", &graphics.wgpu);
-
-    Sprite sprite;
-    sprite_init(&sprite, texture_entry, transform_entry, quad_entry);
-    layer_add(&graphics.ui_layers.foreground, &sprite);
 
     char *files[] = {
         "assets/events.txt",
@@ -133,7 +103,7 @@ int main(int argc, char **argv)
     ImGui_ImplWGPU_Init(&imgui_init_info);
 
     Scene *scene_data;
-    SceneInterface scene = MAP_SCENE;
+    SceneInterface scene = TITLE_SCENE;
 
     Resources resources = {
         .graphics = &graphics,
@@ -142,6 +112,7 @@ int main(int argc, char **argv)
         .input = &input,
         .raw_camera = &raw_camera,
         .current_scene = &scene_data,
+        .current_scene_interface = &scene,
     };
 
     scene.init(&scene_data, &resources);
@@ -168,19 +139,6 @@ int main(int argc, char **argv)
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
             input_process(&event, &input);
-
-            if (event.type == SDL_EVENT_WINDOW_RESIZED)
-            {
-                graphics_resize(&graphics, event.window.data1,
-                                event.window.data2);
-                window_width = event.window.data1;
-                window_height = event.window.data2;
-            }
-            if (event.type == SDL_EVENT_WINDOW_MOVED)
-            {
-                window_x = event.window.data1;
-                window_y = event.window.data2;
-            }
         }
 
         if (input_is_pressed(&input, Button_Fullscreen))
@@ -200,23 +158,6 @@ int main(int argc, char **argv)
         }
 
         scene.update(scene_data, &resources);
-
-        SDL_GetGlobalMouseState(&mouse_x, &mouse_y);
-
-        mouse_x -= window_x;
-        mouse_y -= window_y;
-
-        // if mouse is inside of window, hide it
-        if (mouse_x < 0 || mouse_x > window_width || mouse_y < 0 ||
-            mouse_y > window_height)
-            SDL_ShowCursor();
-        else
-            SDL_HideCursor();
-
-        transform.position.x = mouse_x;
-        transform.position.y = mouse_y;
-        transform_manager_update(&graphics.transform_manager, transform_entry,
-                                 transform);
 
         igRender();
         graphics_render(&graphics, &physics, raw_camera);

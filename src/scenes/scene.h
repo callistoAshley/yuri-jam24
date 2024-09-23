@@ -9,13 +9,16 @@
 
 typedef enum
 {
-    Scene_Map
+    Scene_Map,
+    Scene_Title,
 } SceneType;
 
 typedef struct
 {
     SceneType type;
 } Scene;
+
+typedef struct SceneInterface SceneInterface;
 
 // FIXME: move to a more appropriate location?
 typedef struct
@@ -26,7 +29,9 @@ typedef struct
     Input *input;
     Camera *raw_camera;
 
+    // only used to modify the current scene
     Scene **current_scene;
+    SceneInterface *current_scene_interface;
 } Resources;
 
 typedef void (*SceneInit)(Scene **scene_data, Resources *resources);
@@ -40,11 +45,13 @@ typedef void (*SceneFixedUpdate)(Scene *scene_data, Resources *resources);
 typedef void (*SceneFree)(Scene *scene_data, Resources *resources);
 
 // other files are expected to provide a constant of this type
-typedef struct
+struct SceneInterface
 {
     SceneInit init;
     SceneUpdate update;
     // this is optional
     NULLABLE SceneFixedUpdate fixed_update;
     SceneFree free;
-} SceneInterface;
+};
+
+void scene_change(SceneInterface new_scene, Resources *resources);

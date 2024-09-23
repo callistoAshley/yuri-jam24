@@ -17,12 +17,17 @@ typedef enum
     Button_Fullscreen = 1 << 7,
     Button_Freecam = 1 << 8,
     Button_LevelEdit = 1 << 9,
+
+    Button_MouseLeft = 1 << 10,
+    Button_MouseRight = 1 << 11,
 } Button;
 
 typedef struct
 {
     Button prev;
     Button curr;
+
+    i32 mouse_x, mouse_y;
 
     u64 last_frame;
     u64 delta;

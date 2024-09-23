@@ -20,9 +20,10 @@ void input_start_frame(Input *input)
 
 void input_process(SDL_Event *event, Input *input)
 {
-    bool key_is_down = event->type == SDL_EVENT_KEY_DOWN;
+    bool button_is_down = event->type == SDL_EVENT_KEY_DOWN ||
+                          event->type == SDL_EVENT_MOUSE_BUTTON_DOWN;
 #define TOGGLE_BUTTON_IF_DOWN(button)                                          \
-    if (key_is_down)                                                           \
+    if (button_is_down)                                                        \
         input->curr |= button;                                                 \
     else                                                                       \
         input->curr &= ~button;
@@ -30,6 +31,24 @@ void input_process(SDL_Event *event, Input *input)
     {
     case SDL_EVENT_QUIT:
         input->curr |= Button_Quit;
+        break;
+    case SDL_EVENT_MOUSE_MOTION:
+        input->mouse_x = event->motion.x;
+        input->mouse_y = event->motion.y;
+        break;
+    case SDL_EVENT_MOUSE_BUTTON_DOWN:
+    case SDL_EVENT_MOUSE_BUTTON_UP:
+        switch (event->button.button)
+        {
+        case SDL_BUTTON_LEFT:
+            TOGGLE_BUTTON_IF_DOWN(Button_MouseLeft);
+            break;
+        case SDL_BUTTON_RIGHT:
+            TOGGLE_BUTTON_IF_DOWN(Button_MouseRight);
+            break;
+        default:
+            break;
+        }
         break;
     case SDL_EVENT_KEY_UP:
     case SDL_EVENT_KEY_DOWN:
