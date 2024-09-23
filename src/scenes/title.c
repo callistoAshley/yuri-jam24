@@ -23,28 +23,32 @@ void title_scene_init(Scene **scene_data, Resources *resources)
     FMOD_Studio_EventDescription_CreateInstance(desc, &title_scene->bgm);
     FMOD_Studio_EventInstance_Start(title_scene->bgm);
 
-    Quad quad = {
-        .rect = rect_from_size(
-            (vec2s){.x = INTERNAL_SCREEN_WIDTH, .y = INTERNAL_SCREEN_HEIGHT}),
-        .tex_coords = RECT_UNIT_TEX_COORDS,
-    };
-    QuadEntry quad_entry =
-        quad_manager_add(&resources->graphics->quad_manager, quad);
-
     f32 scale = (f32)resources->graphics->wgpu.surface_config.width /
                 INTERNAL_SCREEN_WIDTH;
-    Transform transform = transform_from_scale(VEC3_SPLAT(scale));
-    TransformEntry transform_entry = transform_manager_add(
-        &resources->graphics->transform_manager, transform);
 
-    TextureEntry *background_texture = texture_manager_load(
-        &resources->graphics->texture_manager, TEXTURE_PATH("titlescreen.png"),
-        &resources->graphics->wgpu);
+    {
+        Quad quad = {
+            .rect = rect_from_size((vec2s){.x = INTERNAL_SCREEN_WIDTH,
+                                           .y = INTERNAL_SCREEN_HEIGHT}),
+            .tex_coords = RECT_UNIT_TEX_COORDS,
+        };
+        QuadEntry quad_entry =
+            quad_manager_add(&resources->graphics->quad_manager, quad);
 
-    ui_sprite_init(&title_scene->background, background_texture,
-                   transform_entry, quad_entry, 1.0f);
-    layer_add(&resources->graphics->ui_layers.background,
-              &title_scene->background);
+        Transform transform = transform_from_scale(VEC3_SPLAT(scale));
+        TransformEntry transform_entry = transform_manager_add(
+            &resources->graphics->transform_manager, transform);
+
+        TextureEntry *background_texture = texture_manager_load(
+            &resources->graphics->texture_manager,
+            TEXTURE_PATH("titlescreen.png"), &resources->graphics->wgpu);
+
+        ui_sprite_init(&title_scene->background, background_texture,
+                       transform_entry, quad_entry, 1.0f);
+        title_scene->background_entry =
+            layer_add(&resources->graphics->ui_layers.background,
+                      &title_scene->background);
+    }
 
     Font font;
     font_init(&font, "assets/fonts/Mx437_Compaq_Port3.ttf", 32);
@@ -87,8 +91,8 @@ void title_scene_init(Scene **scene_data, Resources *resources)
 
         ui_sprite_init(&title_scene->options[i], texture_entry, transform_entry,
                        quad_entry, 0.5f);
-        layer_add(&resources->graphics->ui_layers.middle,
-                  &title_scene->options[i]);
+        title_scene->option_entries[i] = layer_add(
+            &resources->graphics->ui_layers.middle, &title_scene->options[i]);
     }
 
     font_free(&font);
@@ -142,8 +146,10 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         {
         case 0:
             scene_change(MAP_SCENE, resources);
+            break;
         case 2:
             resources->input->requested_quit = true;
+            break;
         default:
             break;
         }
@@ -152,8 +158,23 @@ void title_scene_update(Scene *scene_data, Resources *resources)
 
 void title_scene_free(Scene *scene_data, Resources *resources)
 {
-    (void)resources;
-    free(scene_data);
+    TitleScene *title_scene = (TitleScene *)scene_data;
+    FMOD_Studio_EventInstance_Stop(title_scene->bgm,
+                                   FMOD_STUDIO_STOP_IMMEDIATE);
+    FMOD_Studio_EventInstance_Release(title_scene->bgm);
+
+    ui_sprite_free(&title_scene->background, resources->graphics);
+    layer_remove(&resources->graphics->ui_layers.background,
+                 title_scene->background_entry);
+
+    for (u32 i = 0; i < 3; i++)
+    {
+        ui_sprite_free(&title_scene->options[i], resources->graphics);
+        layer_remove(&resources->graphics->ui_layers.middle,
+                     title_scene->option_entries[i]);
+    }
+
+    free(title_scene);
 }
 
 const SceneInterface TITLE_SCENE = {
