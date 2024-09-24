@@ -72,6 +72,9 @@ int main(int argc, char **argv)
 
     SDL_ERRCHK(TTF_Init(), "TTF initialization failure");
 
+    Fonts fonts;
+    fonts_init(&fonts);
+
     window = SDL_CreateWindow("i am the window", WINDOW_WIDTH, WINDOW_HEIGHT,
                               SDL_WINDOW_HIDDEN);
     SDL_PTR_ERRCHK(window, "window creation failure");
@@ -110,6 +113,7 @@ int main(int argc, char **argv)
         .physics = &physics,
         .audio = &audio,
         .input = &input,
+        .fonts = &fonts,
         .raw_camera = &raw_camera,
         .current_scene = &scene_data,
         .current_scene_interface = &scene,

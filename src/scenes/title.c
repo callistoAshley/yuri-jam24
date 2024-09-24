@@ -50,9 +50,6 @@ void title_scene_init(Scene **scene_data, Resources *resources)
                       &title_scene->background);
     }
 
-    Font font;
-    font_init(&font, "assets/fonts/Mx437_Compaq_Port3.ttf", 32);
-
     const char *options[] = {
         "Start",
         "Settings",
@@ -63,8 +60,9 @@ void title_scene_init(Scene **scene_data, Resources *resources)
     f32 start_y = 70 * scale;
     for (u32 i = 0; i < 3; i++)
     {
-        WGPUTexture texture = font_render_text(&font, options[i], color,
-                                               &resources->graphics->wgpu);
+        WGPUTexture texture =
+            font_render_text(&resources->fonts->compaq.medium, options[i],
+                             color, &resources->graphics->wgpu);
         u32 width = wgpuTextureGetWidth(texture);
         u32 height = wgpuTextureGetHeight(texture);
 
@@ -94,8 +92,6 @@ void title_scene_init(Scene **scene_data, Resources *resources)
         title_scene->option_entries[i] = layer_add(
             &resources->graphics->ui_layers.middle, &title_scene->options[i]);
     }
-
-    font_free(&font);
 }
 
 void title_scene_update(Scene *scene_data, Resources *resources)

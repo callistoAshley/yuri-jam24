@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fonts/fonts.h"
 #include "graphics/graphics.h"
 #include "physics/physics.h"
 #include "audio/audio.h"
@@ -28,6 +29,7 @@ typedef struct
     Audio *audio;
     Input *input;
     Camera *raw_camera;
+    Fonts *fonts;
 
     // only used to modify the current scene
     Scene **current_scene;
