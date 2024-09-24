@@ -45,7 +45,6 @@ CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
     }
 
     // looks like the caster hasn't been loaded yet
-    manager->dirty = true;
 
     char out_err_msg[256];
     SHDWFile *shdw = shdw_parse(path, out_err_msg);
@@ -54,15 +53,27 @@ CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
         FATAL("Failed to load SHDW file: %s", out_err_msg);
     }
 
+    CasterEntry *entry =
+        caster_manager_register(manager, path, shdw->cells, shdw->cell_count);
+
+    shdw_free(shdw);
+    return entry;
+}
+
+CasterEntry *caster_manager_register(CasterManager *manager, const char *path,
+                                     Cell *cells, u32 cell_count)
+{
+    manager->dirty = true;
+
     CasterEntry *entry = malloc(sizeof(CasterEntry));
     entry->path = strdup(path);
-    entry->cell_count = shdw->cell_count;
-    entry->cells = calloc(shdw->cell_count, sizeof(CasterCell));
+    entry->cell_count = cell_count;
+    entry->cells = calloc(cell_count, sizeof(CasterCell));
 
     // upload everything as vec3 triangle strips
-    for (u32 i = 0; i < shdw->cell_count; i++)
+    for (u32 i = 0; i < cell_count; i++)
     {
-        Cell *cell = &shdw->cells[i];
+        Cell *cell = &cells[i];
         entry->cells[i].start = manager->casters.len;
         for (u32 j = 0; j < cell->point_count; j += 2)
         {
@@ -104,7 +115,6 @@ CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
     }
     vec_push(&manager->entries, &entry);
 
-    shdw_free(shdw);
     return entry;
 }
 
@@ -115,6 +125,7 @@ void caster_manager_clear(CasterManager *manager)
         CasterEntry *entry = vec_get(&manager->entries, i);
         free(entry->cells);
         free((void *)entry->path);
+        free(entry);
     }
     vec_clear(&manager->entries);
     vec_clear(&manager->casters);
