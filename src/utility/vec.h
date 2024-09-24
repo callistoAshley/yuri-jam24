@@ -57,6 +57,10 @@ void vec_insert(vec *v, usize index, void *elem);
 // shifted to the left. the removed element is copied into the elem pointer, if
 // it is not NULL.
 void vec_remove(vec *v, usize index, void *elem);
+// removes the element at the given index, and swaps the last element into its
+// place. if the index is out of bounds, nothing happens. the removed element is
+// copied into the elem pointer, if it is not NULL.
+void vec_swap_remove(vec *v, usize index, void *elem);
 
 // appends an element to the end of the vec. if the vec is full, it is resized.
 void vec_push(vec *v, void *elem);

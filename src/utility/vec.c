@@ -118,6 +118,27 @@ void vec_remove(vec *v, usize index, void *elem)
     v->len--;
 }
 
+void vec_swap_remove(vec *v, usize index, void *elem)
+{
+    if (index >= v->len)
+    {
+        return;
+    }
+    // copy the element into the elem pointer
+    if (elem)
+    {
+        memcpy(elem, v->data + index * v->ele_size, v->ele_size);
+    }
+    // if the index is not the last element, swap the last element into its
+    // place
+    if (index < v->len - 1)
+    {
+        memcpy(v->data + index * v->ele_size,
+               v->data + (v->len - 1) * v->ele_size, v->ele_size);
+    }
+    v->len--;
+}
+
 void vec_push(vec *v, void *elem) { vec_insert(v, v->len, elem); }
 void vec_pop(vec *v, void *elem) { vec_remove(v, v->len - 1, elem); }
 

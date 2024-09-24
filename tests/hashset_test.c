@@ -65,8 +65,20 @@ int main()
     // add a bunch of elements
     for (i32 i = 0; i < 32; i++)
     {
-        hashset_insert(&set, &i);
+        bool is_new = hashset_insert(&set, &i);
+        assert(is_new);
     }
+
+    assert(set.len == 32);
+    i32 found = 0;
+    for (i32 i = 0; i < 32; i++)
+    {
+        if (hashset_contains(&set, &i))
+        {
+            found++;
+        }
+    }
+    assert(found == 32);
 
     hashset_free(&set);
 }

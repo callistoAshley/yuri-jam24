@@ -47,6 +47,15 @@
       ],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "build_cmake"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug hashset test",
+      "program": "${workspaceFolder}/build/hashset_test",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build_cmake"
     }
   ]
 }

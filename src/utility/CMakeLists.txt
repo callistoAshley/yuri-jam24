@@ -5,6 +5,7 @@ set(SOURCES
     ${DIR}/list.c
     ${DIR}/log.c
     ${DIR}/vec.c
+    ${DIR}/hashmap.c
     ${DIR}/hashset.c
     ${DIR}/files.c
     ${SOURCES}
