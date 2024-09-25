@@ -15,7 +15,6 @@
 #include <stdlib.h>
 
 #include "audio/audio.h"
-#include "debug/level_editor.h"
 #include "graphics/graphics.h"
 #include "input/input.h"
 #include "utility/log.h"
