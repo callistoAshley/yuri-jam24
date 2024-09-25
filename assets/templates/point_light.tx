@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+ <object width="20.3096" height="20.3096">
+  <properties>
+   <property name="casts_shadows" type="bool" value="false"/>
+   <property name="color" type="color" value="#ffffffff"/>
+   <property name="intensity" type="float" value="1"/>
+   <property name="volumetric_intensity" type="float" value="0"/>
+  </properties>
+  <ellipse/>
+ </object>
+</template>

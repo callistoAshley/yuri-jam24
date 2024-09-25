@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+ <object>
+  <properties>
+   <property name="casts_shadows" type="bool" value="false"/>
+   <property name="color" type="color" value="#ffffffff"/>
+   <property name="intensity" type="float" value="1"/>
+   <property name="volumetric_intensity" type="float" value="0"/>
+  </properties>
+  <polygon points="0,0 -7.9257,23.612 8.09082,23.7771"/>
+ </object>
+</template>
