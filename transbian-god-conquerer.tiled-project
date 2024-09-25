@@ -5,9 +5,7 @@
     "compatibilityVersion": 1100,
     "extensionsPath": "tiled_extensions",
     "folders": [
-        "assets/maps",
-        "assets/tilesets",
-        "assets/templates"
+        "assets"
     ],
     "properties": [
     ],
