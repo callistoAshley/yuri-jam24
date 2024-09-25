@@ -1,0 +1,14 @@
+{ "columns":8,
+ "image":"..\/textures\/red_start.png",
+ "imageheight":92,
+ "imagewidth":64,
+ "margin":0,
+ "name":"red_test",
+ "spacing":0,
+ "tilecount":88,
+ "tiledversion":"1.11.0",
+ "tileheight":8,
+ "tilewidth":8,
+ "type":"tileset",
+ "version":"1.10"
+}
