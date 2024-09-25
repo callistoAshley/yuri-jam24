@@ -219,8 +219,8 @@ void map_scene_init(Scene **scene_data, Resources *resources)
         TransformEntry tilemap_transform = transform_manager_add(
             &resources->graphics->transform_manager, transform);
         TextureEntry *tileset = texture_manager_load(
-            &resources->graphics->texture_manager,
-            "assets/textures/red_start.png", &resources->graphics->wgpu);
+            &resources->graphics->texture_manager, map.tileset.image_path,
+            &resources->graphics->wgpu);
 
         u32 tile_layer_count = 0;
         for (u32 i = 0; i < map.layer_len; i++)

@@ -4,10 +4,13 @@
 #include "graphics/layer.h"
 #include "graphics/ui_sprite.h"
 #include "scene.h"
+#include "ui/settings.h"
 
 typedef struct
 {
     SceneType type;
+
+    SettingsMenu settings_menu;
 
     UiSprite background;
     LayerEntry background_entry;

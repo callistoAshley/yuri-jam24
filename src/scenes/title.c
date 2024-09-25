@@ -4,6 +4,7 @@
 #include "input/input.h"
 #include "scenes/map.h"
 #include "scenes/scene.h"
+#include "ui/settings.h"
 #include "utility/common_defines.h"
 #include <string.h>
 
@@ -12,6 +13,8 @@ void title_scene_init(Scene **scene_data, Resources *resources)
     TitleScene *title_scene = malloc(sizeof(TitleScene));
     title_scene->type = Scene_Title;
     *scene_data = (Scene *)title_scene;
+
+    settings_menu_init(&title_scene->settings_menu, resources);
 
     title_scene->selected_option = -1;
 
@@ -99,6 +102,10 @@ void title_scene_update(Scene *scene_data, Resources *resources)
     TitleScene *title_scene = (TitleScene *)scene_data;
     (void)resources;
 
+    settings_menu_update(&title_scene->settings_menu, resources);
+    if (title_scene->settings_menu.open)
+        return;
+
     f32 mouse_x = resources->input->mouse_x;
     f32 mouse_y = resources->input->mouse_y;
 
@@ -159,6 +166,12 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         case 0:
             scene_change(MAP_SCENE, resources);
             break;
+        case 1:
+            title_scene->settings_menu.open = true;
+            title_scene->selected_option = -1;
+            for (u32 i = 0; i < 3; i++)
+                title_scene->options[i].opacity = 0.5f;
+            break;
         case 2:
             resources->input->requested_quit = true;
             break;
@@ -185,6 +198,8 @@ void title_scene_free(Scene *scene_data, Resources *resources)
         layer_remove(&resources->graphics->ui_layers.middle,
                      title_scene->option_entries[i]);
     }
+
+    settings_menu_free(&title_scene->settings_menu, resources);
 
     free(title_scene);
 }

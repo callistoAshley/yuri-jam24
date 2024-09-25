@@ -7,6 +7,7 @@ add_subdirectory(input)
 add_subdirectory(parsers)
 add_subdirectory(physics)
 add_subdirectory(scenes)
+add_subdirectory(ui)
 add_subdirectory(utility)
 
 set(SOURCES 
