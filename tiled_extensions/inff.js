@@ -4,6 +4,8 @@
 // .inff (Inff's Not a File Format) file extension
 // based on riff!
 
+// @ts-ignore
+var PROJECT_FOLDER = __filename.replace(/tiled_extensions.*/, '')
 
 class ChunkDataBuilder {
   constructor() {
@@ -276,9 +278,10 @@ function write_group_layer_chunks(group_layer, file) {
  */
 function write_image_layer_chunks(image_layer, file) {
   let chunk_builder = new ChunkDataBuilder();
+  let relative_path = image_layer.imageFileName.replace(PROJECT_FOLDER, '');
   chunk_builder.addString(image_layer.name);
   chunk_builder.addString(image_layer.className);
-  chunk_builder.addString(image_layer.imageFileName);
+  chunk_builder.addString(relative_path);
   chunk_builder.addFloat32(); // parallax factor x
   chunk_builder.addFloat32(); // parallax factor y
   chunk_builder.addFloat32(); // offset x
@@ -287,7 +290,7 @@ function write_image_layer_chunks(image_layer, file) {
   let chunk_writer = chunk_builder.build();
   chunk_writer.writeString(image_layer.name);
   chunk_writer.writeString(image_layer.className);
-  chunk_writer.writeString(image_layer.imageFileName);
+  chunk_writer.writeString(relative_path);
   chunk_writer.writeFloat32(image_layer.parallaxFactor.x);
   chunk_writer.writeFloat32(image_layer.parallaxFactor.y);
   chunk_writer.writeFloat32(image_layer.offset.x);
@@ -357,12 +360,13 @@ function write_map(map, filename) {
 
   {
     let chunk_builder = new ChunkDataBuilder();
+    let relative_path = tileset.imageFileName.replace(PROJECT_FOLDER, '');
     chunk_builder.addString(tileset.name);
-    chunk_builder.addString(tileset.imageFileName);
+    chunk_builder.addString(relative_path);
 
     let chunk_writer = chunk_builder.build();
     chunk_writer.writeString(tileset.name);
-    chunk_writer.writeString(tileset.imageFileName);
+    chunk_writer.writeString(relative_path);
 
     writeChunk("TSET", chunk_writer.finish(), file);
   }
@@ -435,7 +439,7 @@ function read_map_layers(into, chunk_iter) {
       tileset.name = reader.readString();
       tileset.tileWidth = 8;
       tileset.tileHeight = 8;
-      tileset.imageFileName = reader.readString();
+      tileset.imageFileName = PROJECT_FOLDER + reader.readString();
       into.addTileset(tileset);
       break;
     case "TINF":
@@ -543,7 +547,7 @@ function read_map_layers(into, chunk_iter) {
       let image_layer = new ImageLayer();
       image_layer.name = reader.readString();
       image_layer.className = reader.readString();
-      image_layer.imageFileName = reader.readString();
+      image_layer.imageFileName = PROJECT_FOLDER + reader.readString();
       image_layer.parallaxFactor.x = reader.readFloat32();
       image_layer.parallaxFactor.y = reader.readFloat32();
       image_layer.offset.x = reader.readFloat32();
@@ -632,15 +636,16 @@ function write_tileset(tileset, filename) {
 
   {
     let chunk_builder = new ChunkDataBuilder();
+    let relative_path = tileset.imageFileName.replace(PROJECT_FOLDER, '');
     chunk_builder.addString(tileset.name);
     chunk_builder.addString(tileset.className);
-    chunk_builder.addString(tileset.imageFileName);
+    chunk_builder.addString(relative_path);
     // tile width and height are fixed at 8
 
     let chunk_writer = chunk_builder.build();
     chunk_writer.writeString(tileset.name);
     chunk_writer.writeString(tileset.className);
-    chunk_writer.writeString(tileset.imageFileName);
+    chunk_writer.writeString(relative_path);
 
     writeChunk("TDEF", chunk_writer.finish(), file);
   }
@@ -681,7 +686,7 @@ function read_tileset(filename) {
 
   tileset.name = reader.readString();
   tileset.className = reader.readString();
-  tileset.imageFileName = reader.readString();
+  tileset.imageFileName = PROJECT_FOLDER + reader.readString();
   tileset.tileWidth = 8;
   tileset.tileHeight = 8;
 
