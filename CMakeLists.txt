@@ -48,6 +48,8 @@ include_directories(
     ${CMAKE_SOURCE_DIR}
     ${WGPU_INCLUDE_DIR}/webgpu-headers
 
+    vendor/cute/
+
     cimgui/
     cimgui/imgui/
 
@@ -60,6 +62,7 @@ add_executable(${EXECUTABLE_NAME}
     ${SOURCES}
     vendor/cimgui/imgui/backends/imgui_impl_wgpu.cpp
     vendor/cimgui/imgui/backends/imgui_impl_sdl3.cpp
+    vendor/cute/cute_tiled_impl.c
 )
 
 add_dependencies(${EXECUTABLE_NAME} wgpu-native)
