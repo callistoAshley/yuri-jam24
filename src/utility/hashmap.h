@@ -22,7 +22,7 @@ typedef struct
     u32 capacity;
     usize key_size, value_size;
 
-    Bucket *buckets;
+    char *buckets;
 
     hash_function *hash;
     eq_function *eq;
