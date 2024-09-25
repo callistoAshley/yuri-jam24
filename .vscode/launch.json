@@ -56,6 +56,15 @@
       "args": [],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "build_cmake"
+    },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug hashmap test",
+      "program": "${workspaceFolder}/build/hashmap_test",
+      "args": [],
+      "cwd": "${workspaceFolder}",
+      "preLaunchTask": "build_cmake"
     }
   ]
 }

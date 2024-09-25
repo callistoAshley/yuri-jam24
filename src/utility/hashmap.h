@@ -33,7 +33,7 @@ bool memcmp_eq_function(void *a, void *b, usize key_size);
 
 // specific hash and eq functions for c strings.
 u64 fnv_cstr_hash_function(void *key, usize key_size);
-bool memcmp_cstr_eq_function(void *a, void *b, usize key_size);
+bool strlen_eq_function(void *a, void *b, usize key_size);
 
 // NOTE: value_size MAY be 0, but key_size MUST be > 0.
 void hashmap_init(HashMap *map, hash_function *hash, eq_function *eq,

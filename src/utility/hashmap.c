@@ -29,7 +29,7 @@ u64 fnv_cstr_hash_function(void *key, usize key_size)
     return fnv_hash_function(key, strlen((char *)key));
 }
 
-bool memcmp_cstr_eq_function(void *a, void *b, usize key_size)
+bool strlen_eq_function(void *a, void *b, usize key_size)
 {
     (void)key_size;
     return strcmp(a, b) == 0;
