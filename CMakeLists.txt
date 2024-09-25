@@ -40,6 +40,10 @@ add_subdirectory(vendor/cglm/)
 
 add_subdirectory(vendor/accesskit-c)
 
+add_subdirectory(vendor/libxml2)
+
+add_subdirectory(vendor/tmx)
+
 include_directories(
     include/
     ${FMOD_INCLUDE_DIR}
@@ -47,8 +51,6 @@ include_directories(
     ${WGPU_INCLUDE_DIR}
     ${CMAKE_SOURCE_DIR}
     ${WGPU_INCLUDE_DIR}/webgpu-headers
-
-    vendor/cute/
 
     cimgui/
     cimgui/imgui/
@@ -62,7 +64,6 @@ add_executable(${EXECUTABLE_NAME}
     ${SOURCES}
     vendor/cimgui/imgui/backends/imgui_impl_wgpu.cpp
     vendor/cimgui/imgui/backends/imgui_impl_sdl3.cpp
-    vendor/cute/cute_tiled_impl.c
 )
 
 add_dependencies(${EXECUTABLE_NAME} wgpu-native)

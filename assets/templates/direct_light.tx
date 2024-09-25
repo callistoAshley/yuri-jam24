@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<template>
+ <object>
+  <properties>
+   <property name="angle" type="float" value="0"/>
+   <property name="casts_shadow" type="bool" value="false"/>
+   <property name="color" type="color" value="#ffffffff"/>
+  </properties>
+  <point/>
+ </object>
+</template>

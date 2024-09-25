@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="33" height="15" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="13">
+ <tileset firstgid="1" source="../tilesets/red_test.tsx"/>
+ <imagelayer id="1" name="Molly :)" offsetx="92.7273" offsety="52">
+  <image source="../textures/load_bearing_molly.png" width="32" height="32"/>
+ </imagelayer>
+ <layer id="2" name="Tile Layer 1" width="33" height="15">
+  <data encoding="base64" compression="zlib">
+   eJxjYBgF1AJMSJha5qBjZjq5gVIwGNwwChCAEQ3DgCQN7cPnDloCHyD2BWI/NHFPIPYCYm8gtgRiKyC2BWI7Mu3xB+IABkgYWqDJhQBxKBCHoYkHAnEQEAcDsSMQOwGxKxC7EWEfMwkYXxmCXp6wkKCWmwTMRSQGqeUhQe0ogAAAa9AIkg==
+  </data>
+ </layer>
+ <group id="3" name="objects">
+  <objectgroup id="5" name="lights" class="lights">
+   <object id="7" template="../templates/point_light.tx" x="29.8865" y="51.0217"/>
+   <object id="10" template="../templates/cone_light.tx" x="64.066" y="48.2147"/>
+   <object id="12" template="../templates/direct_light.tx" x="81.5686" y="62.0846"/>
+  </objectgroup>
+  <objectgroup id="4" name="colliders" class="collision">
+   <object id="1" name="spawnpoint" x="141" y="86.375">
+    <point/>
+   </object>
+   <object id="2" name="Poly" type="Gone!" x="132.83" y="22.6023">
+    <polygon points="0,0 20.25,-10.375 25.75,-0.875 31.5,12.875 11.375,17.5"/>
+   </object>
+   <object id="3" x="0.136364" y="88.0909" width="263.733" height="15.8182"/>
+  </objectgroup>
+ </group>
+</map>

@@ -22,3 +22,9 @@
 [submodule "vendor/cglm"]
 	path = vendor/cglm
 	url = https://github.com/recp/cglm
+[submodule "vendor/libxml2"]
+	path = vendor/libxml2
+	url = https://gitlab.gnome.org/GNOME/libxml2
+[submodule "vendor/tmx"]
+	path = vendor/tmx
+	url = https://github.com/baylej/tmx
