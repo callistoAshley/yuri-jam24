@@ -19,3 +19,6 @@
 [submodule "SDL_image"]
 	path = vendor/SDL_image
 	url = https://github.com/libsdl-org/SDL_image
+[submodule "vendor/cglm"]
+	path = vendor/cglm
+	url = https://github.com/recp/cglm
