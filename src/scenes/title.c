@@ -103,8 +103,6 @@ void title_scene_update(Scene *scene_data, Resources *resources)
     (void)resources;
 
     settings_menu_update(&title_scene->settings_menu, resources);
-    if (title_scene->settings_menu.open)
-        return;
 
     f32 mouse_x = resources->input->mouse_x;
     f32 mouse_y = resources->input->mouse_y;
@@ -112,6 +110,8 @@ void title_scene_update(Scene *scene_data, Resources *resources)
     f32 scale = (f32)resources->graphics->wgpu.surface_config.width /
                 INTERNAL_SCREEN_WIDTH;
     f32 start_y = 70 * scale;
+
+    bool input_disabled = title_scene->settings_menu.open;
 
     if (resources->graphics->was_resized)
     {
@@ -131,16 +131,24 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         u32 height = wgpuTextureGetHeight(texture);
 
         f32 sprite_x = (INTERNAL_SCREEN_WIDTH * scale - width) / 2;
+        f32 sprite_y = start_y;
+        start_y += height + 5;
 
         // uh oh, looks like we've resized. we need to reposition the options
         if (resources->graphics->was_resized)
         {
-            Transform transform = transform_from_xyz(sprite_x, start_y, 0);
+            Transform transform = transform_from_xyz(sprite_x, sprite_y, 0);
             transform_manager_update(&resources->graphics->transform_manager,
                                      option->transform, transform);
         }
 
-        bool outside_y = mouse_y < start_y || mouse_y > start_y + height;
+        if (input_disabled)
+        {
+            option->opacity = 0.5f;
+            continue;
+        }
+
+        bool outside_y = mouse_y < sprite_y || mouse_y > sprite_y + height;
         bool outside_x = mouse_x < sprite_x || mouse_x > sprite_x + width;
         if (outside_x || outside_y)
         {
@@ -152,8 +160,6 @@ void title_scene_update(Scene *scene_data, Resources *resources)
             selected_option = true;
             title_scene->selected_option = i;
         }
-
-        start_y += height + 5;
     }
 
     if (!selected_option)
