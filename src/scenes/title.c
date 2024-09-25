@@ -8,8 +8,11 @@
 #include "utility/common_defines.h"
 #include <string.h>
 
-void title_scene_init(Scene **scene_data, Resources *resources)
+void title_scene_init(Scene **scene_data, Resources *resources,
+                      void *extra_args)
 {
+    (void)extra_args;
+
     TitleScene *title_scene = malloc(sizeof(TitleScene));
     title_scene->type = Scene_Title;
     *scene_data = (Scene *)title_scene;
@@ -170,8 +173,11 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         switch (title_scene->selected_option)
         {
         case 0:
-            scene_change(MAP_SCENE, resources);
+        {
+            MapInitArgs args = {.map_path = "assets/maps/debug_map.mnff"};
+            scene_change(MAP_SCENE, resources, &args);
             break;
+        }
         case 1:
             title_scene->settings_menu.open = true;
             title_scene->selected_option = -1;

@@ -119,7 +119,7 @@ int main(int argc, char **argv)
         .current_scene_interface = &scene,
     };
 
-    scene.init(&scene_data, &resources);
+    scene.init(&scene_data, &resources, NULL);
 
     u64 accumulator = 0;
     const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;

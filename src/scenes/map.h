@@ -16,4 +16,10 @@ typedef struct
     bool freecam;
 } MapScene;
 
+// NOTE: MUST BE PASSED TO scene_change!!!!!!
+typedef struct
+{
+    char *map_path;
+} MapInitArgs;
+
 extern const SceneInterface MAP_SCENE;

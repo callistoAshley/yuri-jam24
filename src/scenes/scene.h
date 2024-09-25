@@ -36,7 +36,8 @@ typedef struct
     SceneInterface *current_scene_interface;
 } Resources;
 
-typedef void (*SceneInit)(Scene **scene_data, Resources *resources);
+typedef void (*SceneInit)(Scene **scene_data, Resources *resources,
+                          void *extra_args);
 // there is no delta passed in directly here- that is on the Input struct!
 // use this for handling input, updating game state, etc.
 typedef void (*SceneUpdate)(Scene *scene_data, Resources *resources);
@@ -56,4 +57,5 @@ struct SceneInterface
     SceneFree free;
 };
 
-void scene_change(SceneInterface new_scene, Resources *resources);
+void scene_change(SceneInterface new_scene, Resources *resources,
+                  void *extra_args);

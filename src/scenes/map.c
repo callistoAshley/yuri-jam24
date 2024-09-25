@@ -177,25 +177,18 @@ FMOD_STUDIO_EVENTDESCRIPTION *test_bgm;
 FMOD_STUDIO_EVENTINSTANCE *test_bgm_instance;
 FMOD_RESULT fr;
 
-void map_scene_init(Scene **scene_data, Resources *resources)
+void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
 {
+    MapInitArgs *args = (MapInitArgs *)extra_args;
+
     MapScene *map_scene = malloc(sizeof(MapScene));
     map_scene->type = Scene_Map;
     *scene_data = (Scene *)map_scene;
 
-    fr = FMOD_Studio_System_GetEvent(resources->audio->system,
-                                     "event:/bgm_test", &test_bgm);
-    FMOD_ERRCHK(fr, "fhasjdf");
-    fr = FMOD_Studio_EventDescription_CreateInstance(test_bgm,
-                                                     &test_bgm_instance);
-    FMOD_ERRCHK(fr, "gasdfhuhu");
-    fr = FMOD_Studio_EventInstance_Start(test_bgm_instance);
-    FMOD_ERRCHK(fr, "juihuij");
-
     map_scene->freecam = false;
 
     char out_err_msg[256];
-    INFF *inff = inff_parse("assets/maps/untitled.mnff", out_err_msg);
+    INFF *inff = inff_parse(args->map_path, out_err_msg);
     if (!inff)
         FATAL("Failed to parse INFF file: %s", out_err_msg);
 
