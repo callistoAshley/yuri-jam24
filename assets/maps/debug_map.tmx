@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="33" height="15" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="13">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="33" height="15" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="22">
  <tileset firstgid="1" source="../tilesets/red_test.tsx"/>
  <imagelayer id="1" name="Molly :)" offsetx="92.7273" offsety="52">
   <image source="../textures/load_bearing_molly.png" width="32" height="32"/>
@@ -11,9 +11,87 @@
  </layer>
  <group id="3" name="objects">
   <objectgroup id="5" name="lights" class="lights">
-   <object id="7" template="../templates/point_light.tx" x="29.8865" y="51.0217"/>
-   <object id="10" template="../templates/cone_light.tx" x="64.066" y="48.2147"/>
-   <object id="12" template="../templates/direct_light.tx" x="81.5686" y="62.0846"/>
+   <object id="7" x="0.194518" y="43.1396" width="60.8891" height="60.8891">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ffff0004"/>
+     <property name="intensity" type="float" value="2"/>
+     <property name="volumetric_intensity" type="float" value="0.11"/>
+    </properties>
+    <ellipse/>
+   </object>
+   <object id="13" x="48.0495" y="21.6305">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ffffffff"/>
+     <property name="intensity" type="float" value="1"/>
+     <property name="volumetric_intensity" type="float" value="0"/>
+    </properties>
+    <polyline points="0,0 7.59546,22.9515"/>
+   </object>
+   <object id="15" x="28.1805" y="42.9305" width="60.8891" height="60.8891">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ffff02d1"/>
+     <property name="intensity" type="float" value="2"/>
+     <property name="volumetric_intensity" type="float" value="0.11"/>
+    </properties>
+    <ellipse/>
+   </object>
+   <object id="16" x="60.4305" y="42.6805" width="60.8891" height="60.8891">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ff5100ff"/>
+     <property name="intensity" type="float" value="2"/>
+     <property name="volumetric_intensity" type="float" value="0.11"/>
+    </properties>
+    <ellipse/>
+   </object>
+   <object id="17" x="89.0555" y="42.8055" width="60.8891" height="60.8891">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ff00aeff"/>
+     <property name="intensity" type="float" value="2"/>
+     <property name="volumetric_intensity" type="float" value="0.11"/>
+    </properties>
+    <ellipse/>
+   </object>
+   <object id="18" x="121.305" y="42.9305" width="60.8891" height="60.8891">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ff00ff95"/>
+     <property name="intensity" type="float" value="2"/>
+     <property name="volumetric_intensity" type="float" value="0.11"/>
+    </properties>
+    <ellipse/>
+   </object>
+   <object id="19" x="150.18" y="42.9305" width="60.8891" height="60.8891">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ff0dff00"/>
+     <property name="intensity" type="float" value="2"/>
+     <property name="volumetric_intensity" type="float" value="0.11"/>
+    </properties>
+    <ellipse/>
+   </object>
+   <object id="20" x="182.805" y="43.0555" width="60.8891" height="60.8891">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ffffff00"/>
+     <property name="intensity" type="float" value="2"/>
+     <property name="volumetric_intensity" type="float" value="0.11"/>
+    </properties>
+    <ellipse/>
+   </object>
+   <object id="21" x="211.43" y="42.8055" width="60.8891" height="60.8891">
+    <properties>
+     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="color" type="color" value="#ffff8c00"/>
+     <property name="intensity" type="float" value="2"/>
+     <property name="volumetric_intensity" type="float" value="0.11"/>
+    </properties>
+    <ellipse/>
+   </object>
   </objectgroup>
   <objectgroup id="4" name="colliders" class="collision">
    <object id="1" name="spawnpoint" x="141" y="86.375">

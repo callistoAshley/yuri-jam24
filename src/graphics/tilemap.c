@@ -18,8 +18,6 @@ void tilemap_init(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,
     tilemap->layers = layers;
 
     usize map_data_size = map_w * map_h * layers * sizeof(i32);
-    tilemap->map_data = malloc(map_data_size);
-    memcpy(tilemap->map_data, map_data, map_data_size);
     log_info("map data size: %lu", map_data_size);
 
     WGPUBufferDescriptor buffer_desc = {

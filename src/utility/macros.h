@@ -28,6 +28,13 @@
             FATAL("Error: " msg "\n");                                         \
         }                                                                      \
     }
+#define INV_PTR_ERRCHK(expr, msg)                                              \
+    {                                                                          \
+        if (expr != NULL)                                                      \
+        {                                                                      \
+            FATAL("Error: " msg "\n");                                         \
+        }                                                                      \
+    }
 
 #define REALLOC_CHK(temp_ptr, assignee)                                        \
     {                                                                          \

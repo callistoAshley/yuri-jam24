@@ -84,6 +84,7 @@ target_link_libraries(
     cimgui
     m # link against math library (looks really stupid lol)
     accesskit
+    tmx
 )
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")

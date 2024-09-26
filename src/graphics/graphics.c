@@ -423,30 +423,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.lights.point);
 
-        for (u32 i = 0; i < graphics->lights.entries.len; i++)
-        {
-            PointLight *light =
-                *(PointLight **)vec_get(&graphics->lights.entries, i);
-
-            PointLightPushConstants push_constants = {
-                .color = light->color,
-
-                .position =
-                    (vec2s){.x = light->position.x, .y = light->position.y},
-                .camera_position =
-                    (vec2s){.x = raw_camera.x, .y = raw_camera.y},
-
-                .radius = light->radius,
-                .intensity = light->intensity,
-                .volumetric_intensity = light->volumetric_intensity,
-                .angle = light->angle,
-            };
-
-            wgpuRenderPassEncoderSetPushConstants(
-                render_pass, WGPUShaderStage_Fragment | WGPUShaderStage_Vertex,
-                0, sizeof(PointLightPushConstants), &push_constants);
-            wgpuRenderPassEncoderDraw(render_pass, VERTICES_PER_QUAD, 1, 0, 0);
-        }
+        layer_draw(&graphics->lights, &raw_camera, graphics, render_pass);
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);

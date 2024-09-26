@@ -2,10 +2,11 @@
 <template>
  <object>
   <properties>
-   <property name="angle" type="float" value="0"/>
-   <property name="casts_shadow" type="bool" value="false"/>
+   <property name="casts_shadows" type="bool" value="false"/>
    <property name="color" type="color" value="#ffffffff"/>
+   <property name="intensity" type="float" value="1"/>
+   <property name="volumetric_intensity" type="float" value="0"/>
   </properties>
-  <point/>
+  <polyline points="0,0 7.59546,22.9515"/>
  </object>
 </template>

@@ -8,7 +8,6 @@ typedef struct
     TextureEntry *tileset;
     TransformEntry transform;
     int map_w, map_h, layers;
-    i32 *map_data;
     // 1 instance per tile. instances have just the tile ID
     WGPUBuffer instances;
 } Tilemap;

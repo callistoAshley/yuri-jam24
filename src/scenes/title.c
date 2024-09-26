@@ -174,7 +174,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         {
         case 0:
         {
-            MapInitArgs args = {.map_path = "assets/maps/debug_map.mnff"};
+            MapInitArgs args = {.map_path = "assets/maps/debug_map.tmx"};
             scene_change(MAP_SCENE, resources, &args);
             break;
         }

@@ -6,18 +6,13 @@
 
 typedef struct
 {
-    vec3s position;
+    vec2s position;
     vec3s color;
 
     f32 intensity;
     f32 radius;
     f32 volumetric_intensity;
-    vec2s angle;
 } PointLight;
-
-void point_light_init(PointLight *light, vec3s position, vec3s color,
-                      f32 radius);
-void point_light_free(PointLight *light);
 
 void point_light_render(PointLight *light, WGPURenderPassEncoder pass,
                         Camera camera);
