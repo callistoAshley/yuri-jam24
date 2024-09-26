@@ -51,6 +51,7 @@ typedef struct Graphics
 
     StandardLayers ui_layers;
 
+    Layer directional;
     Layer lights;
 
     bool was_resized;

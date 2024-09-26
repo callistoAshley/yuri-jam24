@@ -60,6 +60,15 @@ void point_light_draw(void *thing, void *context, Graphics *graphics,
     point_light_render(light, pass, *(Camera *)context);
 }
 
+void directional_light_draw(void *thing, void *context, Graphics *graphics,
+                            WGPURenderPassEncoder pass)
+{
+    (void)graphics;
+    (void)context;
+    DirectionalLight *light = thing;
+    directional_light_render(light, pass);
+}
+
 void graphics_init(Graphics *graphics, SDL_Window *window)
 {
     wgpu_resources_init(&graphics->wgpu, window);
@@ -88,6 +97,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     layer_init(&graphics->ui_layers.foreground, ui_sprite_draw, NULL);
 
     layer_init(&graphics->lights, point_light_draw, NULL);
+    layer_init(&graphics->directional, directional_light_draw, NULL);
 
     // load bearing molly
     // why do we need this? primarily to make sure that at least one texture is
@@ -419,6 +429,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.lights.direct);
+
+        layer_draw(&graphics->directional, &raw_camera, graphics, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.lights.point);

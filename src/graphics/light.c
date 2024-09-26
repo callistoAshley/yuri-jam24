@@ -43,6 +43,8 @@ void directional_light_render(DirectionalLight *light,
     DirectLightPushConstants push_constants = {
         .color = light->color,
         .angle = light->angle,
+        .intensity = light->intensity,
+        .volumetric_intensity = light->volumetric_intensity,
     };
 
     wgpuRenderPassEncoderSetPushConstants(

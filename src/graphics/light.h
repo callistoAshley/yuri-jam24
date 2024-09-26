@@ -21,6 +21,9 @@ typedef struct
 {
     vec3s color;
     f32 angle;
+
+    f32 intensity;
+    f32 volumetric_intensity;
 } DirectionalLight;
 
 void directional_light_init(DirectionalLight *light, vec3s color, f32 angle);

@@ -167,6 +167,22 @@ static void handle_light_layer(tmx_layer *layer, Resources *resources)
         }
         case OT_POLYLINE:
         {
+            double **points = current->content.shape->points;
+
+            vec2s start = (vec2s){.x = points[0][0], .y = points[0][1]};
+            vec2s end = (vec2s){.x = points[1][0], .y = points[1][1]};
+
+            f32 angle = atan2(end.y - start.y, end.x - start.x);
+
+            DirectionalLight *light = malloc(sizeof(DirectionalLight));
+
+            light->angle = angle;
+            light->color = color;
+            light->intensity = intensity;
+            light->volumetric_intensity = volumetric_intensity;
+
+            layer_add(&resources->graphics->directional, light);
+
             break;
         }
         default:

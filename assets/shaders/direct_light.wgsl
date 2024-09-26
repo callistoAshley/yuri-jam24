@@ -5,6 +5,8 @@ struct VertexOutput {
 struct PushConstants {
   color: vec3f,
   angle: f32,
+  intensity: f32,
+  volumetric_intensity: f32,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -42,11 +44,12 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
     let mask_tex_coords = tex_coords / 16.0;
 
-    var color = textureSample(color, tex_sampler, tex_coords);
+    let base_color = textureSample(color, tex_sampler, tex_coords);
+    var color = base_color.rgb;
 
-    if color.a < 0.1 {
-        color = vec4f(0.05, 0.05, 0.05, 1.0);
+    if base_color.a < 0.1 {
+        color = push_constants.color * push_constants.volumetric_intensity;
     }
 
-    return vec4f(color.rgb * push_constants.color, 1.0);
+    return vec4f(color * push_constants.color * push_constants.intensity, 1.0);
 }

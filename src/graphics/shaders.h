@@ -102,7 +102,9 @@ typedef struct
 typedef struct
 {
     vec3s color;
-    alignas(16) f32 angle;
+    f32 angle;
+    f32 intensity;
+    f32 volumetric_intensity;
 } DirectLightPushConstants;
 
 typedef struct
