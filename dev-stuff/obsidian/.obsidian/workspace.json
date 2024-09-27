@@ -8,7 +8,19 @@
         "type": "tabs",
         "children": [
           {
-            "id": "4021086203e74109",
+            "id": "91a33352f3160328",
+            "type": "leaf",
+            "state": {
+              "type": "markdown",
+              "state": {
+                "file": "i am using obsidian like a normal writer.md",
+                "mode": "source",
+                "source": false
+              }
+            }
+          },
+          {
+            "id": "f976c01f1dc162fd",
             "type": "leaf",
             "state": {
               "type": "markdown",
@@ -18,21 +30,8 @@
                 "source": false
               }
             }
-          },
-          {
-            "id": "1c8aa0e673e8d4cb",
-            "type": "leaf",
-            "state": {
-              "type": "markdown",
-              "state": {
-                "file": "aghghghghh fuckkkk.md",
-                "mode": "source",
-                "source": false
-              }
-            }
           }
-        ],
-        "currentTab": 1
+        ]
       }
     ],
     "direction": "vertical"
@@ -98,7 +97,7 @@
             "state": {
               "type": "backlink",
               "state": {
-                "file": "aghghghghh fuckkkk.md",
+                "file": "i am using obsidian like a normal writer.md",
                 "collapseAll": false,
                 "extraContext": false,
                 "sortOrder": "alphabetical",
@@ -115,7 +114,7 @@
             "state": {
               "type": "outgoing-link",
               "state": {
-                "file": "aghghghghh fuckkkk.md",
+                "file": "i am using obsidian like a normal writer.md",
                 "linksCollapsed": false,
                 "unlinkedCollapsed": true
               }
@@ -138,7 +137,7 @@
             "state": {
               "type": "outline",
               "state": {
-                "file": "aghghghghh fuckkkk.md"
+                "file": "i am using obsidian like a normal writer.md"
               }
             }
           }
@@ -159,18 +158,21 @@
       "command-palette:Open command palette": false
     }
   },
-  "active": "1c8aa0e673e8d4cb",
+  "active": "91a33352f3160328",
   "lastOpenFiles": [
+    "characters.md",
+    "i am using obsidian like a normal writer.md",
     "braindump.md",
-    "the drabblezone/3.md",
+    "aghghghghh fuckkkk.md",
+    "the drabblezone/5.md",
+    "the drabblezone/4.md",
+    "2024-09-27.md",
+    "The Angels.md",
     "the drabblezone/1.md",
     "the drabblezone/2.md",
+    "the drabblezone/3.md",
     "Questions.md",
-    "characters.md",
-    "aghghghghh fuckkkk.md",
     "The Sun.md",
-    "The Angels.md",
-    "the drabblezone/4.md",
     "the drabblezone",
     "characters",
     "inspo.md"

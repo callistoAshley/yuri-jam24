@@ -21,3 +21,19 @@ an inciting event to force them deeper into the angel's body.
 * an ominous glow?
 * a hole opens in the ground?
 * the signal embedding itself in serenity's head, calling her deeper as it rings in her brain?
+
+- Serenity and Willow met on the Internet years ago through a brief communal creative project. They began to bond over anime n shit.
+- Willow helped Serenity move out of her unpleasant family situation and into her angel. Serenity later began transitioning.
+- Just before the events of the story (2ish weeks), Serenity's hormones were delayed. She has a panic attack, which she remarks about as the only one she's had in weeks.
+- Willow is summoned to be part of a cyclic night brigade that inspects the outer skeleton of the angel for damage. Serenity offers to join, hoping it would help to clear her mind.
+- GAME BEGIN
+- possible intros: serenity gazing out a window, waking up in bed, .........
+- Serenity and Willow have an argument, causing Serenity to panic and run away.
+- some other Fucking things happen?????
+
+serenity is heavily reliant on willow. a scene where she falls back onto willow to deal with a difficult situation 
+
+Last night I dreamt the rashes on my hands turned into giant gaping wounds.
+The blood on my left hand looked like it was boiling.
+I ran them under the tap. The blood overflowed from the sink and crept up my ankles.
+It didn't bother me.

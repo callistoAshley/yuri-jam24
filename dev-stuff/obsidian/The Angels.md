@@ -1,9 +1,4 @@
-Gigantic mechanical creatures that existed as long as history knew. They each bore a structure called a Halo, which emitted light and vital gases into the atmosphere. Standing on a halo is like being an ant crawling through a thick carpet.
+Gigantic, intricate mechanical creatures, each created for one purpose: to protect humanity. The incomprehensibly vicious cosmic weather melts life under daylight. To remedy this, each angel bears a "halo": a sky-dwelling structure that creates a "safe zone" on the ground for cities to be built within.
+Nobody really knows where the angels came from; as far as society knows, they've existed since the beginning of time.
 
-maybe they didn't exactly concern themselves with human affairs but humans knew they were alive
-
-the angels were protecting humanity from something and people lived in large colonies
-the entity they were being protected from was the sun?
-halos emitted a kind of cloud that protected people from the sun
-
-earth slowly freezing and the angels keeping it warm?
+"An angel's most important purpose is to intuit the needs of its people on a deep, individual level."
