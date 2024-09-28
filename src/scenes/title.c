@@ -19,7 +19,7 @@ void title_scene_init(Scene **scene_data, Resources *resources,
 
     settings_menu_init(&title_scene->settings_menu, resources);
 
-    title_scene->selected_option = -1;
+    title_scene->hovered_option = -1;
 
     FMOD_STUDIO_EVENTDESCRIPTION *desc;
     FMOD_RESULT result;
@@ -99,6 +99,11 @@ void title_scene_init(Scene **scene_data, Resources *resources,
             &resources->graphics->ui_layers.middle, &title_scene->options[i]);
     }
 
+    FMOD_Studio_System_GetEvent(resources->audio->system, "event:/menu/hover",
+                                &title_scene->hover_desc);
+    FMOD_Studio_System_GetEvent(resources->audio->system, "event:/menu/click",
+                                &title_scene->click_desc);
+
     title_scene->is_transitioning = false;
     title_scene->transition_timer = 0;
 }
@@ -156,8 +161,10 @@ void title_scene_update(Scene *scene_data, Resources *resources)
                                  title_scene->background.transform, transform);
     }
 
-    bool selected_option = false;
-    for (u32 i = 0; i < 3; i++)
+    bool hovered_option = false;
+    bool hovered_new_option = false;
+
+    for (i32 i = 0; i < 3; i++)
     {
         UiSprite *option = &title_scene->options[i];
 
@@ -198,17 +205,39 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         else
         {
             option->opacity = 1.0f;
-            selected_option = true;
-            title_scene->selected_option = i;
+            hovered_option = true;
+            hovered_new_option = i != title_scene->hovered_option;
+            title_scene->hovered_option = i;
         }
     }
 
-    if (!selected_option)
-        title_scene->selected_option = -1;
+    if (!hovered_option)
+        title_scene->hovered_option = -1;
 
-    if (input_is_pressed(resources->input, Button_MouseLeft))
+    if (hovered_new_option)
     {
-        switch (title_scene->selected_option)
+        FMOD_STUDIO_EVENTINSTANCE *instance;
+        FMOD_Studio_EventDescription_CreateInstance(title_scene->hover_desc,
+                                                    &instance);
+
+        FMOD_Studio_EventInstance_Start(instance);
+        FMOD_Studio_EventInstance_Release(instance);
+    }
+
+    bool has_selected_option =
+        title_scene->hovered_option != -1 &&
+        input_is_pressed(resources->input, Button_MouseLeft);
+
+    if (has_selected_option)
+    {
+        FMOD_STUDIO_EVENTINSTANCE *instance;
+        FMOD_Studio_EventDescription_CreateInstance(title_scene->click_desc,
+                                                    &instance);
+
+        FMOD_Studio_EventInstance_Start(instance);
+        FMOD_Studio_EventInstance_Release(instance);
+
+        switch (title_scene->hovered_option)
         {
         case 0:
         {
@@ -217,7 +246,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         }
         case 1:
             title_scene->settings_menu.open = true;
-            title_scene->selected_option = -1;
+            title_scene->hovered_option = -1;
             for (u32 i = 0; i < 3; i++)
                 title_scene->options[i].opacity = 0.5f;
             break;

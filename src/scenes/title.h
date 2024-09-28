@@ -19,7 +19,10 @@ typedef struct
     LayerEntry option_entries[3];
 
     FMOD_STUDIO_EVENTINSTANCE *bgm;
-    i32 selected_option;
+    i32 hovered_option;
+
+    FMOD_STUDIO_EVENTDESCRIPTION *hover_desc;
+    FMOD_STUDIO_EVENTDESCRIPTION *click_desc;
 
     bool is_transitioning;
     f32 transition_timer;

@@ -84,6 +84,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
     menu->selected_category = Cat_None;
 
     menu->open = false;
+    menu->is_closing = false;
 }
 
 void settings_menu_update(SettingsMenu *menu, Resources *resources)
