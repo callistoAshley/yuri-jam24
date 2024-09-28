@@ -18,9 +18,7 @@ typedef struct
 {
     vec texture_views; // vec<WGPUTextureView>
     vec textures;      // vec<WGPUTexture>
-    vec entries;       // a list of TextureEntry (more or less)
-
-    u32 next;
+    vec entries;       // a list of TextureEntry
 } TextureManager;
 
 void texture_manager_init(TextureManager *manager);

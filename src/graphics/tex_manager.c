@@ -13,8 +13,6 @@ void texture_manager_init(TextureManager *manager)
     vec_init(&manager->texture_views, sizeof(WGPUTextureView));
     vec_init(&manager->textures, sizeof(WGPUTexture));
     vec_init(&manager->entries, sizeof(TextureEntry *));
-
-    manager->next = 0;
 }
 
 static void free_texture_view(usize index, void *data)
@@ -79,43 +77,18 @@ TextureEntry *texture_manager_register(TextureManager *manager,
     const char *new_path = strdup(path);
     TextureEntry entry = {
         .ref_count = 1,
-        .index = manager->next,
+        .index = manager->entries.len,
         .path = new_path,
     };
 
-    if (manager->next == manager->entries.len)
-    {
-        TextureEntry *new_entry = malloc(sizeof(TextureEntry));
-        *new_entry = entry;
+    TextureEntry *new_entry = malloc(sizeof(TextureEntry));
+    *new_entry = entry;
 
-        vec_push(&manager->entries, &new_entry);
-        vec_push(&manager->textures, &texture);
-        vec_push(&manager->texture_views, &view);
-        manager->next++;
+    vec_push(&manager->entries, &new_entry);
+    vec_push(&manager->textures, &texture);
+    vec_push(&manager->texture_views, &view);
 
-        return new_entry;
-    }
-    else
-    {
-        TextureEntry *free_entry =
-            (TextureEntry *)vec_get(&manager->entries, manager->next);
-        WGPUTexture *free_texture = vec_get(&manager->textures, manager->next);
-        WGPUTextureView *free_view =
-            vec_get(&manager->texture_views, manager->next);
-
-        assert(free_entry != NULL);
-        assert(free_texture != NULL);
-        assert(free_view != NULL);
-
-        assert(free_entry->ref_count == 0);
-        manager->next = free_entry->index;
-
-        *free_entry = entry;
-        *free_texture = texture;
-        *free_view = view;
-
-        return free_entry;
-    }
+    return new_entry;
 }
 
 void texture_manager_unload(TextureManager *manager, TextureEntry *entry)
@@ -125,20 +98,43 @@ void texture_manager_unload(TextureManager *manager, TextureEntry *entry)
 
     if (entry->ref_count == 0)
     {
+        WGPUTexture texture;
+        WGPUTextureView view;
+
+        printf("---\n");
+        for (u32 i = 0; i < manager->entries.len; i++)
+        {
+            TextureEntry *entry =
+                *(TextureEntry **)vec_get(&manager->entries, i);
+            printf("entry: %s\n", entry->path);
+            printf("index: %d\n", entry->index);
+        }
+        printf("---\n");
+
+        // swap remove avoids shifting elements around by swapping in the last
+        // element and decrementing the length of the array
+        // this is important to
+        // 1) keep the arrays contiguous
+        // 2) make sure everything has the correct index
+        vec_swap_remove(&manager->textures, entry->index, &texture);
+        vec_swap_remove(&manager->texture_views, entry->index, &view);
+        vec_swap_remove(&manager->entries, entry->index, NULL);
+
+        // if this happens to be the last element, we don't need to update
+        // anything!
+        if (entry->index < manager->entries.len)
+        {
+            TextureEntry *moved_entry =
+                *(TextureEntry **)vec_get(&manager->entries, entry->index);
+            // update the moved entry's index to where it is now
+            moved_entry->index = entry->index;
+        }
+
+        wgpuTextureRelease(texture);
+        wgpuTextureViewRelease(view);
         free((void *)entry->path);
 
-        WGPUTexture *texture = vec_get(&manager->textures, entry->index);
-        WGPUTextureView *view = vec_get(&manager->texture_views, entry->index);
-
-        assert(texture != NULL);
-        assert(view != NULL);
-
-        wgpuTextureViewRelease(*view);
-        wgpuTextureRelease(*texture);
-
-        u32 temp = manager->next;
-        manager->next = entry->index;
-        entry->index = temp;
+        free(entry);
     }
 }
 

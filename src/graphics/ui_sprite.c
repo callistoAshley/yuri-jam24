@@ -1,6 +1,7 @@
 #include "ui_sprite.h"
 #include "core_types.h"
 #include "graphics/quad_manager.h"
+#include "graphics/tex_manager.h"
 #include "sensible_nums.h"
 
 void ui_sprite_init(UiSprite *sprite, TextureEntry *texture,
@@ -16,6 +17,7 @@ void ui_sprite_free(UiSprite *sprite, Graphics *graphics)
 {
     transform_manager_remove(&graphics->transform_manager, sprite->transform);
     quad_manager_remove(&graphics->quad_manager, sprite->quad);
+    texture_manager_unload(&graphics->texture_manager, sprite->texture);
 }
 
 void ui_sprite_render(UiSprite *sprite, mat4s camera,

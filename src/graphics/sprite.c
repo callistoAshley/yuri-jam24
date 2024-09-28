@@ -14,6 +14,7 @@ void sprite_free(Sprite *sprite, Graphics *graphics)
 {
     transform_manager_remove(&graphics->transform_manager, sprite->transform);
     quad_manager_remove(&graphics->quad_manager, sprite->quad);
+    texture_manager_unload(&graphics->texture_manager, sprite->texture);
 }
 
 void sprite_render(Sprite *sprite, mat4s camera, WGPURenderPassEncoder pass)
