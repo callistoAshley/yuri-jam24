@@ -101,16 +101,6 @@ void texture_manager_unload(TextureManager *manager, TextureEntry *entry)
         WGPUTexture texture;
         WGPUTextureView view;
 
-        printf("---\n");
-        for (u32 i = 0; i < manager->entries.len; i++)
-        {
-            TextureEntry *entry =
-                *(TextureEntry **)vec_get(&manager->entries, i);
-            printf("entry: %s\n", entry->path);
-            printf("index: %d\n", entry->index);
-        }
-        printf("---\n");
-
         // swap remove avoids shifting elements around by swapping in the last
         // element and decrementing the length of the array
         // this is important to
