@@ -31,7 +31,11 @@ void audio_init(Audio *audio)
     result = FMOD_Studio_System_LoadBankFile(
         audio->system, "assets/audio/Desktop/BGM.bank",
         FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->bgm_bank);
-    FMOD_ERRCHK(result, "Loading Master BGM Bank");
+    FMOD_ERRCHK(result, "Loading BGM Bank");
+    result = FMOD_Studio_System_LoadBankFile(
+        audio->system, "assets/audio/Desktop/Menu.bank",
+        FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->menu_bank);
+    FMOD_ERRCHK(result, "Loading Menu Bank");
 }
 
 void audio_free(Audio *audio)

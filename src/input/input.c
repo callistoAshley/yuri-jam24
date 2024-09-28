@@ -1,4 +1,5 @@
 #include "input.h"
+#include "SDL3/SDL_keycode.h"
 #include <SDL3/SDL.h>
 #include <SDL3/SDL_events.h>
 
@@ -73,8 +74,11 @@ void input_process(SDL_Event *event, Input *input)
         case SDLK_C:
             TOGGLE_BUTTON_IF_DOWN(Button_Crouch);
             break;
-        case SDLK_ESCAPE:
+        case SDLK_Q:
             TOGGLE_BUTTON_IF_DOWN(Button_Quit);
+            break;
+        case SDLK_ESCAPE:
+            TOGGLE_BUTTON_IF_DOWN(Button_Back);
             break;
         case SDLK_F11:
             TOGGLE_BUTTON_IF_DOWN(Button_Fullscreen);

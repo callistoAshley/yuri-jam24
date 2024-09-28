@@ -12,14 +12,15 @@ typedef enum
 
     Button_Jump = 1 << 4,
     Button_Crouch = 1 << 5,
-    Button_Quit = 1 << 6,
+    Button_Back = 1 << 6,
+    Button_Quit = 1 << 7,
 
-    Button_Fullscreen = 1 << 7,
-    Button_Freecam = 1 << 8,
-    Button_LevelEdit = 1 << 9,
+    Button_Fullscreen = 1 << 8,
+    Button_Freecam = 1 << 9,
+    Button_LevelEdit = 1 << 10,
 
-    Button_MouseLeft = 1 << 10,
-    Button_MouseRight = 1 << 11,
+    Button_MouseLeft = 1 << 11,
+    Button_MouseRight = 1 << 12,
 } Button;
 
 typedef struct

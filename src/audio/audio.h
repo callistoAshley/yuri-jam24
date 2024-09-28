@@ -11,6 +11,7 @@ typedef struct
     FMOD_STUDIO_BANK *master_bank;
     FMOD_STUDIO_BANK *strings_bank;
     FMOD_STUDIO_BANK *bgm_bank;
+    FMOD_STUDIO_BANK *menu_bank;
 } Audio;
 
 void audio_init(Audio *audio);
