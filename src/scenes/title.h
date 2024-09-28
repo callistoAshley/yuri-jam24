@@ -20,6 +20,9 @@ typedef struct
 
     FMOD_STUDIO_EVENTINSTANCE *bgm;
     i32 selected_option;
+
+    bool is_transitioning;
+    f32 transition_timer;
 } TitleScene;
 
 extern const SceneInterface TITLE_SCENE;

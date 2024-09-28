@@ -98,6 +98,9 @@ void title_scene_init(Scene **scene_data, Resources *resources,
         title_scene->option_entries[i] = layer_add(
             &resources->graphics->ui_layers.middle, &title_scene->options[i]);
     }
+
+    title_scene->is_transitioning = false;
+    title_scene->transition_timer = 0;
 }
 
 void title_scene_update(Scene *scene_data, Resources *resources)
@@ -114,7 +117,37 @@ void title_scene_update(Scene *scene_data, Resources *resources)
                 INTERNAL_SCREEN_WIDTH;
     f32 start_y = 70 * scale;
 
-    bool input_disabled = title_scene->settings_menu.open;
+    bool input_disabled =
+        title_scene->settings_menu.open || title_scene->is_transitioning;
+
+    if (title_scene->is_transitioning)
+    {
+        title_scene->background.opacity -=
+            1.5f * resources->input->delta_seconds;
+        title_scene->background.opacity =
+            fmaxf(title_scene->background.opacity, 0.0f);
+
+        FMOD_Studio_EventInstance_SetVolume(title_scene->bgm,
+                                            title_scene->background.opacity);
+
+        for (u32 i = 0; i < 3; i++)
+        {
+            title_scene->options[i].opacity =
+                title_scene->background.opacity / 2.0f;
+        }
+
+        if (title_scene->background.opacity == 0.0f)
+        {
+            title_scene->transition_timer += resources->input->delta_seconds;
+        }
+
+        if (title_scene->transition_timer > 0.25f)
+        {
+            MapInitArgs args = {.map_path = "assets/maps/debug_map.tmx"};
+            scene_change(MAP_SCENE, resources, &args);
+            return;
+        }
+    }
 
     if (resources->graphics->was_resized)
     {
@@ -147,7 +180,12 @@ void title_scene_update(Scene *scene_data, Resources *resources)
 
         if (input_disabled)
         {
-            option->opacity = 0.5f;
+            // don't adjust opacity if we're transitioning out of the title
+            // scene
+            if (!title_scene->is_transitioning)
+            {
+                option->opacity = 0.5f;
+            }
             continue;
         }
 
@@ -174,8 +212,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         {
         case 0:
         {
-            MapInitArgs args = {.map_path = "assets/maps/debug_map.tmx"};
-            scene_change(MAP_SCENE, resources, &args);
+            title_scene->is_transitioning = true;
             break;
         }
         case 1:
