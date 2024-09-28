@@ -208,10 +208,11 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         menu->is_closing = true;
     }
 
-    bool did_select_new_option =
-        menu->selected_category != menu->hovered_category;
-    if (input_is_pressed(resources->input, Button_MouseLeft) &&
-        did_select_new_option)
+    bool did_select_option =
+        menu->hovered_category != Cat_None &&
+        menu->selected_category != menu->hovered_category &&
+        input_is_pressed(resources->input, Button_MouseLeft);
+    if (did_select_option)
     {
         menu->selected_category = menu->hovered_category;
 
