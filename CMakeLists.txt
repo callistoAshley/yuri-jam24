@@ -8,13 +8,7 @@ set(CMAKE_BUILD_TYPE Debug) # force debug build for now
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
-add_custom_target(wgpu-native ALL
-    COMMAND make lib-native-release EXTRA_BUILD_ARGS=--quiet
-    WORKING_DIRECTORY ${CMAKE_SOURCE_DIR}/vendor/wgpu-native
-)
-
 find_package(FMOD) # creates FMOD_LIBRARY, FMOD_INCLUDE_DIR, FMOD_STUDIO_LIBRARY and FMOD_STUDIO_INCLUDE_DIR
-find_package(WGPU) # creates WGPU_LIBRARY and WGPU_INCLUDE_DIR
 
 # cimgui
 # goofy hack: some internal imgui sources rely on "webgpu/webgpu.h", so create a symlink to it
@@ -35,6 +29,7 @@ include(${CMAKE_SOURCE_DIR}/cmake/tests.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/sdl_renames.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/tools.cmake)
 include(${CMAKE_SOURCE_DIR}/cmake/shadowcasters.cmake)
+include(${CMAKE_SOURCE_DIR}/cmake/wgpu.cmake)
 
 option(CGLM_SHARED OFF)
 option(CGLM_STATIC ON)
@@ -68,8 +63,6 @@ add_executable(${EXECUTABLE_NAME}
     vendor/cimgui/imgui/backends/imgui_impl_sdl3.cpp
 )
 
-add_dependencies(${EXECUTABLE_NAME} wgpu-native)
-
 target_compile_options(${EXECUTABLE_NAME} PRIVATE -Wall -Wextra -Wpedantic -fpermissive -Wno-error)
 
 target_link_libraries(
@@ -81,7 +74,7 @@ target_link_libraries(
     cglm
     ${FMOD_LIBRARY}
     ${FMOD_STUDIO_LIBRARY}
-    ${WGPU_LIBRARY}
+    wgpu_native
     box2d
     cimgui
     m # link against math library (looks really stupid lol)
