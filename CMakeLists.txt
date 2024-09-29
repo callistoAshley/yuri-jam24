@@ -6,9 +6,14 @@ set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "we get an annoying warning in freetype
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd
 set(CMAKE_BUILD_TYPE Debug) # force debug build for now
 
+# hack to tell cmake to prefer static libraries over shared ones
+SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
+
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
 find_package(FMOD) # creates FMOD_LIBRARY, FMOD_INCLUDE_DIR, FMOD_STUDIO_LIBRARY and FMOD_STUDIO_INCLUDE_DIR
+
+set(WGPU_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/vendor/wgpu-native/ffi)
 
 # cimgui
 # goofy hack: some internal imgui sources rely on "webgpu/webgpu.h", so create a symlink to it
