@@ -1,6 +1,8 @@
 cmake_minimum_required(VERSION 3.20)
 project(game)
 
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "we get an annoying warning in freetype about cmake <3.5 being deprecated" FORCE)
+
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd
 set(CMAKE_BUILD_TYPE Debug) # force debug build for now
 
@@ -22,7 +24,7 @@ if (WIN32)
 else()
     file(CREATE_LINK ${WGPU_INCLUDE_DIR}/webgpu-headers ${CMAKE_SOURCE_DIR}/webgpu SYMBOLIC)
 endif()
-set(IMGUI_STATIC ON)
+set(IMGUI_STATIC "on" CACHE STRING "this is needed to force cimgui to be static?" FORCE)
 add_subdirectory(vendor/cimgui/)
 
 set(BUILD_SHARED_LIBS OFF)
