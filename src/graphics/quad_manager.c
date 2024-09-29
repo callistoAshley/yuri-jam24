@@ -4,6 +4,8 @@
 #include "utility/vec.h"
 #include "webgpu.h"
 
+#include <assert.h>
+
 // why use a union?
 // well, we want to upload the entire entry list to the gpu whenever the vertex
 // buffer is dirty, which means it must be layout-compatible with Vertex.

@@ -5,6 +5,8 @@
 #include "webgpu.h"
 #include <SDL3_image/SDL_image.h>
 
+#include <assert.h>
+
 // we don't need a union here, because we already have something that keeps
 // track of if an entry is free: the reference count!
 
