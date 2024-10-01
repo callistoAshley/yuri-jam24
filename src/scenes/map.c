@@ -161,6 +161,13 @@ static void handle_light_layer(tmx_layer *layer, Resources *resources)
             light->radius = radius;
             light->volumetric_intensity = volumetric_intensity;
 
+            light->casts_shadows = casts_shadows;
+            if (casts_shadows)
+            {
+                light->shadowmap_entry =
+                    shadowmap_add(&resources->graphics->shadowmap, position);
+            }
+
             layer_add(&resources->graphics->lights, light);
 
             break;
@@ -176,10 +183,20 @@ static void handle_light_layer(tmx_layer *layer, Resources *resources)
 
             DirectionalLight *light = malloc(sizeof(DirectionalLight));
 
-            light->angle = angle;
             light->color = color;
             light->intensity = intensity;
             light->volumetric_intensity = volumetric_intensity;
+
+            light->casts_shadows = casts_shadows;
+            if (casts_shadows)
+            {
+                vec2s really_far = (vec2s){.x = 1000000, .y = 1000000};
+                vec2s position = glms_vec2_rotate(really_far, angle);
+                position.y = -position.y;
+
+                light->shadowmap_entry =
+                    shadowmap_add(&resources->graphics->shadowmap, position);
+            }
 
             layer_add(&resources->graphics->directional, light);
 

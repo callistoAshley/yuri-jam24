@@ -8,7 +8,7 @@
 typedef struct Graphics Graphics;
 
 // called to render one thing.
-typedef void (*thing_draw_fn)(void *this, void *ctx, Graphics *graphics,
+typedef void (*thing_draw_fn)(void *this, void *ctx,
                               WGPURenderPassEncoder pass);
 // called when the layer is freed (do we call this when the thing is removed
 // though?)
@@ -37,5 +37,4 @@ void layer_free(Layer *layer);
 LayerEntry layer_add(Layer *layer, void *thing);
 void layer_remove(Layer *layer, LayerEntry entry);
 
-void layer_draw(Layer *layer, void *ctx, Graphics *graphics,
-                WGPURenderPassEncoder pass);
+void layer_draw(Layer *layer, void *ctx, WGPURenderPassEncoder pass);

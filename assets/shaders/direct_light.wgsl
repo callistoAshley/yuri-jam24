@@ -4,7 +4,6 @@ struct VertexOutput {
 
 struct PushConstants {
   color: vec3f,
-  angle: f32,
   intensity: f32,
   volumetric_intensity: f32,
 }

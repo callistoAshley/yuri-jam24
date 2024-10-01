@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wgpu.h>
+#include "graphics/transform_manager.h"
 #include "graphics/wgpu_resources.h"
 #include "core_types.h"
 #include "parsers/shdw.h"
@@ -29,6 +30,14 @@ typedef struct
     WGPUBuffer buffer;
     bool dirty;
 } CasterManager;
+
+typedef struct
+{
+    TransformEntry transform;
+    CasterEntry *caster;
+    vec2s offset;
+    u32 cell;
+} ShadowCaster;
 
 void caster_manager_init(CasterManager *manager, WGPUResources *resources);
 void caster_manager_free(CasterManager *manager);

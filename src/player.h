@@ -15,7 +15,10 @@ typedef struct
     // HOWEVER, we store the sprite in a layer for rendering, so we need to keep
     // it's layer entry
     Sprite sprite;
+    ShadowCaster shadow_caster;
+
     LayerEntry layer_entry;
+    LayerEntry shadow_caster_entry;
 
     b2BodyId body_id;
     b2ShapeId shape_id;

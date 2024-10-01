@@ -17,7 +17,7 @@
     <polygon points="0,0 24,0 24,24 8,24 8,16 0,16"/>
    </object>
   </objectgroup>
-  <objectgroup id="5" name="lights" class="lights" visible="0">
+  <objectgroup id="5" name="lights" class="lights">
    <object id="7" x="0.194518" y="43.1396" width="60.8891" height="60.8891">
     <properties>
      <property name="casts_shadows" type="bool" value="false"/>
@@ -27,9 +27,9 @@
     </properties>
     <ellipse/>
    </object>
-   <object id="13" x="48.0495" y="21.6305">
+   <object id="13" x="34.9586" y="-5.46041">
     <properties>
-     <property name="casts_shadows" type="bool" value="false"/>
+     <property name="casts_shadows" type="bool" value="true"/>
      <property name="color" type="color" value="#ffffffff"/>
      <property name="intensity" type="float" value="0.2"/>
      <property name="volumetric_intensity" type="float" value="0.1"/>

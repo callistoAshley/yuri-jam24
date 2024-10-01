@@ -25,24 +25,11 @@ void point_light_render(PointLight *light, WGPURenderPassEncoder pass,
     wgpuRenderPassEncoderDraw(pass, VERTICES_PER_QUAD, 1, 0, 0);
 }
 
-void directional_light_init(DirectionalLight *light, vec3s color, f32 angle)
-{
-    light->color = color;
-    light->angle = angle;
-}
-
-void directional_light_free(DirectionalLight *light)
-{
-    // currently a no-op
-    (void)light;
-}
-
 void directional_light_render(DirectionalLight *light,
                               WGPURenderPassEncoder pass)
 {
     DirectLightPushConstants push_constants = {
         .color = light->color,
-        .angle = light->angle,
         .intensity = light->intensity,
         .volumetric_intensity = light->volumetric_intensity,
     };

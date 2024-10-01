@@ -27,46 +27,62 @@
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 
-void tilemap_layer_draw(void *layer, void *context, Graphics *graphics,
-                        WGPURenderPassEncoder pass)
+void tilemap_layer_draw(void *layer, void *context, WGPURenderPassEncoder pass)
 {
-    (void)graphics;
+
     TilemapLayer *tilemap_layer = layer;
     tilemap_render(tilemap_layer->tilemap, *(mat4s *)context,
                    tilemap_layer->layer, pass);
 }
 
-void sprite_draw(void *thing, void *context, Graphics *graphics,
-                 WGPURenderPassEncoder pass)
+void sprite_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 {
-    (void)graphics;
     Sprite *sprite = thing;
     sprite_render(sprite, *(mat4s *)context, pass);
 }
 
-void ui_sprite_draw(void *thing, void *context, Graphics *graphics,
-                    WGPURenderPassEncoder pass)
+void ui_sprite_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 {
-    (void)graphics;
     UiSprite *sprite = thing;
     ui_sprite_render(sprite, *(mat4s *)context, pass);
 }
 
-void point_light_draw(void *thing, void *context, Graphics *graphics,
-                      WGPURenderPassEncoder pass)
+void point_light_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 {
-    (void)graphics;
     PointLight *light = thing;
     point_light_render(light, pass, *(Camera *)context);
 }
 
-void directional_light_draw(void *thing, void *context, Graphics *graphics,
+void directional_light_draw(void *thing, void *context,
                             WGPURenderPassEncoder pass)
 {
-    (void)graphics;
     (void)context;
     DirectionalLight *light = thing;
     directional_light_render(light, pass);
+}
+
+struct ShadowCasterContext
+{
+    mat4s camera;
+    vec2s light_position;
+};
+void shadowcaster_draw(void *thing, void *context, WGPURenderPassEncoder pass)
+{
+    ShadowCaster *caster = thing;
+    struct ShadowCasterContext *caster_context = context;
+
+    ShadowmapPushConstants constants = {
+        .transform_index = caster->transform,
+        .offset = caster->offset,
+        .camera = caster_context->camera,
+        .light_position = caster_context->light_position,
+    };
+    CasterCell cell = caster->caster->cells[caster->cell];
+
+    wgpuRenderPassEncoderSetPushConstants(
+        pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
+        sizeof(ShadowmapPushConstants), &constants);
+    wgpuRenderPassEncoderDraw(pass, cell.end - cell.start, 1, cell.start, 0);
 }
 
 void graphics_init(Graphics *graphics, SDL_Window *window)
@@ -100,6 +116,7 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     layer_init(&graphics->lights, point_light_draw, NULL);
     layer_init(&graphics->directional, directional_light_draw, NULL);
+    layer_init(&graphics->shadowcasters, shadowcaster_draw, NULL);
 
     // load bearing molly
     // why do we need this? primarily to make sure that at least one texture is
@@ -264,8 +281,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     WGPUBindGroup screen_blit_bind_group;
     build_screen_blit_bind_group(graphics, &screen_blit_bind_group);
 
-    WGPUBindGroup shadowmapping_bind_group;
-    build_shadowmapping_bind_group(graphics, &shadowmapping_bind_group);
+    WGPUBindGroup shadowmap_bind_hroup;
+    build_shadowmapping_bind_group(graphics, &shadowmap_bind_hroup);
 
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -300,6 +317,14 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     WGPUCommandEncoder command_encoder =
         wgpuDeviceCreateCommandEncoder(graphics->wgpu.device, NULL);
 
+    mat4s camera_projection = glms_ortho(
+        0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0, -1.0f, 1.0f);
+    mat4s camera_transform = glms_look(
+        (vec3s){.x = raw_camera.x, .y = raw_camera.y, .z = raw_camera.z},
+        (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+        (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
+    mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
+
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     {
         WGPURenderPassColorAttachment defferred_attachments[] = {{
@@ -317,21 +342,11 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
             command_encoder, &deferred_render_pass_desc);
 
-        mat4s camera_projection =
-            glms_ortho(0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0,
-                       -1.0f, 1.0f);
-        mat4s camera_transform = glms_look(
-            (vec3s){.x = raw_camera.x, .y = raw_camera.y, .z = raw_camera.z},
-            (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
-            (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
-        mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
-
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
-        layer_draw(&graphics->tilemap_layers.background, &camera, graphics,
-                   render_pass);
+        layer_draw(&graphics->tilemap_layers.background, &camera, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.sprite);
@@ -342,15 +357,13 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetIndexBuffer(render_pass,
                                             graphics->quad_manager.index_buffer,
                                             WGPUIndexFormat_Uint16, 0, 12);
-        layer_draw(&graphics->sprite_layers.background, &camera, graphics,
-                   render_pass);
+        layer_draw(&graphics->sprite_layers.background, &camera, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
-        layer_draw(&graphics->tilemap_layers.middle, &camera, graphics,
-                   render_pass);
+        layer_draw(&graphics->tilemap_layers.middle, &camera, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.sprite);
@@ -361,15 +374,13 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetIndexBuffer(render_pass,
                                             graphics->quad_manager.index_buffer,
                                             WGPUIndexFormat_Uint16, 0, 12);
-        layer_draw(&graphics->sprite_layers.middle, &camera, graphics,
-                   render_pass);
+        layer_draw(&graphics->sprite_layers.middle, &camera, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
-        layer_draw(&graphics->tilemap_layers.foreground, &camera, graphics,
-                   render_pass);
+        layer_draw(&graphics->tilemap_layers.foreground, &camera, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.sprite);
@@ -380,8 +391,55 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetIndexBuffer(render_pass,
                                             graphics->quad_manager.index_buffer,
                                             WGPUIndexFormat_Uint16, 0, 12);
-        layer_draw(&graphics->sprite_layers.foreground, &camera, graphics,
-                   render_pass);
+        layer_draw(&graphics->sprite_layers.foreground, &camera, render_pass);
+
+        wgpuRenderPassEncoderEnd(render_pass);
+        wgpuRenderPassEncoderRelease(render_pass);
+    }
+
+    // perform shadowmapping
+    u32 caster_buffer_size = wgpuBufferGetSize(graphics->caster_manager.buffer);
+    {
+        WGPURenderPassColorAttachment attachments[] = {{
+            .view = graphics->shadowmap.texture_view,
+            .loadOp = WGPULoadOp_Clear,
+            .storeOp = WGPUStoreOp_Store,
+            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
+            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
+        }};
+        WGPURenderPassDescriptor render_pass_desc = {
+            .label = "shadowmap render pass encoder",
+            .colorAttachmentCount = 1,
+            .colorAttachments = attachments,
+        };
+        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
+            command_encoder, &render_pass_desc);
+        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, shadowmap_bind_hroup,
+                                          0, 0);
+        wgpuRenderPassEncoderSetPipeline(render_pass,
+                                         graphics->shaders.lights.shadowmap);
+        wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0,
+                                             graphics->caster_manager.buffer, 0,
+                                             caster_buffer_size);
+
+        ShadowMapIter iter;
+        shadowmap_iter_init(&graphics->shadowmap, &iter);
+
+        vec2s position;
+        while (shadowmap_iter_next(&iter, &position))
+        {
+            vec2s tex_position = SHADOWMAP_ENTRY_POS_OFFSET(iter.current_entry);
+            wgpuRenderPassEncoderSetViewport(
+                render_pass, tex_position.x, tex_position.y,
+                INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0, 1);
+
+            struct ShadowCasterContext context = {
+                .camera = camera,
+                .light_position = position,
+            };
+
+            layer_draw(&graphics->shadowcasters, &context, render_pass);
+        }
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);
@@ -409,12 +467,12 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.lights.direct);
 
-        layer_draw(&graphics->directional, &raw_camera, graphics, render_pass);
+        layer_draw(&graphics->directional, &raw_camera, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.lights.point);
 
-        layer_draw(&graphics->lights, &raw_camera, graphics, render_pass);
+        layer_draw(&graphics->lights, &raw_camera, render_pass);
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);
@@ -476,10 +534,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                             graphics->quad_manager.index_buffer,
                                             WGPUIndexFormat_Uint16, 0, 12);
 
-        layer_draw(&graphics->ui_layers.background, &camera, graphics,
-                   render_pass);
+        layer_draw(&graphics->ui_layers.background, &camera, render_pass);
 
-        layer_draw(&graphics->ui_layers.middle, &camera, graphics, render_pass);
+        layer_draw(&graphics->ui_layers.middle, &camera, render_pass);
 
         // imgui is used for debug tools, so we want that to be on top of most
         // of the game's ui
@@ -505,8 +562,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
             graphics->wgpu.surface_config.height);
 
         // however... we do want the foreground ui to be on top of imgui
-        layer_draw(&graphics->ui_layers.foreground, &camera, graphics,
-                   render_pass);
+        layer_draw(&graphics->ui_layers.foreground, &camera, render_pass);
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);
@@ -524,7 +580,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     wgpuBindGroupRelease(light_bind_group);
     wgpuBindGroupRelease(tilemap_bind_group);
     wgpuBindGroupRelease(screen_blit_bind_group);
-    wgpuBindGroupRelease(shadowmapping_bind_group);
+    wgpuBindGroupRelease(shadowmap_bind_hroup);
 
     wgpuCommandBufferRelease(command_buffer);
     wgpuCommandEncoderRelease(command_encoder);

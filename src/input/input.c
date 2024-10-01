@@ -9,6 +9,9 @@ void input_init(Input *input)
     input->curr = 0;
     input->last_frame = SDL_GetTicksNS();
     input->requested_quit = false;
+
+    input->mouse_x = 0;
+    input->mouse_y = 0;
 }
 
 void input_start_frame(Input *input)

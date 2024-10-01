@@ -12,6 +12,9 @@ typedef struct
     f32 intensity;
     f32 radius;
     f32 volumetric_intensity;
+
+    bool casts_shadows;
+    ShadowMapEntry shadowmap_entry;
 } PointLight;
 
 void point_light_render(PointLight *light, WGPURenderPassEncoder pass,
@@ -20,14 +23,13 @@ void point_light_render(PointLight *light, WGPURenderPassEncoder pass,
 typedef struct
 {
     vec3s color;
-    f32 angle;
 
     f32 intensity;
     f32 volumetric_intensity;
-} DirectionalLight;
 
-void directional_light_init(DirectionalLight *light, vec3s color, f32 angle);
-void directional_light_free(DirectionalLight *light);
+    bool casts_shadows;
+    ShadowMapEntry shadowmap_entry;
+} DirectionalLight;
 
 void directional_light_render(DirectionalLight *light,
                               WGPURenderPassEncoder pass);

@@ -2,6 +2,7 @@
 #include "box2d/box2d.h"
 #include "cglm/struct/vec2.h"
 #include "core_types.h"
+#include "graphics/caster_manager.h"
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
 #include "utility/log.h"
@@ -27,6 +28,17 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
 
     player->layer_entry =
         layer_add(&resources->graphics->sprite_layers.middle, &player->sprite);
+
+    CasterEntry *caster =
+        caster_manager_load(&resources->graphics->caster_manager,
+                            "assets/shadowcasters/player.shdw");
+
+    player->shadow_caster.caster = caster;
+    player->shadow_caster.cell = 0;
+    player->shadow_caster.transform = transform_entry;
+
+    player->shadow_caster_entry =
+        layer_add(&resources->graphics->shadowcasters, &player->shadow_caster);
 
     b2BodyDef bodyDef = b2DefaultBodyDef();
     bodyDef.type = b2_dynamicBody;

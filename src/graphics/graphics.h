@@ -53,6 +53,7 @@ typedef struct Graphics
 
     Layer directional;
     Layer lights;
+    Layer shadowcasters;
 
     bool was_resized;
 } Graphics;
