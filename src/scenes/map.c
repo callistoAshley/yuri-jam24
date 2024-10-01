@@ -9,6 +9,8 @@
 #include "utility/log.h"
 #include "utility/macros.h"
 
+// TODO free everything after changing scenes
+
 #include <tmx.h>
 
 #define COLLISION_CLASS "collision"
@@ -210,6 +212,107 @@ static void handle_light_layer(tmx_layer *layer, Resources *resources)
     }
 }
 
+static void handle_shadow_layer(tmx_layer *layer, Resources *resources)
+{
+    vec points;
+    vec_init(&points, sizeof(vec2s));
+
+    tmx_object *current = layer->content.objgr->head;
+    while (current)
+    {
+        switch (current->obj_type)
+        {
+        case OT_SQUARE:
+        {
+            // we have to push each point twice, because the shadow system works
+            // off line segments
+            vec2s first = (vec2s){.x = current->x, .y = current->y};
+            vec_push(&points, &first);
+
+            vec2s point =
+                (vec2s){.x = current->x + current->width, .y = current->y};
+            vec_push(&points, &point);
+            vec_push(&points, &point);
+
+            point = (vec2s){.x = current->x + current->width,
+                            .y = current->y + current->height};
+            vec_push(&points, &point);
+            vec_push(&points, &point);
+
+            point = (vec2s){.x = current->x, .y = current->y + current->height};
+            vec_push(&points, &point);
+            vec_push(&points, &point);
+
+            vec_push(&points, &first);
+
+            break;
+        }
+        case OT_POLYGON:
+        {
+            double **obj_points = current->content.shape->points;
+            i32 obj_point_len = current->content.shape->points_len;
+            vec2s obj_position = (vec2s){.x = current->x, .y = current->y};
+
+            // we have to have a special case for the last point, so only
+            // iterate to the second last point
+            for (i32 i = 0; i < obj_point_len - 1; i++)
+            {
+                vec2s point =
+                    (vec2s){.x = obj_points[i][0], .y = obj_points[i][1]};
+                point = glms_vec2_add(point, obj_position);
+                vec_push(&points, &point);
+
+                // push i+1
+                point = (vec2s){.x = obj_points[i + 1][0],
+                                .y = obj_points[i + 1][1]};
+                point = glms_vec2_add(point, obj_position);
+                vec_push(&points, &point);
+            }
+
+            // push the last point
+            vec2s point = (vec2s){.x = obj_points[obj_point_len - 1][0],
+                                  .y = obj_points[obj_point_len - 1][1]};
+            point = glms_vec2_add(point, obj_position);
+            vec_push(&points, &point);
+
+            // ... then push the first point again
+            point = (vec2s){.x = obj_points[0][0], .y = obj_points[0][1]};
+            point = glms_vec2_add(point, obj_position);
+            vec_push(&points, &point);
+
+            break;
+        }
+
+        default:
+            log_warn("Unhandled object type: %d", current->obj_type);
+            break;
+        }
+
+        current = current->next;
+    }
+
+    // now that we're done, we can register the shadow caster
+    Cell cell = {
+        .points = (vec2s *)points.data,
+        .point_count = points.len,
+    };
+    CasterEntry *caster_entry = caster_manager_register(
+        &resources->graphics->caster_manager, "map_shadows", &cell, 1);
+
+    // now we can add the shadow caster to the scene
+    Transform transform = transform_from_xyz(layer->offsetx, layer->offsety, 0);
+    TransformEntry transform_entry = transform_manager_add(
+        &resources->graphics->transform_manager, transform);
+
+    ShadowCaster *shadow_caster = malloc(sizeof(ShadowCaster));
+    shadow_caster->transform = transform_entry;
+    shadow_caster->caster = caster_entry;
+    shadow_caster->offset = (vec2s){.x = 0, .y = 0};
+    shadow_caster->cell = 0;
+
+    layer_add(&resources->graphics->shadowcasters, shadow_caster);
+}
+
 static void handle_image_layer(tmx_layer *layer, Resources *resources)
 {
     tmx_image *image = layer->content.image;
@@ -277,6 +380,10 @@ static void handle_map_layers(tmx_layer *head, Resources *resources,
             else if (!strcmp(current->class_type, LIGHTS_CLASS))
             {
                 handle_light_layer(current, resources);
+            }
+            else if (!strcmp(current->class_type, "shadows"))
+            {
+                handle_shadow_layer(current, resources);
             }
             else
             {
