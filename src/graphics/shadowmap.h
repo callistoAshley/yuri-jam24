@@ -40,8 +40,8 @@ typedef struct
 } ShadowMapIter;
 
 #define SHADOWMAP_ENTRY_POS_OFFSET(entry)                                      \
-    ((vec2s){.x = (u32)(entry % SHADOWMAP_WIDTH) * INTERNAL_SCREEN_WIDTH,      \
-             .y = (u32)(entry / SHADOWMAP_WIDTH) * INTERNAL_SCREEN_HEIGHT})
+    ((vec2s){.x = (u32)((entry) % SHADOWMAP_WIDTH) * INTERNAL_SCREEN_WIDTH,    \
+             .y = (u32)((entry) / SHADOWMAP_WIDTH) * INTERNAL_SCREEN_HEIGHT})
 
 void shadowmap_init(ShadowMap *shadowmap, WGPUResources *wgpu);
 

@@ -6,6 +6,9 @@ struct PushConstants {
   color: vec3f,
   intensity: f32,
   volumetric_intensity: f32,
+
+  // FIXME vec3f jank
+  mask_tex_offset: vec3f,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -39,16 +42,25 @@ fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let screen_size = vec2f(160.0, 90.0);
+    let mask_size = screen_size * 16.0;
     let tex_coords = in.position.xy / screen_size;
-
-    let mask_tex_coords = tex_coords / 16.0;
 
     let base_color = textureSample(color, tex_sampler, tex_coords);
     var color = base_color.rgb;
 
-    if base_color.a < 0.1 {
-        color = push_constants.color * push_constants.volumetric_intensity;
+    var light_color = push_constants.color;
+    // z = 1.0 indicates that the mask texture is enabled
+    if push_constants.mask_tex_offset.z == 1.0 {
+        let mask_tex_coords = (in.position.xy + push_constants.mask_tex_offset.xy) / mask_size;
+        let mask = textureSample(shadow, tex_sampler, mask_tex_coords);
+        if mask.r > 0.1 {
+            light_color *= 0.5;
+        }
     }
 
-    return vec4f(color * push_constants.color * push_constants.intensity, 1.0);
+    if base_color.a < 0.1 {
+        color = light_color * push_constants.volumetric_intensity;
+    }
+
+    return vec4f(color * light_color * push_constants.intensity, 1.0);
 }

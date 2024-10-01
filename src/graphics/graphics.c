@@ -428,7 +428,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         vec2s position;
         while (shadowmap_iter_next(&iter, &position))
         {
-            vec2s tex_position = SHADOWMAP_ENTRY_POS_OFFSET(iter.current_entry);
+            vec2s tex_position =
+                SHADOWMAP_ENTRY_POS_OFFSET(iter.current_entry - 1);
             wgpuRenderPassEncoderSetViewport(
                 render_pass, tex_position.x, tex_position.y,
                 INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0, 1);

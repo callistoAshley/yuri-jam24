@@ -104,6 +104,8 @@ typedef struct
     vec3s color;
     f32 intensity;
     f32 volumetric_intensity;
+
+    alignas(16) vec3s mask_tex_offset;
 } DirectLightPushConstants;
 
 typedef struct
