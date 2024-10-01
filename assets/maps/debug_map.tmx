@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="33" height="15" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="22">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="33" height="15" tilewidth="8" tileheight="8" infinite="0" nextlayerid="7" nextobjectid="25">
  <tileset firstgid="1" source="../tilesets/red_test.tsx"/>
  <imagelayer id="1" name="Molly :)" offsetx="92.7273" offsety="52">
   <image source="../textures/load_bearing_molly.png" width="32" height="32"/>
@@ -10,7 +10,14 @@
   </data>
  </layer>
  <group id="3" name="objects">
-  <objectgroup id="5" name="lights" class="lights">
+  <objectgroup id="6" name="shadows" class="shadows">
+   <object id="22" x="16" y="23.9565" width="64" height="8.04348"/>
+   <object id="23" x="0" y="88" width="263.5" height="16.375"/>
+   <object id="24" x="136" y="16">
+    <polygon points="0,0 24,0 24,24 8,24 8,16 0,16"/>
+   </object>
+  </objectgroup>
+  <objectgroup id="5" name="lights" class="lights" visible="0">
    <object id="7" x="0.194518" y="43.1396" width="60.8891" height="60.8891">
     <properties>
      <property name="casts_shadows" type="bool" value="false"/>
@@ -93,7 +100,7 @@
     <ellipse/>
    </object>
   </objectgroup>
-  <objectgroup id="4" name="colliders" class="collision">
+  <objectgroup id="4" name="colliders" class="collision" visible="0">
    <object id="1" name="spawnpoint" x="141" y="86.375">
     <point/>
    </object>

@@ -14,6 +14,7 @@ set(SOURCES
     ${DIR}/transform_manager.c
     ${DIR}/wgpu_resources.c
     ${DIR}/caster_manager.c
+    ${DIR}/shadowmap.c
     ${SOURCES}
     PARENT_SCOPE
 )

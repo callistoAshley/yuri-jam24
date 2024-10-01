@@ -24,4 +24,3 @@ function(add_shadowcaster target)
 endfunction()
 
 add_shadowcaster(player)
-add_shadowcaster(red_start 8 8)

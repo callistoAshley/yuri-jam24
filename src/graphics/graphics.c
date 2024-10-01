@@ -83,6 +83,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     // to pass wgpu
     texture_manager_init(&graphics->texture_manager);
 
+    shadowmap_init(&graphics->shadowmap, &graphics->wgpu);
+
     layer_init(&graphics->tilemap_layers.background, tilemap_layer_draw, free);
     layer_init(&graphics->tilemap_layers.middle, tilemap_layer_draw, free);
     layer_init(&graphics->tilemap_layers.foreground, tilemap_layer_draw, free);
@@ -129,29 +131,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         desc.format = graphics->wgpu.surface_config.format;
         graphics->lit = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
         graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
-    }
-
-    {
-        // support 16*16 = 256 lights
-        WGPUExtent3D extents = {
-            .width = INTERNAL_SCREEN_WIDTH * 16,
-            .height = INTERNAL_SCREEN_HEIGHT * 16,
-            .depthOrArrayLayers = 1,
-        };
-        WGPUTextureDescriptor desc = {
-            .label = "shadow mask texture",
-            .size = extents,
-            .dimension = WGPUTextureDimension_2D,
-            .format = WGPUTextureFormat_R8Unorm,
-            .mipLevelCount = 1,
-            .sampleCount = 1,
-            .usage = WGPUTextureUsage_RenderAttachment |
-                     WGPUTextureUsage_TextureBinding,
-        };
-        graphics->shadow_mask =
-            wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
-        graphics->shadow_mask_view =
-            wgpuTextureCreateView(graphics->shadow_mask, NULL);
     }
 
     graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
@@ -202,7 +181,7 @@ void build_light_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
 
     bind_group_builder_append_texture_view(&builder, graphics->color_view);
     bind_group_builder_append_texture_view(&builder,
-                                           graphics->shadow_mask_view);
+                                           graphics->shadowmap.texture_view);
     bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     *bind_group = bind_group_build(&builder, graphics->wgpu.device,
