@@ -53,9 +53,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     if push_constants.mask_tex_offset.z == 1.0 {
         let mask_tex_coords = (in.position.xy + push_constants.mask_tex_offset.xy) / mask_size;
         let mask = textureSample(shadow, tex_sampler, mask_tex_coords);
-        if mask.r > 0.1 {
-            light_color *= 0.5;
-        }
+        light_color *= 1.0 - mask.r;
     }
 
     if base_color.a < 0.1 {
