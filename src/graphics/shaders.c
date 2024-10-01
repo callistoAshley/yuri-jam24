@@ -274,7 +274,7 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .topology = WGPUPrimitiveTopology_TriangleList,
         .stripIndexFormat = WGPUIndexFormat_Undefined,
         .frontFace = WGPUFrontFace_CW,
-        .cullMode = WGPUCullMode_Back,
+        .cullMode = WGPUCullMode_Front,
     };
 
     WGPUPushConstantRange shadowmap_constants[] =

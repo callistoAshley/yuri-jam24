@@ -11,6 +11,8 @@ struct PushConstants {
   intensity: f32,
   radius: f32,
   volumetric_intensity: f32,
+  
+  mask_tex_offset: vec3f,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -55,6 +57,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let frag_world_coord = in.position.xy + push_constants.camera_position;
 
     let tex_coords = in.position.xy / SCREEN_SIZE;
+    let mask_size = SCREEN_SIZE * 16.0;
 
     let color = textureSample(color, tex_sampler, tex_coords);
 
@@ -69,7 +72,16 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let radial_falloff = pow(clamp(1.0 - dist_norm, 0.0, 1.0), 2.0);
 
     let final_intensity = push_constants.intensity * radial_falloff;
-    let light_color = push_constants.color * final_intensity;
+    var light_color = push_constants.color * final_intensity;
+
+    // z = 1.0 indicates that the mask texture is enabled
+    if push_constants.mask_tex_offset.z == 1.0 {
+        let mask_tex_coords = (in.position.xy + push_constants.mask_tex_offset.xy) / mask_size;
+        let mask = textureSample(shadow, tex_sampler, mask_tex_coords);
+        if mask.r > 0.1 {
+            light_color *= 0.5;
+        }
+    }
 
     let shaded_color = color.rgb * light_color;
     var volumetric_color = vec3f(0.0);
