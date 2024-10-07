@@ -8,6 +8,8 @@
 #include "utility/common_defines.h"
 #include <string.h>
 
+#define INITIAL_MAP "assets/maps/debug_awesome.tmx"
+
 void title_scene_init(Scene **scene_data, Resources *resources,
                       void *extra_args)
 {
@@ -148,7 +150,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
 
         if (title_scene->transition_timer > 0.25f)
         {
-            MapInitArgs args = {.map_path = "assets/maps/debug_map.tmx"};
+            MapInitArgs args = {.map_path = INITIAL_MAP};
             scene_change(MAP_SCENE, resources, &args);
             return;
         }
