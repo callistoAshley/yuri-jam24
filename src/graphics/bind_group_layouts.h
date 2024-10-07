@@ -10,7 +10,7 @@ typedef struct
     WGPUBindGroupLayout sprite;
     WGPUBindGroupLayout lighting;
     WGPUBindGroupLayout tilemap;
-    WGPUBindGroupLayout screen_blit;
+    WGPUBindGroupLayout hdr_tonemap;
     WGPUBindGroupLayout shadowmap;
 } BindGroupLayouts;
 

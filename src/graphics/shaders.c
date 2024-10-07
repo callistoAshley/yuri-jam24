@@ -152,8 +152,8 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         .color = additive_components,
         .alpha = additive_components,
     };
-    WGPUColorTargetState additive_surface_targets[] = {(WGPUColorTargetState){
-        .format = resources->surface_config.format,
+    WGPUColorTargetState additive_lit_targets[] = {(WGPUColorTargetState){
+        .format = WGPUTextureFormat_RGBA16Float,
         .writeMask = WGPUColorWriteMask_All,
         .blend = &additive_blend,
     }};
@@ -222,17 +222,17 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     shaders->lights.point =
         create_shader("assets/shaders/point_light.wgsl", "point_light",
                       &layouts->lighting, 1, light_constants, 1, NULL, 0,
-                      additive_surface_targets, 1, NULL, NULL, resources);
+                      additive_lit_targets, 1, NULL, NULL, resources);
 
     WGPUPushConstantRange direct_constants[] =
         PUSH_CONSTANTS_FOR(DirectLightPushConstants);
     shaders->lights.direct =
         create_shader("assets/shaders/direct_light.wgsl", "direct_light",
                       &layouts->lighting, 1, direct_constants, 1, NULL, 0,
-                      additive_surface_targets, 1, NULL, NULL, resources);
+                      additive_lit_targets, 1, NULL, NULL, resources);
 
-    shaders->forward.screen_blit = create_shader(
-        "assets/shaders/screen_blit.wgsl", "screen_blit", &layouts->screen_blit,
+    shaders->forward.hdr_tonemap = create_shader(
+        "assets/shaders/hdr_tonemap.wgsl", "hdr_tonemap", &layouts->hdr_tonemap,
         1, NULL, 0, NULL, 0, surface_targets, 1, NULL, NULL, resources);
 
     WGPUPushConstantRange b2d_circle_constants[] =

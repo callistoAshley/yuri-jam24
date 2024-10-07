@@ -143,9 +143,24 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
         };
         graphics->color = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
         graphics->color_view = wgpuTextureCreateView(graphics->color, NULL);
+    }
 
-        desc.label = "lit texture";
-        desc.format = graphics->wgpu.surface_config.format;
+    {
+        WGPUExtent3D extents = {
+            .width = INTERNAL_SCREEN_WIDTH,
+            .height = INTERNAL_SCREEN_HEIGHT,
+            .depthOrArrayLayers = 1,
+        };
+        WGPUTextureDescriptor desc = {
+            .label = "lit texture",
+            .size = extents,
+            .dimension = WGPUTextureDimension_2D,
+            .format = WGPUTextureFormat_RGBA16Float,
+            .mipLevelCount = 1,
+            .sampleCount = 1,
+            .usage = WGPUTextureUsage_RenderAttachment |
+                     WGPUTextureUsage_TextureBinding,
+        };
         graphics->lit = wgpuDeviceCreateTexture(graphics->wgpu.device, &desc);
         graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
     }
@@ -230,7 +245,7 @@ void build_tilemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_free(&builder);
 }
 
-void build_screen_blit_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
+void build_hdr_tonemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
 {
     BindGroupBuilder builder;
     bind_group_builder_init(&builder);
@@ -239,7 +254,7 @@ void build_screen_blit_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     *bind_group = bind_group_build(&builder, graphics->wgpu.device,
-                                   graphics->bind_group_layouts.screen_blit,
+                                   graphics->bind_group_layouts.hdr_tonemap,
                                    "Screen Blit Bind Group");
 
     bind_group_builder_free(&builder);
@@ -278,8 +293,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     WGPUBindGroup tilemap_bind_group;
     build_tilemap_bind_group(graphics, &tilemap_bind_group);
 
-    WGPUBindGroup screen_blit_bind_group;
-    build_screen_blit_bind_group(graphics, &screen_blit_bind_group);
+    WGPUBindGroup hdr_tonemap_bind_group;
+    build_hdr_tonemap_bind_group(graphics, &hdr_tonemap_bind_group);
 
     WGPUBindGroup shadowmap_bind_hroup;
     build_shadowmapping_bind_group(graphics, &shadowmap_bind_hroup);
@@ -508,9 +523,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         // do this with a compute shader but i honestly could not be bothered
         // right now
         wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.forward.screen_blit);
+                                         graphics->shaders.forward.hdr_tonemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0,
-                                          screen_blit_bind_group, 0, NULL);
+                                          hdr_tonemap_bind_group, 0, NULL);
         // no vertex buffer, just plain drawing
         wgpuRenderPassEncoderDraw(render_pass, 6, 1, 0, 0);
 
@@ -580,7 +595,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     wgpuBindGroupRelease(sprite_bind_group);
     wgpuBindGroupRelease(light_bind_group);
     wgpuBindGroupRelease(tilemap_bind_group);
-    wgpuBindGroupRelease(screen_blit_bind_group);
+    wgpuBindGroupRelease(hdr_tonemap_bind_group);
     wgpuBindGroupRelease(shadowmap_bind_hroup);
 
     wgpuCommandBufferRelease(command_buffer);

@@ -36,9 +36,9 @@ typedef struct Graphics
 
     ShadowMap shadowmap;
 
-    // after rendering to the color and normal textures, we do deffered shading
-    // and render the result to the lit texture. this texture is then upscaled
-    // and drawn to the screen.
+    // after rendering to the color texture, we do deffered shading
+    // and render the result to the lit texture. this texture is then upscaled,
+    // tone mapped, and drawn to the screen.
     WGPUTexture lit;
     WGPUTextureView lit_view;
 

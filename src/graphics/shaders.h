@@ -14,7 +14,7 @@ typedef struct Shaders
     struct
     {
         WGPURenderPipeline ui_sprite;
-        WGPURenderPipeline screen_blit;
+        WGPURenderPipeline hdr_tonemap;
     } forward;
 
     struct
