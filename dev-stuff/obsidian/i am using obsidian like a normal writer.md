@@ -3,6 +3,7 @@ from october 1 to december 1. that's 2 months.
 about 8 weeks
 4 weeks in 1 month
 or sometimes 3, so 6 weeks to be safe
+lets make a game that can be finished in about 20 minutes then
 
 Willow: "Hurry uuuuuuup, slowpoke! We don't have all night!"
 (serenity walks up to willow slowly)
