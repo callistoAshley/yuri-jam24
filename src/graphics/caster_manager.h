@@ -37,6 +37,7 @@ typedef struct
     CasterEntry *caster;
     vec2s offset;
     u32 cell;
+    bool fade_when_close;
 } ShadowCaster;
 
 void caster_manager_init(CasterManager *manager, WGPUResources *resources);

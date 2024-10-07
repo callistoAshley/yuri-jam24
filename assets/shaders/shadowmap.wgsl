@@ -41,7 +41,7 @@ fn fs_main(in: VertexOutput) -> FragmentOutput {
     var out: FragmentOutput;
 
     // we're only outputting the red channel
-    out.color = vec4(1.0, 0.0, 0.0, 0.0);
+    out.color = vec4(0.5, 0.0, 0.0, 0.0);
 
     return out;
 }
