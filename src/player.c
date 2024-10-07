@@ -13,8 +13,8 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     TransformEntry transform_entry = transform_manager_add(
         &resources->graphics->transform_manager, player->transform);
 
-    // player is 8x16px (1x2 tiles/meters)
-    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 8, .y = 16});
+    // player is 10x18px
+    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 10, .y = 18});
     Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
     player->quad = (Quad){rect, tex_coords};
     QuadEntry quad_entry =
@@ -46,7 +46,7 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     bodyDef.fixedRotation = true;
     player->body_id = b2CreateBody(resources->physics->world, &bodyDef);
 
-    b2Polygon dynamicBox = b2MakeBox(4.0 / PX_PER_M, 8.0 / PX_PER_M);
+    b2Polygon dynamicBox = b2MakeBox(5.0 / PX_PER_M, 9.0 / PX_PER_M);
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
     shapeDef.friction = 0.0f;
@@ -113,8 +113,8 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     // box2d has a different coordinate system than us
     // +y is up for box2d, down for us
     // so we need to negate the y component
-    player->transform.position.x = body_position.x * PX_PER_M - 4;
-    player->transform.position.y = -body_position.y * PX_PER_M - 8;
+    player->transform.position.x = body_position.x * PX_PER_M - 5;
+    player->transform.position.y = -body_position.y * PX_PER_M - 9;
     // we need to convert the rotation to a quaternion
 
     transform_manager_update(&resources->graphics->transform_manager,

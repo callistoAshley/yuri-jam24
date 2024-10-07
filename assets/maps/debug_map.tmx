@@ -20,7 +20,7 @@
     <polygon points="0,0 0,-15 1.08696,-15 1.04348,-15.913 8.95652,-15.9565 8.91304,-15 9.95652,-14.8696 9.91304,1.42109e-14"/>
    </object>
   </objectgroup>
-  <objectgroup id="5" name="lights" class="lights" visible="0">
+  <objectgroup id="5" name="lights" class="lights">
    <object id="7" x="0.194518" y="43.1396" width="60.8891" height="60.8891">
     <properties>
      <property name="casts_shadows" type="bool" value="false"/>
@@ -33,8 +33,8 @@
    <object id="13" x="34.9586" y="-5.46041">
     <properties>
      <property name="casts_shadows" type="bool" value="true"/>
-     <property name="color" type="color" value="#ffffffff"/>
-     <property name="intensity" type="float" value="0.2"/>
+     <property name="color" type="color" value="#fffff9e4"/>
+     <property name="intensity" type="float" value="1"/>
      <property name="volumetric_intensity" type="float" value="0.1"/>
     </properties>
     <polyline points="0,0 7.59546,22.9515"/>
@@ -98,15 +98,6 @@
      <property name="casts_shadows" type="bool" value="false"/>
      <property name="color" type="color" value="#ffff8c00"/>
      <property name="intensity" type="float" value="2"/>
-     <property name="volumetric_intensity" type="float" value="0.11"/>
-    </properties>
-    <ellipse/>
-   </object>
-   <object id="25" x="14.1312" y="-80.7779" width="221.253" height="221.253">
-    <properties>
-     <property name="casts_shadows" type="bool" value="true"/>
-     <property name="color" type="color" value="#ff2fff00"/>
-     <property name="intensity" type="float" value="3"/>
      <property name="volumetric_intensity" type="float" value="0.11"/>
     </properties>
     <ellipse/>
