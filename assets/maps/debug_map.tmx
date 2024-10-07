@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="33" height="15" tilewidth="8" tileheight="8" infinite="0" nextlayerid="7" nextobjectid="27">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="33" height="15" tilewidth="8" tileheight="8" infinite="0" nextlayerid="7" nextobjectid="37">
  <tileset firstgid="1" source="../tilesets/red_test.tsx"/>
- <imagelayer id="1" name="Molly :)" offsetx="92.7273" offsety="52">
+ <imagelayer id="1" name="Molly :)" offsetx="102.545" offsety="46.9091">
   <image source="../textures/load_bearing_molly.png" width="32" height="32"/>
  </imagelayer>
  <layer id="2" name="Tile Layer 1" width="33" height="15">
@@ -30,7 +30,7 @@
     </properties>
     <ellipse/>
    </object>
-   <object id="13" x="34.9586" y="-5.46041">
+   <object id="13" x="24.0836" y="1.16459">
     <properties>
      <property name="casts_shadows" type="bool" value="true"/>
      <property name="color" type="color" value="#fffff9e4"/>
@@ -103,7 +103,7 @@
     <ellipse/>
    </object>
   </objectgroup>
-  <objectgroup id="4" name="colliders" class="collision" visible="0">
+  <objectgroup id="4" name="colliders" class="collision">
    <object id="1" name="spawnpoint" x="141" y="86.375">
     <point/>
    </object>

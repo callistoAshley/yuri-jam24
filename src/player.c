@@ -104,7 +104,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
             !disable_input)
         {
             b2Body_ApplyLinearImpulseToCenter(player->body_id,
-                                              (b2Vec2){0.0, 15.0}, true);
+                                              (b2Vec2){0.0, 22.5}, true);
             player->jump_timeout = 0.1;
         }
     }
