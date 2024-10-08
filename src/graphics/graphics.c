@@ -623,8 +623,8 @@ void graphics_free(Graphics *graphics)
     layer_free(&graphics->lights);
     layer_free(&graphics->shadowcasters);
 
-    bind_group_layouts_free(&graphics->bind_group_layouts);
     shaders_free(&graphics->shaders);
+    bind_group_layouts_free(&graphics->bind_group_layouts);
 
     wgpuSamplerRelease(graphics->sampler);
 

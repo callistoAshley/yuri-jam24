@@ -108,7 +108,7 @@ void caster_manager_clear(CasterManager *manager)
 {
     for (u32 i = 0; i < manager->entries.len; i++)
     {
-        CasterEntry *entry = vec_get(&manager->entries, i);
+        CasterEntry *entry = *(CasterEntry **)vec_get(&manager->entries, i);
         free(entry->cells);
         free(entry);
     }

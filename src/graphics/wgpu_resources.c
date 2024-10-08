@@ -289,10 +289,10 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
 
 void wgpu_resources_free(WGPUResources *resources)
 {
-    wgpuSurfaceRelease(resources->surface);
     wgpuQueueRelease(resources->queue);
     wgpuDeviceRelease(resources->device);
     wgpuAdapterRelease(resources->adapter);
+    wgpuSurfaceRelease(resources->surface);
     wgpuInstanceRelease(resources->instance);
     wgpuSurfaceCapabilitiesFreeMembers(resources->surface_caps);
 }
