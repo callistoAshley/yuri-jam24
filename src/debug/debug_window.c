@@ -21,6 +21,6 @@ void debug_wnd_show(DebugWindowState *state)
             MapInitArgs args = {.map_path = path};
             scene_change(MAP_SCENE, state->resources, &args);
         }
-        igEnd();
     }
+    igEnd();
 }

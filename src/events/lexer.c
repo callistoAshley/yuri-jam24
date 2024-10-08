@@ -19,6 +19,12 @@ size_t lexer_next_token(char *str, Token *out_token, char out_err_msg[256])
                 INCREMENT;
                 break;
             }
+            // comments
+            case '#':
+            {
+                while (*str != '\n' && *str) INCREMENT;
+                break;
+            }
             case ';':
             {
                 char name[256], arg[256];
