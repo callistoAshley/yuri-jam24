@@ -220,18 +220,69 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
     int window_width, window_height;
     SDL_GetWindowSize(window, &window_width, &window_height);
 
+    WGPUPresentMode selected_present_mode = surface_caps.presentModes[0];
+    // FifoRelaxed > Fifo > Mailbox > Immediate
+    for (u32 i = 0; i < surface_caps.presentModeCount; i++)
+    {
+        WGPUPresentMode mode = surface_caps.presentModes[i];
+        // if FifoRelaxed is supported, use that.
+        if (mode == WGPUPresentMode_FifoRelaxed)
+        {
+            selected_present_mode = WGPUPresentMode_FifoRelaxed;
+            break;
+        }
+        // if Fifo is supported, use that, unless we find FifoRelaxed.
+        if (mode == WGPUPresentMode_Fifo)
+        {
+            selected_present_mode = WGPUPresentMode_Fifo;
+        }
+        // if Mailbox is supported, use that, unless we find something better
+        // (or did find something better).
+        if (mode == WGPUPresentMode_Mailbox &&
+            selected_present_mode != WGPUPresentMode_Fifo)
+        {
+            selected_present_mode = WGPUPresentMode_Mailbox;
+        }
+        // if Immediate is supported, and we haven't found anything better, use
+        // that.
+        if (mode == WGPUPresentMode_Immediate &&
+            selected_present_mode != WGPUPresentMode_Fifo &&
+            selected_present_mode != WGPUPresentMode_Mailbox)
+        {
+            selected_present_mode = WGPUPresentMode_Immediate;
+        }
+    }
+    switch (selected_present_mode)
+    {
+
+    case WGPUPresentMode_Fifo:
+        printf("Selected Fifo present mode\n");
+        break;
+    case WGPUPresentMode_FifoRelaxed:
+        printf("Selected Fifo Relaxed present mode\n");
+        break;
+    case WGPUPresentMode_Immediate:
+        printf("Selected Immediate present mode\n");
+        break;
+    case WGPUPresentMode_Mailbox:
+        printf("Selected Mailbox present mode\n");
+        break;
+    case WGPUPresentMode_Force32:
+        break;
+    }
+
     resources->surface_config = (WGPUSurfaceConfiguration){
         .device = resources->device,
         .usage = WGPUTextureUsage_RenderAttachment,
         .format = surface_caps.formats[0],
-        .presentMode = WGPUPresentMode_Fifo,
+        .presentMode = selected_present_mode,
         .alphaMode = surface_caps.alphaModes[0],
         .width = window_width,
         .height = window_height,
     };
     wgpuSurfaceConfigure(resources->surface, &resources->surface_config);
 
-    wgpuSurfaceCapabilitiesFreeMembers(surface_caps);
+    resources->surface_caps = surface_caps;
 }
 
 void wgpu_resources_free(WGPUResources *resources)
@@ -241,4 +292,5 @@ void wgpu_resources_free(WGPUResources *resources)
     wgpuDeviceRelease(resources->device);
     wgpuAdapterRelease(resources->adapter);
     wgpuInstanceRelease(resources->instance);
+    wgpuSurfaceCapabilitiesFreeMembers(resources->surface_caps);
 }

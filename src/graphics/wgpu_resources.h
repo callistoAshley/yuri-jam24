@@ -12,6 +12,7 @@ typedef struct
     WGPUQueue queue;
     WGPUSurface surface;
     WGPUSurfaceConfiguration surface_config;
+    WGPUSurfaceCapabilities surface_caps;
 } WGPUResources;
 
 typedef struct
