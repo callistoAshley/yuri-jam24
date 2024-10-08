@@ -3,6 +3,7 @@
 #include "graphics/tilemap.h"
 #include "scene.h"
 #include "player.h"
+#include "ui/settings.h"
 
 typedef struct
 {
@@ -17,6 +18,8 @@ typedef struct
 
     vec colliders;
     vec renderables;
+
+    SettingsMenu settings;
 } MapScene;
 
 // NOTE: MUST BE PASSED TO scene_change!!!!!!

@@ -1,6 +1,7 @@
 #include "map.h"
 #include "input/input.h"
 #include "player.h"
+#include "ui/settings.h"
 #include "utility/common_defines.h"
 #include "utility/macros.h"
 #include "map_loader.h"
@@ -74,6 +75,8 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     tmx_map_free(map);
 
     player_init(&map_scene->player, player_position, resources);
+
+    settings_menu_init(&map_scene->settings, resources);
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)
@@ -83,7 +86,13 @@ void map_scene_update(Scene *scene_data, Resources *resources)
     if (input_is_pressed(resources->input, Button_Freecam))
         map_scene->freecam = !map_scene->freecam;
 
-    player_update(&map_scene->player, resources, map_scene->freecam);
+    if (input_is_pressed(resources->input, Button_Back))
+        map_scene->settings.open = true;
+
+    settings_menu_update(&map_scene->settings, resources);
+
+    player_update(&map_scene->player, resources,
+                  map_scene->freecam || map_scene->settings.open);
 
     if (map_scene->freecam)
     {
@@ -196,6 +205,8 @@ void map_scene_free(Scene *scene_data, Resources *resources)
         }
     }
     vec_free(&map_scene->renderables);
+
+    settings_menu_free(&map_scene->settings, resources);
 
     // hack to clear shadow casters, under the assumption that they'll all get
     // loaded again

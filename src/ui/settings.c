@@ -27,7 +27,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
 
         ui_sprite_init(&menu->background, background_texture, transform_entry,
                        quad_entry, 0.0f);
-        menu->bg_entry = layer_add(&resources->graphics->ui_layers.foreground,
+        menu->bg_entry = layer_add(&resources->graphics->ui_layers.middle,
                                    &menu->background);
     }
 
@@ -203,7 +203,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         FMOD_Studio_EventInstance_Release(instance);
     }
 
-    if (input_is_pressed(resources->input, Button_Back))
+    if (input_is_pressed(resources->input, Button_Back) && !is_opening)
     {
         menu->is_closing = true;
     }
@@ -237,7 +237,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 void settings_menu_free(SettingsMenu *menu, Resources *resources)
 {
     ui_sprite_free(&menu->background, resources->graphics);
-    layer_remove(&resources->graphics->ui_layers.foreground, menu->bg_entry);
+    layer_remove(&resources->graphics->ui_layers.middle, menu->bg_entry);
 
     for (int i = 0; i < 4; i++)
     {

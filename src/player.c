@@ -94,6 +94,8 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->jumping = false;
 
     player->facing = Facing_Left;
+
+    player_update(player, resources, true);
 }
 
 #define WALK_SPEED_MPS 4

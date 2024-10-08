@@ -19,8 +19,6 @@ void title_scene_init(Scene **scene_data, Resources *resources,
     title_scene->type = Scene_Title;
     *scene_data = (Scene *)title_scene;
 
-    settings_menu_init(&title_scene->settings_menu, resources);
-
     title_scene->hovered_option = -1;
 
     FMOD_STUDIO_EVENTDESCRIPTION *desc;
@@ -100,6 +98,8 @@ void title_scene_init(Scene **scene_data, Resources *resources,
         title_scene->option_entries[i] = layer_add(
             &resources->graphics->ui_layers.middle, &title_scene->options[i]);
     }
+
+    settings_menu_init(&title_scene->settings_menu, resources);
 
     FMOD_Studio_System_GetEvent(resources->audio->system, "event:/menu/hover",
                                 &title_scene->hover_desc);
