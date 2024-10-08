@@ -118,11 +118,20 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     if (player->foot_contact_count > 0 && player->jump_timeout <= 0)
     {
         // we're on the ground
+        player->fall_time = 0;
+        player->jumping = false;
         if (input_is_down(resources->input, Button_Up) && !disable_input)
         {
-            b2Body_ApplyLinearImpulseToCenter(player->body_id,
-                                              (b2Vec2){0.0, 22.5}, true);
-            player->jump_timeout = 0.1;
+            player_jump(player);
+        }
+    }
+    else if (!player->foot_contact_count && player->jump_timeout <= 0 && !player->jumping)
+    {
+        player->fall_time += resources->input->delta_seconds;
+        if (player->fall_time < 0.3f && input_is_down(resources->input, Button_Up) && !disable_input) 
+        {
+            // coyote jump
+            player_jump(player);
         }
     }
 
@@ -136,6 +145,14 @@ void player_update(Player *player, Resources *resources, bool disable_input)
 
     transform_manager_update(&resources->graphics->transform_manager,
                              player->sprite.transform, player->transform);
+}
+
+void player_jump(Player *player)
+{
+    b2Body_ApplyLinearImpulseToCenter(player->body_id,
+                                      (b2Vec2){0.0, 22.5}, true);
+    player->jump_timeout = 0.1;
+    player->jumping = true;
 }
 
 void player_free(Player *player, Resources *resources)

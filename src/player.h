@@ -27,8 +27,11 @@ typedef struct
     u32 foot_contact_count;
 
     f32 jump_timeout;
+    f32 fall_time; 
+    bool jumping;
 } Player;
 
 void player_init(Player *player, b2Vec2 initial_pos, Resources *resources);
 void player_update(Player *player, Resources *resources, bool disable_input);
+void player_jump(Player *player);
 void player_free(Player *player, Resources *resources);
