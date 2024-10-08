@@ -115,8 +115,7 @@ int main(int argc, char **argv)
 
     scene.init(&scene_data, &resources, NULL);
 
-    DebugWindowState dbg_wnd =
-    {
+    DebugWindowState dbg_wnd = {
         .resources = &resources,
     };
 
@@ -180,6 +179,8 @@ int main(int argc, char **argv)
             first_frame = false;
         }
     }
+
+    scene.free(scene_data, &resources);
 
     graphics_free(&graphics);
     audio_free(&audio);
