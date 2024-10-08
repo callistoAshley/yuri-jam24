@@ -123,7 +123,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
                                           (b2Vec2){walk_speed, 0}, true);
     else if (current_speed) // not moving, decelerate
         b2Body_ApplyLinearImpulseToCenter(
-            player->body_id, (b2Vec2){-current_speed / 4, 0}, true);
+            player->body_id, (b2Vec2){-current_speed / 2, 0}, true);
 
     if (player->jump_timeout > 0)
         player->jump_timeout -= resources->input->delta_seconds;
