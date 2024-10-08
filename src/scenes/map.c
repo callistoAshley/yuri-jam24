@@ -24,6 +24,9 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     map_scene->type = Scene_Map;
     *scene_data = (Scene *)map_scene;
 
+    vec_init(&map_scene->colliders, sizeof(b2BodyId));
+    vec_init(&map_scene->renderables, sizeof(MapRenderable));
+
     map_scene->freecam = false;
 
     tmx_map *map = tmx_load(args->map_path);
@@ -38,15 +41,18 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     PTR_ERRCHK(map->ts_head->tileset->image,
                "Tileset does not have an image source");
 
-    MapLoadArgs map_data = {
+    b2Vec2 player_position = {0, 0};
+    MapLoadArgs load = {
         .tiles = NULL,
         .width = map->width,
         .height = map->height,
         .layers = 0,
+        .player_position = &player_position,
+        .colliders = &map_scene->colliders,
+        .renderables = &map_scene->renderables,
         .tilemap = &map_scene->tilemap,
     };
-    b2Vec2 player_position = {0, 0};
-    handle_map_layers(map->ly_head, resources, &player_position, &map_data);
+    handle_map_layers(map->ly_head, resources, &load);
 
     char *actual_path =
         tiled_image_path_to_actual(map->ts_head->tileset->image->source);
@@ -60,10 +66,10 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
         &resources->graphics->transform_manager, transform);
 
     tilemap_init(&map_scene->tilemap, resources->graphics, tileset_texture,
-                 transform_entry, map_data.width, map_data.height,
-                 map_data.layers, map_data.tiles);
+                 transform_entry, load.width, load.height, load.layers,
+                 load.tiles);
 
-    free(map_data.tiles);
+    free(load.tiles);
 
     tmx_map_free(map);
 
@@ -125,6 +131,72 @@ void map_scene_free(Scene *scene_data, Resources *resources)
     MapScene *map_scene = (MapScene *)scene_data;
     tilemap_free(&map_scene->tilemap, resources->graphics);
     player_free(&map_scene->player, resources);
+
+    for (u32 i = 0; i < map_scene->colliders.len; i++)
+    {
+        b2BodyId *body_id = vec_get(&map_scene->colliders, i);
+        b2DestroyBody(*body_id);
+    }
+    vec_free(&map_scene->colliders);
+
+    for (u32 i = 0; i < map_scene->renderables.len; i++)
+    {
+        MapRenderable *renderable = vec_get(&map_scene->renderables, i);
+        switch (renderable->type)
+        {
+        case Map_Sprite:
+        {
+            sprite_free(renderable->data.sprite.ptr, resources->graphics);
+            Layer *layer;
+            switch (renderable->data.sprite.layer)
+            {
+            case Layer_Back:
+                layer = &resources->graphics->sprite_layers.background;
+                break;
+            case Layer_Middle:
+                layer = &resources->graphics->sprite_layers.middle;
+                break;
+            case Layer_Front:
+                layer = &resources->graphics->sprite_layers.foreground;
+                break;
+            }
+            layer_remove(layer, renderable->entry);
+            break;
+        }
+        case Map_TileLayer:
+        {
+            free(renderable->data.tile.ptr);
+            Layer *layer;
+            switch (renderable->data.sprite.layer)
+            {
+            case Layer_Back:
+                layer = &resources->graphics->tilemap_layers.background;
+                break;
+            case Layer_Middle:
+                layer = &resources->graphics->tilemap_layers.middle;
+                break;
+            case Layer_Front:
+                layer = &resources->graphics->tilemap_layers.foreground;
+                break;
+            }
+            layer_remove(layer, renderable->entry);
+            break;
+        }
+        case Map_Caster:
+        {
+            free(renderable->data.caster);
+            layer_remove(&resources->graphics->shadowcasters,
+                         renderable->entry);
+            break;
+        }
+        case Map_Light:
+            free(renderable->data.light);
+            layer_remove(&resources->graphics->lights, renderable->entry);
+            break;
+        }
+    }
+    vec_free(&map_scene->renderables);
+
     free(map_scene);
 }
 

@@ -26,10 +26,10 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug physics",
+      "name": "Debug (debug mode)",
       "program": "${workspaceFolder}/build/game",
       "args": [
-        "--physics-debug-draw"
+        "--debug"
       ],
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "build_cmake"
@@ -48,23 +48,5 @@
       "cwd": "${workspaceFolder}",
       "preLaunchTask": "build_cmake"
     },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug hashset test",
-      "program": "${workspaceFolder}/build/hashset_test",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "preLaunchTask": "build_cmake"
-    },
-    {
-      "type": "lldb",
-      "request": "launch",
-      "name": "Debug hashmap test",
-      "program": "${workspaceFolder}/build/hashmap_test",
-      "args": [],
-      "cwd": "${workspaceFolder}",
-      "preLaunchTask": "build_cmake"
-    }
   ]
 }

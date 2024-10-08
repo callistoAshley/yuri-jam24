@@ -14,7 +14,7 @@ static char *tiled_image_path_to_actual(char *path)
 }
 
 void handle_collision_layer(tmx_layer *layer, Resources *resources,
-                            b2Vec2 *player_position)
+                            MapLoadArgs *load)
 {
     tmx_object *current = layer->content.objgr->head;
     while (current)
@@ -34,6 +34,8 @@ void handle_collision_layer(tmx_layer *layer, Resources *resources,
                                             current->height / PX_PER_M / 2);
             b2ShapeDef groundShapeDef = b2DefaultShapeDef();
             b2CreatePolygonShape(groundId, &groundShapeDef, &groundBox);
+
+            vec_push(load->colliders, &groundId);
             break;
         }
         case OT_POLYGON:
@@ -59,6 +61,8 @@ void handle_collision_layer(tmx_layer *layer, Resources *resources,
             b2Polygon groundPolygon = b2MakePolygon(&groundHull, 0.0);
             b2ShapeDef groundShapeDef = b2DefaultShapeDef();
             b2CreatePolygonShape(groundId, &groundShapeDef, &groundPolygon);
+
+            vec_push(load->colliders, &groundId);
             break;
         }
         case OT_ELLIPSE:
@@ -76,12 +80,14 @@ void handle_collision_layer(tmx_layer *layer, Resources *resources,
             };
             b2ShapeDef groundShapeDef = b2DefaultShapeDef();
             b2CreateCircleShape(groundId, &groundShapeDef, &groundCircle);
+
+            vec_push(load->colliders, &groundId);
             break;
         }
         case OT_POINT:
         {
             if (strcmp(current->name, "spawnpoint") == 0)
-                *player_position =
+                *load->player_position =
                     (b2Vec2){current->x / PX_PER_M, -current->y / PX_PER_M};
             break;
         }
@@ -93,12 +99,15 @@ void handle_collision_layer(tmx_layer *layer, Resources *resources,
     }
 }
 
-void handle_light_layer(tmx_layer *layer, Resources *resources)
+void handle_light_layer(tmx_layer *layer, Resources *resources,
+                        MapLoadArgs *load)
 {
     tmx_object *current = layer->content.objgr->head;
     while (current)
     {
-        Light *light = malloc(sizeof(Light));
+        MapRenderable renderable;
+        renderable.type = Map_Light;
+        renderable.data.light = malloc(sizeof(Light));
 
         // color is encoded as ARGB
         tmx_property *color_prop =
@@ -106,19 +115,22 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
         u8 r = color_prop->value.color >> 16;
         u8 g = color_prop->value.color >> 8;
         u8 b = color_prop->value.color;
-        light->color = (vec3s){.x = r / 255.0, .y = g / 255.0, .z = b / 255.0};
+        renderable.data.light->color =
+            (vec3s){.x = r / 255.0, .y = g / 255.0, .z = b / 255.0};
 
         tmx_property *intensity_prop =
             tmx_get_property(current->properties, "intensity");
-        light->intensity = intensity_prop->value.decimal;
+        renderable.data.light->intensity = intensity_prop->value.decimal;
 
         tmx_property *volumetric_intensity_prop =
             tmx_get_property(current->properties, "volumetric_intensity");
-        light->volumetric_intensity = volumetric_intensity_prop->value.decimal;
+        renderable.data.light->volumetric_intensity =
+            volumetric_intensity_prop->value.decimal;
 
         tmx_property *casts_shadows_prop =
             tmx_get_property(current->properties, "casts_shadows");
-        light->casts_shadows = casts_shadows_prop->value.boolean;
+        renderable.data.light->casts_shadows =
+            casts_shadows_prop->value.boolean;
 
         switch (current->obj_type)
         {
@@ -130,18 +142,18 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
         case OT_SQUARE:
         case OT_ELLIPSE:
         {
-            light->type = Light_Point;
+            renderable.data.light->type = Light_Point;
 
             f32 radius = current->width / 2;
             vec2s position =
                 (vec2s){.x = current->x + radius, .y = current->y + radius};
 
-            light->data.point.position = position;
-            light->data.point.radius = radius;
+            renderable.data.light->data.point.position = position;
+            renderable.data.light->data.point.radius = radius;
 
-            if (light->casts_shadows)
+            if (renderable.data.light->casts_shadows)
             {
-                light->shadowmap_entry =
+                renderable.data.light->shadowmap_entry =
                     shadowmap_add(&resources->graphics->shadowmap, position);
             }
 
@@ -149,7 +161,7 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
         }
         case OT_POLYLINE:
         {
-            light->type = Light_Direct;
+            renderable.data.light->type = Light_Direct;
 
             double **points = current->content.shape->points;
 
@@ -158,13 +170,13 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
 
             f32 angle = atan2(end.y - start.y, end.x - start.x);
 
-            if (light->casts_shadows)
+            if (renderable.data.light->casts_shadows)
             {
                 vec2s really_far = (vec2s){.x = 1000000, .y = 1000000};
                 vec2s position = glms_vec2_rotate(really_far, angle);
                 position.y = -position.y;
 
-                light->shadowmap_entry =
+                renderable.data.light->shadowmap_entry =
                     shadowmap_add(&resources->graphics->shadowmap, position);
             }
 
@@ -175,13 +187,16 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
             break;
         }
 
-        layer_add(&resources->graphics->lights, light);
+        renderable.entry =
+            layer_add(&resources->graphics->lights, renderable.data.light);
+        vec_push(load->renderables, &renderable);
 
         current = current->next;
     }
 }
 
-void handle_shadow_layer(tmx_layer *layer, Resources *resources)
+void handle_shadow_layer(tmx_layer *layer, Resources *resources,
+                         MapLoadArgs *load)
 {
     vec points;
     vec_init(&points, sizeof(vec2s));
@@ -273,16 +288,23 @@ void handle_shadow_layer(tmx_layer *layer, Resources *resources)
     TransformEntry transform_entry = transform_manager_add(
         &resources->graphics->transform_manager, transform);
 
-    ShadowCaster *shadow_caster = malloc(sizeof(ShadowCaster));
-    shadow_caster->transform = transform_entry;
-    shadow_caster->caster = caster_entry;
-    shadow_caster->offset = (vec2s){.x = 0, .y = 0};
-    shadow_caster->cell = 0;
+    MapRenderable renderable;
+    renderable.type = Map_Caster;
 
-    layer_add(&resources->graphics->shadowcasters, shadow_caster);
+    renderable.data.caster = malloc(sizeof(ShadowCaster));
+    renderable.data.caster->transform = transform_entry;
+    renderable.data.caster->caster = caster_entry;
+    renderable.data.caster->offset = (vec2s){.x = 0, .y = 0};
+    renderable.data.caster->cell = 0;
+
+    renderable.entry =
+        layer_add(&resources->graphics->shadowcasters, renderable.data.caster);
+
+    vec_push(load->renderables, &renderable);
 }
 
-void handle_image_layer(tmx_layer *layer, Resources *resources)
+void handle_image_layer(tmx_layer *layer, Resources *resources,
+                        MapLoadArgs *load)
 {
     tmx_image *image = layer->content.image;
 
@@ -303,34 +325,46 @@ void handle_image_layer(tmx_layer *layer, Resources *resources)
     QuadEntry quad_entry =
         quad_manager_add(&resources->graphics->quad_manager, quad);
 
-    Sprite *sprite = malloc(sizeof(Sprite));
-    sprite_init(sprite, texture_entry, transform_entry, quad_entry);
-    layer_add(&resources->graphics->sprite_layers.background, sprite);
+    MapRenderable renderable;
+    renderable.type = Map_Sprite;
+    renderable.data.sprite.ptr = malloc(sizeof(Sprite));
+    sprite_init(renderable.data.sprite.ptr, texture_entry, transform_entry,
+                quad_entry);
+    renderable.entry = layer_add(&resources->graphics->sprite_layers.background,
+                                 renderable.data.sprite.ptr);
+    renderable.data.sprite.layer = Layer_Back;
+
+    vec_push(load->renderables, &renderable);
 }
 
 void handle_tile_layer(tmx_layer *layer, Resources *resources,
-                       MapLoadArgs *map_data)
+                       MapLoadArgs *load)
 {
-    map_data->layers++;
-    u32 layer_size = map_data->width * map_data->height;
-    map_data->tiles =
-        realloc(map_data->tiles, layer_size * map_data->layers * sizeof(i32));
+    load->layers++;
+    u32 layer_size = load->width * load->height;
+    load->tiles = realloc(load->tiles, layer_size * load->layers * sizeof(i32));
 
-    u32 start = (map_data->layers - 1) * layer_size;
+    u32 start = (load->layers - 1) * layer_size;
     for (u32 i = 0; i < layer_size; i++)
     {
-        map_data->tiles[start + i] = layer->content.gids[i] - 1;
+        load->tiles[start + i] = layer->content.gids[i] - 1;
     }
 
-    TilemapLayer *tilemap_layer = malloc(sizeof(TilemapLayer));
-    tilemap_layer->tilemap = map_data->tilemap;
-    tilemap_layer->layer = map_data->layers - 1;
+    MapRenderable renderable;
+    renderable.type = Map_TileLayer;
 
-    layer_add(&resources->graphics->tilemap_layers.middle, tilemap_layer);
+    renderable.data.tile.ptr = malloc(sizeof(TilemapLayer));
+    renderable.data.tile.ptr->tilemap = load->tilemap;
+    renderable.data.tile.ptr->layer = load->layers - 1;
+
+    renderable.entry = layer_add(&resources->graphics->tilemap_layers.middle,
+                                 renderable.data.tile.ptr);
+    renderable.data.tile.layer = Layer_Middle;
+
+    vec_push(load->renderables, &renderable);
 }
 
-void handle_map_layers(tmx_layer *head, Resources *resources,
-                       b2Vec2 *player_position, MapLoadArgs *map_data)
+void handle_map_layers(tmx_layer *head, Resources *resources, MapLoadArgs *load)
 {
     tmx_layer *current = head;
     while (current)
@@ -338,21 +372,20 @@ void handle_map_layers(tmx_layer *head, Resources *resources,
         switch (current->type)
         {
         case L_GROUP:
-            handle_map_layers(current->content.group_head, resources,
-                              player_position, map_data);
+            handle_map_layers(current->content.group_head, resources, load);
             break;
         case L_OBJGR:
             if (!strcmp(current->class_type, COLLISION_CLASS))
             {
-                handle_collision_layer(current, resources, player_position);
+                handle_collision_layer(current, resources, load);
             }
             else if (!strcmp(current->class_type, LIGHTS_CLASS))
             {
-                handle_light_layer(current, resources);
+                handle_light_layer(current, resources, load);
             }
             else if (!strcmp(current->class_type, "shadows"))
             {
-                handle_shadow_layer(current, resources);
+                handle_shadow_layer(current, resources, load);
             }
             else
             {
@@ -361,10 +394,10 @@ void handle_map_layers(tmx_layer *head, Resources *resources,
             }
             break;
         case L_IMAGE:
-            handle_image_layer(current, resources);
+            handle_image_layer(current, resources, load);
             break;
         case L_LAYER:
-            handle_tile_layer(current, resources, map_data);
+            handle_tile_layer(current, resources, load);
             break;
         case L_NONE:
             FATAL("Unrecognized layer type");

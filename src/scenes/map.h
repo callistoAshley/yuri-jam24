@@ -14,6 +14,9 @@ typedef struct
     Player player;
 
     bool freecam;
+
+    vec colliders;
+    vec renderables;
 } MapScene;
 
 // NOTE: MUST BE PASSED TO scene_change!!!!!!
