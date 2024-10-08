@@ -1,5 +1,6 @@
 set(SOURCES
     src/scenes/map.c
+    src/scenes/map_loader.c
     src/scenes/title.c
     src/scenes/scene.c
     ${SOURCES}
