@@ -57,7 +57,8 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
 }
 
 #define WALK_SPEED_MPS 4
-#define WALK_SEED_PXPS M_TO_PX(WALK_SPEED_MPS)
+#define WALK_SPEED_CAP 8
+#define WALK_SPEED_PXPS M_TO_PX(WALK_SPEED_MPS)
 void player_update(Player *player, Resources *resources, bool disable_input)
 {
     bool left_down =
@@ -65,14 +66,17 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     bool right_down =
         input_is_down(resources->input, Button_Right) && !disable_input;
 
-    f32 walk_speed = WALK_SEED_PXPS * resources->input->delta_seconds;
-    if (left_down)
+    f32 walk_speed = WALK_SPEED_PXPS * resources->input->delta_seconds;
+    f32 current_speed = b2Body_GetLinearVelocity(player->body_id).x;
+    if (left_down && current_speed > -WALK_SPEED_CAP)
         b2Body_ApplyLinearImpulseToCenter(player->body_id,
                                           (b2Vec2){-walk_speed, 0}, true);
-    if (right_down)
+    else if (right_down && current_speed < WALK_SPEED_CAP)
         b2Body_ApplyLinearImpulseToCenter(player->body_id,
                                           (b2Vec2){walk_speed, 0}, true);
-
+    else if (current_speed) // not moving, decelerate
+        b2Body_ApplyLinearImpulseToCenter(player->body_id,
+                                          (b2Vec2){-current_speed / 4, 0}, true);
     // check if we're on the ground
     b2ContactData contact_data[8];
     int contact_count =
