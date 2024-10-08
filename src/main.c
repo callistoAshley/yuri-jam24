@@ -25,22 +25,17 @@
 #include "physics/physics.h"
 #include "scenes/map.h"
 #include "scenes/scene.h"
+#include "debug/debug_window.h"
 
 int main(int argc, char **argv)
 {
     bool imgui_demo = false;
-    bool physics_debug_draw = false;
+    bool debug = false;
 
     for (int i = 0; i < argc; i++)
     {
-        if (!strcmp(argv[i], "--imgui-demo"))
-        {
-            imgui_demo = true;
-        }
-        else if (!strcmp(argv[i], "--physics-debug-draw"))
-        {
-            physics_debug_draw = true;
-        }
+        imgui_demo |= !strcmp(argv[i], "--imgui-demo");
+        debug |= !strcmp(argv[i], "--debug");
     }
 
     SDL_Window *window;
@@ -58,7 +53,6 @@ int main(int argc, char **argv)
 
     Physics physics;
     physics_init(&physics);
-    physics.debug_draw = physics_debug_draw;
 
     Camera raw_camera = {
         .x = 0,
@@ -108,6 +102,7 @@ int main(int argc, char **argv)
     SceneInterface scene = TITLE_SCENE;
 
     Resources resources = {
+        .debug_mode = debug,
         .graphics = &graphics,
         .physics = &physics,
         .audio = &audio,
@@ -119,6 +114,11 @@ int main(int argc, char **argv)
     };
 
     scene.init(&scene_data, &resources, NULL);
+
+    DebugWindowState dbg_wnd =
+    {
+        .resources = &resources,
+    };
 
     u64 accumulator = 0;
     const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;
@@ -137,6 +137,9 @@ int main(int argc, char **argv)
 
         if (imgui_demo)
             igShowDemoWindow(NULL);
+
+        if (debug)
+            debug_wnd_show(&dbg_wnd);
 
         while (SDL_PollEvent(&event))
         {

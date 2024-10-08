@@ -1,6 +1,5 @@
-add_subdirectory(windows)
-
 set(SOURCES
+    src/debug/debug_window.c
     ${SOURCES}
     PARENT_SCOPE
 )

@@ -24,6 +24,8 @@ typedef struct SceneInterface SceneInterface;
 // FIXME: move to a more appropriate location?
 typedef struct
 {
+    bool debug_mode;
+
     Graphics *graphics;
     Physics *physics;
     Audio *audio;

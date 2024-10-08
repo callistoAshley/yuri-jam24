@@ -22,4 +22,8 @@ typedef struct
     char *map_path;
 } MapInitArgs;
 
+void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args);
+void map_scene_update(Scene *scene_data, Resources *resources);
+void map_scene_free(Scene *scene_data, Resources *resources);
+
 extern const SceneInterface MAP_SCENE;
