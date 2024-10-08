@@ -31,7 +31,8 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
 
     // player is 10x18px
     Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 10, .y = 18});
-    Rect tex_coords = rect_from_min_size(GLMS_VEC2_ZERO, GLMS_VEC2_ONE);
+    Rect tex_coords =
+        rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 0.5, .y = 1.0});
     player->quad = (Quad){rect, tex_coords};
     QuadEntry quad_entry =
         quad_manager_add(&resources->graphics->quad_manager, player->quad);
@@ -91,6 +92,8 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->jump_timeout = 0;
     player->fall_time = 0;
     player->jumping = false;
+
+    player->facing = Facing_Left;
 }
 
 #define WALK_SPEED_MPS 4
@@ -102,6 +105,11 @@ void player_update(Player *player, Resources *resources, bool disable_input)
         input_is_down(resources->input, Button_Left) && !disable_input;
     bool right_down =
         input_is_down(resources->input, Button_Right) && !disable_input;
+
+    if (left_down && !right_down)
+        player->facing = Facing_Left;
+    if (right_down && !left_down)
+        player->facing = Facing_Right;
 
     f32 walk_speed = WALK_SPEED_PXPS * resources->input->delta_seconds;
     f32 current_speed = b2Body_GetLinearVelocity(player->body_id).x;
@@ -146,7 +154,22 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     // so we need to negate the y component
     player->transform.position.x = body_position.x * PX_PER_M - 5;
     player->transform.position.y = -body_position.y * PX_PER_M - 9;
-    // we need to convert the rotation to a quaternion
+
+    if (player->facing == Facing_Left)
+    {
+        player->quad.tex_coords.min.x = 0.5;
+        player->quad.tex_coords.max.x = 1.0;
+        player->shadow_caster.cell = 1;
+    }
+    else
+    {
+        player->quad.tex_coords.min.x = 0.0;
+        player->quad.tex_coords.max.x = 0.5;
+        player->shadow_caster.cell = 0;
+    }
+
+    quad_manager_update(&resources->graphics->quad_manager, player->sprite.quad,
+                        player->quad);
 
     transform_manager_update(&resources->graphics->transform_manager,
                              player->sprite.transform, player->transform);

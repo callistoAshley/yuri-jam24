@@ -27,8 +27,14 @@ typedef struct
     u32 foot_contact_count;
 
     f32 jump_timeout;
-    f32 fall_time; 
+    f32 fall_time;
     bool jumping;
+
+    enum
+    {
+        Facing_Left,
+        Facing_Right
+    } facing;
 } Player;
 
 void player_init(Player *player, b2Vec2 initial_pos, Resources *resources);
