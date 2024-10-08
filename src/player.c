@@ -1,11 +1,27 @@
 #include "player.h"
 #include "box2d/box2d.h"
+#include "box2d/collision.h"
 #include "cglm/struct/vec2.h"
 #include "core_types.h"
 #include "graphics/caster_manager.h"
+#include "physics/physics.h"
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
 #include "utility/log.h"
+
+// TODO account for coyote time
+void foot_begin_contact_fn(b2SensorBeginTouchEvent *event, void *userdata)
+{
+    (void)event;
+    Player *player = userdata;
+    player->foot_contact_count++;
+}
+void foot_end_contact_fn(b2SensorEndTouchEvent *event, void *userdata)
+{
+    (void)event;
+    Player *player = userdata;
+    player->foot_contact_count--;
+}
 
 void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
 {
@@ -53,6 +69,24 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->shape_id =
         b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
 
+    b2Vec2 foot_offset = {.x = 0.0, -9.0 / PX_PER_M};
+    b2Polygon foot_sensor =
+        b2MakeOffsetBox(2.0 / PX_PER_M, 1.0 / PX_PER_M, foot_offset, 0.0);
+
+    b2ShapeDef foot_def = b2DefaultShapeDef();
+    foot_def.isSensor = true;
+    foot_def.density = 0.0;
+
+    SensorUserdata *userdata = malloc(sizeof(SensorUserdata));
+    userdata->begin = foot_begin_contact_fn;
+    userdata->end = foot_end_contact_fn;
+    userdata->userdata = player;
+    foot_def.userData = userdata;
+
+    player->foot_id =
+        b2CreatePolygonShape(player->body_id, &foot_def, &foot_sensor);
+    player->foot_contact_count = 0;
+
     player->jump_timeout = 0;
 }
 
@@ -75,37 +109,16 @@ void player_update(Player *player, Resources *resources, bool disable_input)
         b2Body_ApplyLinearImpulseToCenter(player->body_id,
                                           (b2Vec2){walk_speed, 0}, true);
     else if (current_speed) // not moving, decelerate
-        b2Body_ApplyLinearImpulseToCenter(player->body_id,
-                                          (b2Vec2){-current_speed / 4, 0}, true);
-    // check if we're on the ground
-    b2ContactData contact_data[8];
-    int contact_count =
-        b2Shape_GetContactData(player->shape_id, contact_data, 8);
+        b2Body_ApplyLinearImpulseToCenter(
+            player->body_id, (b2Vec2){-current_speed / 4, 0}, true);
+
     if (player->jump_timeout > 0)
         player->jump_timeout -= resources->input->delta_seconds;
 
-    if (contact_count > 0 && player->jump_timeout <= 0)
+    if (player->foot_contact_count > 0 && player->jump_timeout <= 0)
     {
-        bool contact_is_ground = false;
-        for (int i = 0; i < contact_count; i++)
-        {
-            // figure out what direction the normal is in (player->ground or
-            // ground->player)
-            b2ContactData contact = contact_data[i];
-            bool player_is_a =
-                contact.shapeIdA.index1 == player->shape_id.index1;
-            b2Vec2 normal = player_is_a ? contact.manifold.normal
-                                        : b2Neg(contact.manifold.normal);
-            // normal is facing down, which means we're on the ground
-            if (normal.y < 0.0)
-            {
-                contact_is_ground = true;
-                break;
-            }
-        }
         // we're on the ground
-        if (input_is_down(resources->input, Button_Up) && contact_is_ground &&
-            !disable_input)
+        if (input_is_down(resources->input, Button_Up) && !disable_input)
         {
             b2Body_ApplyLinearImpulseToCenter(player->body_id,
                                               (b2Vec2){0.0, 22.5}, true);

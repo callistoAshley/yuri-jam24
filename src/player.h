@@ -22,6 +22,10 @@ typedef struct
 
     b2BodyId body_id;
     b2ShapeId shape_id;
+    b2ShapeId foot_id;
+
+    u32 foot_contact_count;
+
     f32 jump_timeout;
 } Player;
 
