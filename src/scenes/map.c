@@ -197,6 +197,10 @@ void map_scene_free(Scene *scene_data, Resources *resources)
     }
     vec_free(&map_scene->renderables);
 
+    // hack to clear shadow casters, under the assumption that they'll all get
+    // loaded again
+    caster_manager_clear(&resources->graphics->caster_manager);
+
     free(map_scene);
 }
 

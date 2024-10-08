@@ -22,13 +22,7 @@ void caster_manager_init(CasterManager *manager, WGPUResources *resources)
 
 void caster_manager_free(CasterManager *manager)
 {
-    for (u32 i = 0; i < manager->entries.len; i++)
-    {
-        CasterEntry *entry = *(CasterEntry **)vec_get(&manager->entries, i);
-        free(entry->cells);
-        free((void *)entry->path);
-        free(entry);
-    }
+    caster_manager_clear(manager);
     vec_free(&manager->casters);
     vec_free(&manager->entries);
     wgpuBufferRelease(manager->buffer);
@@ -36,14 +30,6 @@ void caster_manager_free(CasterManager *manager)
 
 CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
 {
-    for (u32 i = 0; i < manager->entries.len; i++)
-    {
-        CasterEntry *entry = *(CasterEntry **)vec_get(&manager->entries, i);
-        if (strcmp(entry->path, path) == 0)
-        {
-            return entry;
-        }
-    }
 
     // looks like the caster hasn't been loaded yet
 
@@ -55,19 +41,18 @@ CasterEntry *caster_manager_load(CasterManager *manager, const char *path)
     }
 
     CasterEntry *entry =
-        caster_manager_register(manager, path, shdw->cells, shdw->cell_count);
+        caster_manager_register(manager, shdw->cells, shdw->cell_count);
 
     shdw_free(shdw);
     return entry;
 }
 
-CasterEntry *caster_manager_register(CasterManager *manager, const char *path,
-                                     Cell *cells, u32 cell_count)
+CasterEntry *caster_manager_register(CasterManager *manager, Cell *cells,
+                                     u32 cell_count)
 {
     manager->dirty = true;
 
     CasterEntry *entry = malloc(sizeof(CasterEntry));
-    entry->path = strdup(path);
     entry->cell_count = cell_count;
     entry->cells = calloc(cell_count, sizeof(CasterCell));
 
@@ -125,7 +110,6 @@ void caster_manager_clear(CasterManager *manager)
     {
         CasterEntry *entry = vec_get(&manager->entries, i);
         free(entry->cells);
-        free((void *)entry->path);
         free(entry);
     }
     vec_clear(&manager->entries);

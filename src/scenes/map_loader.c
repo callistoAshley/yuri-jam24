@@ -280,8 +280,8 @@ void handle_shadow_layer(tmx_layer *layer, Resources *resources,
         .points = (vec2s *)points.data,
         .point_count = points.len,
     };
-    CasterEntry *caster_entry = caster_manager_register(
-        &resources->graphics->caster_manager, "map_shadows", &cell, 1);
+    CasterEntry *caster_entry =
+        caster_manager_register(&resources->graphics->caster_manager, &cell, 1);
 
     // now we can add the shadow caster to the scene
     Transform transform = transform_from_xyz(layer->offsetx, layer->offsety, 0);
