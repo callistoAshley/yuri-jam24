@@ -197,4 +197,7 @@ void player_free(Player *player, Resources *resources)
     layer_remove(&resources->graphics->sprite_layers.middle,
                  player->layer_entry);
     sprite_free(&player->sprite, resources->graphics);
+
+    layer_remove(&resources->graphics->shadowcasters,
+                 player->shadow_caster_entry);
 }
