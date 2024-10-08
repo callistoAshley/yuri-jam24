@@ -24,3 +24,4 @@ typedef struct
 
 void physics_init(Physics *physics);
 void physics_update(Physics *physics);
+void physics_free(Physics *physics);

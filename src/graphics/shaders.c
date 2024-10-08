@@ -284,3 +284,19 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
         shadowmap_constants, 1, &shadowmap_vertex_buffer_layout, 1,
         shadowmap_targets, 1, NULL, &shadowmap_primitive, resources);
 }
+
+void shaders_free(Shaders *shaders)
+{
+    wgpuRenderPipelineRelease(shaders->forward.ui_sprite);
+    wgpuRenderPipelineRelease(shaders->forward.hdr_tonemap);
+
+    wgpuRenderPipelineRelease(shaders->defferred.sprite);
+    wgpuRenderPipelineRelease(shaders->defferred.tilemap);
+
+    wgpuRenderPipelineRelease(shaders->lights.direct);
+    wgpuRenderPipelineRelease(shaders->lights.point);
+    wgpuRenderPipelineRelease(shaders->lights.shadowmap);
+
+    wgpuRenderPipelineRelease(shaders->box2d_debug.polygon);
+    wgpuRenderPipelineRelease(shaders->box2d_debug.circle);
+}

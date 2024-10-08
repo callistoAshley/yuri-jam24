@@ -204,8 +204,6 @@ void build_light_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     BindGroupBuilder builder;
     bind_group_builder_init(&builder);
 
-    bind_group_builder_init(&builder);
-
     bind_group_builder_append_texture_view(&builder, graphics->color_view);
     bind_group_builder_append_texture_view(&builder,
                                            graphics->shadowmap.texture_view);
@@ -608,6 +606,7 @@ void graphics_free(Graphics *graphics)
     quad_manager_free(&graphics->quad_manager);
     transform_manager_free(&graphics->transform_manager);
     texture_manager_free(&graphics->texture_manager);
+    caster_manager_free(&graphics->caster_manager);
 
     layer_free(&graphics->tilemap_layers.background);
     layer_free(&graphics->tilemap_layers.middle);
@@ -618,9 +617,24 @@ void graphics_free(Graphics *graphics)
     layer_free(&graphics->sprite_layers.foreground);
 
     layer_free(&graphics->ui_layers.background);
+    layer_free(&graphics->ui_layers.middle);
+    layer_free(&graphics->ui_layers.foreground);
 
-    wgpuRenderPipelineRelease(graphics->shaders.defferred.sprite);
-    wgpuBindGroupLayoutRelease(graphics->bind_group_layouts.sprite);
+    layer_free(&graphics->lights);
+    layer_free(&graphics->shadowcasters);
+
+    bind_group_layouts_free(&graphics->bind_group_layouts);
+    shaders_free(&graphics->shaders);
+
+    wgpuSamplerRelease(graphics->sampler);
+
+    wgpuTextureViewRelease(graphics->color_view);
+    wgpuTextureRelease(graphics->color);
+
+    wgpuTextureViewRelease(graphics->lit_view);
+    wgpuTextureRelease(graphics->lit);
+
+    shadowmap_free(&graphics->shadowmap);
 
     wgpu_resources_free(&graphics->wgpu);
 }

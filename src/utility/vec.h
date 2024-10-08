@@ -32,6 +32,7 @@ void vec_free(vec *v);
 // frees the memory used by the vec, and calls free_fn on each element.
 void vec_free_with(vec *v, vec_free_fn free_fn);
 
+// TODO add helper function for getting pointers
 // returns a pointer to the element at the given index, or NULL if the index is
 // out of bounds
 void *vec_get(vec *v, usize index);

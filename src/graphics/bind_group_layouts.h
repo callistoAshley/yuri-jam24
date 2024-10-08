@@ -16,3 +16,4 @@ typedef struct
 
 void bind_group_layouts_init(BindGroupLayouts *layouts,
                              WGPUResources *resources);
+void bind_group_layouts_free(BindGroupLayouts *layouts);

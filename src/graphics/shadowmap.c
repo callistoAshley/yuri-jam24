@@ -26,6 +26,12 @@ void shadowmap_init(ShadowMap *shadowmap, WGPUResources *wgpu)
     shadowmap->filled_to = 0;
 }
 
+void shadowmap_free(ShadowMap *shadowmap)
+{
+    wgpuTextureViewRelease(shadowmap->texture_view);
+    wgpuTextureRelease(shadowmap->texture);
+}
+
 ShadowMapEntry shadowmap_add(ShadowMap *shadowmap, vec2s position)
 {
     ShadowMapEntry entry = shadowmap->next;

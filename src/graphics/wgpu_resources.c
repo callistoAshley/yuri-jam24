@@ -125,6 +125,8 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
     printf("Vendor %s\n", adapter_info.vendor);
     printf("Arch %s\n", adapter_info.architecture);
 
+    wgpuAdapterInfoFreeMembers(adapter_info);
+
     // SIGNIFICANTLY reduce the hardware we can support. still runs on my shitty
     // macbook from 2014 though
     WGPUFeatureName features[] = {

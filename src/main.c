@@ -65,6 +65,8 @@ int main(int argc, char **argv)
 
     SDL_ERRCHK(TTF_Init(), "TTF initialization failure");
 
+    SDL_ERRCHK(IMG_Init(IMG_INIT_PNG) == 0, "IMG initialization failure");
+
     Fonts fonts;
     fonts_init(&fonts);
 
@@ -182,14 +184,21 @@ int main(int argc, char **argv)
 
     scene.free(scene_data, &resources);
 
-    graphics_free(&graphics);
-    audio_free(&audio);
-    interpreter_free(interpreter);
-    SDL_Quit();
-    TTF_Quit();
     ImGui_ImplSDL3_Shutdown();
     ImGui_ImplWGPU_Shutdown();
     igDestroyContext(imgui);
+
+    fonts_free(&fonts);
+    physics_free(&physics);
+    graphics_free(&graphics);
+    audio_free(&audio);
+    interpreter_free(interpreter);
+
+    SDL_DestroyWindow(window);
+
+    SDL_Quit();
+    IMG_Quit();
+    TTF_Quit();
 
     return 0;
 }

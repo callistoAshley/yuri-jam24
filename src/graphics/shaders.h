@@ -32,12 +32,10 @@ typedef struct Shaders
 
     struct
     {
-        WGPURenderPipeline line;
         // used for boxes and polygons
         WGPURenderPipeline polygon;
         // used for circles and points
         WGPURenderPipeline circle;
-        WGPURenderPipeline capsule;
     } box2d_debug;
 } Shaders;
 
@@ -120,3 +118,4 @@ typedef struct
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources);
+void shaders_free(Shaders *shaders);

@@ -45,3 +45,5 @@ void physics_update(Physics *physics)
         }
     }
 }
+
+void physics_free(Physics *physics) { b2DestroyWorld(physics->world); }

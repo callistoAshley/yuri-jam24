@@ -89,6 +89,8 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->foot_contact_count = 0;
 
     player->jump_timeout = 0;
+    player->fall_time = 0;
+    player->jumping = false;
 }
 
 #define WALK_SPEED_MPS 4

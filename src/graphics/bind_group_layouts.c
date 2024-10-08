@@ -184,3 +184,12 @@ void bind_group_layouts_init(BindGroupLayouts *layouts,
     build_hdr_tonemap_layout(layouts, resources);
     build_shadowmap_layout(layouts, resources);
 }
+
+void bind_group_layouts_free(BindGroupLayouts *layouts)
+{
+    wgpuBindGroupLayoutRelease(layouts->sprite);
+    wgpuBindGroupLayoutRelease(layouts->lighting);
+    wgpuBindGroupLayoutRelease(layouts->tilemap);
+    wgpuBindGroupLayoutRelease(layouts->hdr_tonemap);
+    wgpuBindGroupLayoutRelease(layouts->shadowmap);
+}

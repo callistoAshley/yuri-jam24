@@ -29,8 +29,8 @@ typedef struct Graphics
     TransformManager transform_manager;
     TextureManager texture_manager;
     CasterManager caster_manager;
-    WGPUSampler sampler;
 
+    WGPUSampler sampler;
     WGPUTexture color;
     WGPUTextureView color_view;
 

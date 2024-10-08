@@ -44,6 +44,7 @@ typedef struct
              .y = (u32)((entry) / SHADOWMAP_WIDTH) * INTERNAL_SCREEN_HEIGHT})
 
 void shadowmap_init(ShadowMap *shadowmap, WGPUResources *wgpu);
+void shadowmap_free(ShadowMap *shadowmap);
 
 ShadowMapEntry shadowmap_add(ShadowMap *shadowmap, vec2s position);
 void shadowmap_remove(ShadowMap *shadowmap, ShadowMapEntry entry);
