@@ -33,38 +33,39 @@ WGPUTexture texture_from_surface(SDL_Surface *surface, WGPUTextureUsage usage,
 void write_surface_to_texture(SDL_Surface *surface, WGPUTexture texture,
                               WGPUResources *wgpu)
 {
+    write_surface_to_texture_at(0, 0, surface, texture, wgpu);
+}
+
+void write_surface_to_texture_at(u32 x, u32 y, SDL_Surface *surface,
+                                 WGPUTexture texture, WGPUResources *wgpu)
+{
     SDL_Surface *converted;
     if (surface->format != SDL_PIXELFORMAT_RGBA32)
         converted = SDL_ConvertSurface(surface, SDL_PIXELFORMAT_RGBA32);
     else
         converted = surface;
 
-    i32 texture_width = wgpuTextureGetWidth(texture);
-    i32 texture_height = wgpuTextureGetHeight(texture);
     WGPUTextureFormat format = wgpuTextureGetFormat(texture);
-    assert(converted->w == texture_width);
-    assert(converted->h == texture_height);
     assert(format == WGPUTextureFormat_RGBA8UnormSrgb);
 
     WGPUImageCopyTexture copy_texture = {
         .texture = texture,
         .mipLevel = 0,
-        .origin = {0, 0, 0},
+        .origin = {x, y, 0},
         .aspect = WGPUTextureAspect_All,
     };
     WGPUExtent3D write_size = {
-        .width = texture_width,
-        .height = texture_height,
+        .width = surface->w,
+        .height = surface->h,
         .depthOrArrayLayers = 1,
     };
     WGPUTextureDataLayout layout = {
         .offset = 0,
-        .bytesPerRow = 4 * texture_width,
-        .rowsPerImage = texture_height,
+        .bytesPerRow = 4 * surface->w,
+        .rowsPerImage = surface->h,
     };
     wgpuQueueWriteTexture(wgpu->queue, &copy_texture, converted->pixels,
-                          4 * texture_width * texture_height, &layout,
-                          &write_size);
+                          4 * surface->w * surface->h, &layout, &write_size);
 
     if (converted != surface)
         SDL_DestroySurface(converted);

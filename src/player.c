@@ -52,6 +52,7 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->shadow_caster.caster = caster;
     player->shadow_caster.cell = 0;
     player->shadow_caster.transform = transform_entry;
+    player->shadow_caster.offset = (vec2s){.x = 0, .y = 0};
 
     player->shadow_caster_entry =
         layer_add(&resources->graphics->shadowcasters, &player->shadow_caster);
