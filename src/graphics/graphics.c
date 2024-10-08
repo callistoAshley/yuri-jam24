@@ -101,22 +101,22 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
 
     shadowmap_init(&graphics->shadowmap, &graphics->wgpu);
 
-    layer_init(&graphics->tilemap_layers.background, tilemap_layer_draw, free);
-    layer_init(&graphics->tilemap_layers.middle, tilemap_layer_draw, free);
-    layer_init(&graphics->tilemap_layers.foreground, tilemap_layer_draw, free);
+    layer_init(&graphics->tilemap_layers.background, tilemap_layer_draw);
+    layer_init(&graphics->tilemap_layers.middle, tilemap_layer_draw);
+    layer_init(&graphics->tilemap_layers.foreground, tilemap_layer_draw);
 
-    layer_init(&graphics->sprite_layers.background, sprite_draw, NULL);
-    layer_init(&graphics->sprite_layers.middle, sprite_draw, NULL);
-    layer_init(&graphics->sprite_layers.foreground, sprite_draw, NULL);
+    layer_init(&graphics->sprite_layers.background, sprite_draw);
+    layer_init(&graphics->sprite_layers.middle, sprite_draw);
+    layer_init(&graphics->sprite_layers.foreground, sprite_draw);
 
     // TODO add free fns
-    layer_init(&graphics->ui_layers.background, ui_sprite_draw, NULL);
-    layer_init(&graphics->ui_layers.middle, ui_sprite_draw, NULL);
-    layer_init(&graphics->ui_layers.foreground, ui_sprite_draw, NULL);
+    layer_init(&graphics->ui_layers.background, ui_sprite_draw);
+    layer_init(&graphics->ui_layers.middle, ui_sprite_draw);
+    layer_init(&graphics->ui_layers.foreground, ui_sprite_draw);
 
-    layer_init(&graphics->lights, point_light_draw, NULL);
-    layer_init(&graphics->directional, directional_light_draw, NULL);
-    layer_init(&graphics->shadowcasters, shadowcaster_draw, NULL);
+    layer_init(&graphics->lights, point_light_draw);
+    layer_init(&graphics->directional, directional_light_draw);
+    layer_init(&graphics->shadowcasters, shadowcaster_draw);
 
     // load bearing molly
     // why do we need this? primarily to make sure that at least one texture is

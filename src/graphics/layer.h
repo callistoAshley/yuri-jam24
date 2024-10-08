@@ -10,9 +10,6 @@ typedef struct Graphics Graphics;
 // called to render one thing.
 typedef void (*thing_draw_fn)(void *this, void *ctx,
                               WGPURenderPassEncoder pass);
-// called when the layer is freed (do we call this when the thing is removed
-// though?)
-typedef void (*thing_free_fn)(void *this);
 
 // holds a bundle of one type of thing.
 // this is so we can minimize the amount of pipeline + bind group changes we
@@ -23,7 +20,6 @@ typedef struct
     u32 next;
 
     thing_draw_fn draw;
-    thing_free_fn free;
 } Layer;
 
 // we store pointers to things in the layer so a u32 for ENTRY_FREE won't cut
@@ -31,7 +27,7 @@ typedef struct
 #define LAYER_ENTRY_FREE SIZE_MAX
 typedef u32 LayerEntry;
 
-void layer_init(Layer *layer, thing_draw_fn draw, thing_free_fn free);
+void layer_init(Layer *layer, thing_draw_fn draw);
 void layer_free(Layer *layer);
 
 LayerEntry layer_add(Layer *layer, void *thing);
