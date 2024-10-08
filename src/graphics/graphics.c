@@ -2,17 +2,11 @@
 #include <wgpu.h>
 
 #include "graphics.h"
-#include "cglm/struct/vec3.h"
 #include "cglm/types-struct.h"
 #include "core_types.h"
 #include "binding_helper.h"
-#include "graphics/caster_manager.h"
-#include "graphics/layer.h"
 #include "graphics/light.h"
-#include "graphics/quad_manager.h"
-#include "graphics/shaders.h"
 #include "graphics/sprite.h"
-#include "graphics/tex_manager.h"
 #include "graphics/tilemap.h"
 #include "graphics/ui_sprite.h"
 #include "imgui_wgpu.h"
@@ -20,7 +14,6 @@
 #include "physics/debug_draw.h"
 #include "utility/log.h"
 #include "utility/macros.h"
-#include "utility/common_defines.h"
 #include "webgpu.h"
 #include "fonts/font.h"
 
@@ -49,16 +42,19 @@ void ui_sprite_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 
 void point_light_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 {
-    PointLight *light = thing;
-    point_light_render(light, pass, *(Camera *)context);
+    Light *light = thing;
+    if (light->type != Light_Point)
+        return;
+    light_render(light, pass, *(Camera *)context);
 }
 
 void directional_light_draw(void *thing, void *context,
                             WGPURenderPassEncoder pass)
 {
-    (void)context;
-    DirectionalLight *light = thing;
-    directional_light_render(light, pass);
+    Light *light = thing;
+    if (light->type != Light_Direct)
+        return;
+    light_render(light, pass, *(Camera *)context);
 }
 
 struct ShadowCasterContext
@@ -115,7 +111,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window)
     layer_init(&graphics->ui_layers.foreground, ui_sprite_draw);
 
     layer_init(&graphics->lights, point_light_draw);
-    layer_init(&graphics->directional, directional_light_draw);
     layer_init(&graphics->shadowcasters, shadowcaster_draw);
 
     // load bearing molly
@@ -483,11 +478,13 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.lights.direct);
 
-        layer_draw(&graphics->directional, &raw_camera, render_pass);
+        graphics->lights.draw = directional_light_draw;
+        layer_draw(&graphics->lights, &raw_camera, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.lights.point);
 
+        graphics->lights.draw = point_light_draw;
         layer_draw(&graphics->lights, &raw_camera, render_pass);
 
         wgpuRenderPassEncoderEnd(render_pass);

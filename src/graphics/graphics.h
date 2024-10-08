@@ -51,7 +51,6 @@ typedef struct Graphics
 
     StandardLayers ui_layers;
 
-    Layer directional;
     Layer lights;
     Layer shadowcasters;
 

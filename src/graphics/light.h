@@ -6,30 +6,29 @@
 
 typedef struct
 {
-    vec2s position;
+    enum
+    {
+        Light_Point,
+        Light_Direct
+    } type;
+
+    // TODO add spotlights
+    union
+    {
+        struct
+        {
+            vec2s position;
+            f32 radius;
+        } point;
+    } data;
+
     vec3s color;
 
     f32 intensity;
-    f32 radius;
     f32 volumetric_intensity;
 
     bool casts_shadows;
     ShadowMapEntry shadowmap_entry;
-} PointLight;
+} Light;
 
-void point_light_render(PointLight *light, WGPURenderPassEncoder pass,
-                        Camera camera);
-
-typedef struct
-{
-    vec3s color;
-
-    f32 intensity;
-    f32 volumetric_intensity;
-
-    bool casts_shadows;
-    ShadowMapEntry shadowmap_entry;
-} DirectionalLight;
-
-void directional_light_render(DirectionalLight *light,
-                              WGPURenderPassEncoder pass);
+void light_render(Light *light, WGPURenderPassEncoder pass, Camera camera);

@@ -98,25 +98,27 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
     tmx_object *current = layer->content.objgr->head;
     while (current)
     {
+        Light *light = malloc(sizeof(Light));
+
         // color is encoded as ARGB
         tmx_property *color_prop =
             tmx_get_property(current->properties, "color");
         u8 r = color_prop->value.color >> 16;
         u8 g = color_prop->value.color >> 8;
         u8 b = color_prop->value.color;
-        vec3s color = {.x = r / 255.0, .y = g / 255.0, .z = b / 255.0};
+        light->color = (vec3s){.x = r / 255.0, .y = g / 255.0, .z = b / 255.0};
 
         tmx_property *intensity_prop =
             tmx_get_property(current->properties, "intensity");
-        f32 intensity = intensity_prop->value.decimal;
+        light->intensity = intensity_prop->value.decimal;
 
         tmx_property *volumetric_intensity_prop =
             tmx_get_property(current->properties, "volumetric_intensity");
-        f32 volumetric_intensity = volumetric_intensity_prop->value.decimal;
+        light->volumetric_intensity = volumetric_intensity_prop->value.decimal;
 
         tmx_property *casts_shadows_prop =
             tmx_get_property(current->properties, "casts_shadows");
-        bool casts_shadows = casts_shadows_prop->value.boolean;
+        light->casts_shadows = casts_shadows_prop->value.boolean;
 
         switch (current->obj_type)
         {
@@ -128,31 +130,27 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
         case OT_SQUARE:
         case OT_ELLIPSE:
         {
+            light->type = Light_Point;
+
             f32 radius = current->width / 2;
             vec2s position =
                 (vec2s){.x = current->x + radius, .y = current->y + radius};
 
-            PointLight *light = malloc(sizeof(PointLight));
+            light->data.point.position = position;
+            light->data.point.radius = radius;
 
-            light->position = position;
-            light->color = color;
-            light->intensity = intensity;
-            light->radius = radius;
-            light->volumetric_intensity = volumetric_intensity;
-
-            light->casts_shadows = casts_shadows;
-            if (casts_shadows)
+            if (light->casts_shadows)
             {
                 light->shadowmap_entry =
                     shadowmap_add(&resources->graphics->shadowmap, position);
             }
 
-            layer_add(&resources->graphics->lights, light);
-
             break;
         }
         case OT_POLYLINE:
         {
+            light->type = Light_Direct;
+
             double **points = current->content.shape->points;
 
             vec2s start = (vec2s){.x = points[0][0], .y = points[0][1]};
@@ -160,14 +158,7 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
 
             f32 angle = atan2(end.y - start.y, end.x - start.x);
 
-            DirectionalLight *light = malloc(sizeof(DirectionalLight));
-
-            light->color = color;
-            light->intensity = intensity;
-            light->volumetric_intensity = volumetric_intensity;
-
-            light->casts_shadows = casts_shadows;
-            if (casts_shadows)
+            if (light->casts_shadows)
             {
                 vec2s really_far = (vec2s){.x = 1000000, .y = 1000000};
                 vec2s position = glms_vec2_rotate(really_far, angle);
@@ -177,14 +168,15 @@ void handle_light_layer(tmx_layer *layer, Resources *resources)
                     shadowmap_add(&resources->graphics->shadowmap, position);
             }
 
-            layer_add(&resources->graphics->directional, light);
-
             break;
         }
         default:
             log_warn("Unhandled object type: %d", current->obj_type);
             break;
         }
+
+        layer_add(&resources->graphics->lights, light);
+
         current = current->next;
     }
 }
