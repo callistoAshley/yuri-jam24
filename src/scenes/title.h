@@ -18,7 +18,6 @@ typedef struct
     UiSprite options[3];
     LayerEntry option_entries[3];
 
-    FMOD_STUDIO_EVENTINSTANCE *bgm;
     i32 hovered_option;
 
     FMOD_STUDIO_EVENTDESCRIPTION *hover_desc;

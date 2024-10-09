@@ -24,10 +24,11 @@ void title_scene_init(Scene **scene_data, Resources *resources,
     FMOD_STUDIO_EVENTDESCRIPTION *desc;
     FMOD_RESULT result;
     result = FMOD_Studio_System_GetEvent(resources->audio->system,
-                                         "event:/godscape", &desc);
+                                         "event:/bgm/godscape", &desc);
     FMOD_ERRCHK(result, "Failed to get event");
-    FMOD_Studio_EventDescription_CreateInstance(desc, &title_scene->bgm);
-    FMOD_Studio_EventInstance_Start(title_scene->bgm);
+    FMOD_Studio_EventDescription_CreateInstance(desc,
+                                                &resources->audio->current_bgm);
+    FMOD_Studio_EventInstance_Start(resources->audio->current_bgm);
 
     f32 scale = (f32)resources->graphics->wgpu.surface_config.width /
                 INTERNAL_SCREEN_WIDTH;
@@ -134,7 +135,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         title_scene->background.opacity =
             fmaxf(title_scene->background.opacity, 0.0f);
 
-        FMOD_Studio_EventInstance_SetVolume(title_scene->bgm,
+        FMOD_Studio_EventInstance_SetVolume(resources->audio->current_bgm,
                                             title_scene->background.opacity);
 
         for (u32 i = 0; i < 3; i++)
@@ -264,9 +265,10 @@ void title_scene_update(Scene *scene_data, Resources *resources)
 void title_scene_free(Scene *scene_data, Resources *resources)
 {
     TitleScene *title_scene = (TitleScene *)scene_data;
-    FMOD_Studio_EventInstance_Stop(title_scene->bgm,
+    FMOD_Studio_EventInstance_Stop(resources->audio->current_bgm,
                                    FMOD_STUDIO_STOP_IMMEDIATE);
-    FMOD_Studio_EventInstance_Release(title_scene->bgm);
+    FMOD_Studio_EventInstance_Release(resources->audio->current_bgm);
+    resources->audio->current_bgm = NULL;
 
     ui_sprite_free(&title_scene->background, resources->graphics);
     layer_remove(&resources->graphics->ui_layers.background,

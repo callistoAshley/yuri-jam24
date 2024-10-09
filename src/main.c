@@ -46,7 +46,7 @@ int main(int argc, char **argv)
 
     // audio things
     Audio audio;
-    audio_init(&audio);
+    audio_init(&audio, debug);
 
     Input input;
     input_init(&input);
