@@ -226,9 +226,9 @@ int main(int argc, char **argv)
 
             u64 now = SDL_GetTicksNS();
             u64 delta = now - input.last_frame;
-            f32 delta_millis = SDL_NS_TO_SECONDS((f32)delta);
+            f32 delta_seconds = SDL_NS_TO_SECONDS((f32)delta);
 
-            f32 sleep_time = frame_time - delta_millis;
+            f32 sleep_time = frame_time - delta_seconds;
             if (sleep_time > 0.0)
             {
                 SDL_Delay(sleep_time * 1000);
