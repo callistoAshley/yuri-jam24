@@ -95,6 +95,9 @@ int main(int argc, char **argv)
     window = SDL_CreateWindow(WINDOW_NAME, WINDOW_WIDTH, WINDOW_HEIGHT, flags);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
+    if (settings.video.fullscreen)
+        SDL_SyncWindow(window);
+
     graphics_init(&graphics, window, &settings);
 
     // graphics_init may have edited settings, so we need to save them again
