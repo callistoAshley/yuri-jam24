@@ -114,16 +114,16 @@ void player_update(Player *player, Resources *resources, bool disable_input)
         player->facing = Facing_Right;
 
     f32 walk_speed = WALK_SPEED_PXPS * resources->input->delta_seconds;
-    f32 current_speed = b2Body_GetLinearVelocity(player->body_id).x;
-    if (left_down && current_speed > -WALK_SPEED_CAP)
+    b2Vec2 current_speed = b2Body_GetLinearVelocity(player->body_id);
+    if (left_down && current_speed.x > -WALK_SPEED_CAP)
         b2Body_ApplyLinearImpulseToCenter(player->body_id,
                                           (b2Vec2){-walk_speed, 0}, true);
-    else if (right_down && current_speed < WALK_SPEED_CAP)
+    else if (right_down && current_speed.x < WALK_SPEED_CAP)
         b2Body_ApplyLinearImpulseToCenter(player->body_id,
                                           (b2Vec2){walk_speed, 0}, true);
-    else if (current_speed) // not moving, decelerate
+    else if (current_speed.x) // not moving, decelerate
         b2Body_ApplyLinearImpulseToCenter(
-            player->body_id, (b2Vec2){-current_speed / 2, 0}, true);
+            player->body_id, (b2Vec2){-current_speed.x / 2, 0}, true);
 
     if (player->jump_timeout > 0)
         player->jump_timeout -= resources->input->delta_seconds;
@@ -175,6 +175,18 @@ void player_update(Player *player, Resources *resources, bool disable_input)
 
     transform_manager_update(&resources->graphics->transform_manager,
                              player->sprite.transform, player->transform);
+
+    // FMOD has the same coordinate system as box2d (+y is up, +x is right)
+    FMOD_3D_ATTRIBUTES player_attrs = {
+        .position = {body_position.x, body_position.y, 0.0},
+        .velocity = {current_speed.x, current_speed.y, 0.0},
+        .up = {0.0, 1.0, 0.0},
+        .forward = {0.0, 0.0, 1.0}};
+
+    FMOD_RESULT result;
+    result = FMOD_Studio_System_SetListenerAttributes(
+        resources->audio->system, 0, &player_attrs, &player_attrs.position);
+    FMOD_ERRCHK(result, "failed to set listener position");
 }
 
 void player_jump(Player *player)
@@ -197,4 +209,7 @@ void player_free(Player *player, Resources *resources)
     layer_remove(&resources->graphics->sprite_layers.middle,
                  player->layer_entry);
     sprite_free(&player->sprite, resources->graphics);
+
+    layer_remove(&resources->graphics->shadowcasters,
+                 player->shadow_caster_entry);
 }

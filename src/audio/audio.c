@@ -1,15 +1,19 @@
 #include "audio.h"
+#include "sensible_nums.h"
 #include "utility/macros.h"
 
-void audio_init(Audio *audio)
+void audio_init(Audio *audio, bool with_liveupdate)
 {
     unsigned int fmod_version;
     FMOD_RESULT result = 0;
     // initialize FMOD
     result = FMOD_Studio_System_Create(&audio->system, FMOD_VERSION);
     FMOD_ERRCHK(result, "Creating system");
-    result = FMOD_Studio_System_Initialize(
-        audio->system, 48, FMOD_STUDIO_INIT_NORMAL, FMOD_INIT_NORMAL, NULL);
+    u32 flags = FMOD_STUDIO_INIT_NORMAL;
+    if (with_liveupdate)
+        flags |= FMOD_STUDIO_INIT_LIVEUPDATE;
+    result = FMOD_Studio_System_Initialize(audio->system, 48, flags,
+                                           FMOD_INIT_NORMAL, NULL);
     FMOD_ERRCHK(result, "Initializing system");
 
     // fetch the core system
@@ -33,9 +37,11 @@ void audio_init(Audio *audio)
         FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->bgm_bank);
     FMOD_ERRCHK(result, "Loading BGM Bank");
     result = FMOD_Studio_System_LoadBankFile(
-        audio->system, "assets/audio/Desktop/Menu.bank",
-        FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->menu_bank);
+        audio->system, "assets/audio/Desktop/SFX.bank",
+        FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->sfx_bank);
     FMOD_ERRCHK(result, "Loading Menu Bank");
+
+    audio->current_bgm = NULL;
 }
 
 void audio_free(Audio *audio)

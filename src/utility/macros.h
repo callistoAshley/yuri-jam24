@@ -3,7 +3,9 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define FATAL(...) fprintf(stderr, __VA_ARGS__), exit(1);
+#define FATAL(...)                                                             \
+    fprintf(stderr, "%s:%d#%s\n", __FILE__, __LINE__, __func__),               \
+        fprintf(stderr, __VA_ARGS__), exit(1);
 
 #define SDL_ERRCHK(expr, msg)                                                  \
     {                                                                          \

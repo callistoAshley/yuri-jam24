@@ -14,6 +14,7 @@ set(SOURCES
     src/core_types.c 
     src/main.c 
     src/player.c
+    src/settings.c
     ${SOURCES}
     PARENT_SCOPE
 )

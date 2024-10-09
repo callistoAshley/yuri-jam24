@@ -2,13 +2,13 @@
 <objects serializationModel="Studio.02.03.00">
 	<object class="Event" id="{cf6b24d0-4942-4733-970b-1f5087f3ad10}">
 		<property name="name">
-			<value>bgm_what_once_was</value>
+			<value>what_once_was</value>
 		</property>
 		<property name="outputFormat">
 			<value>1</value>
 		</property>
 		<relationship name="folder">
-			<destination>{5b557216-b69c-4fba-8fa6-0b1d9aacdec8}</destination>
+			<destination>{b219d807-66e5-4e7c-9d2f-a81232e9bd76}</destination>
 		</relationship>
 		<relationship name="mixer">
 			<destination>{a242d1e2-9b77-4d56-9c21-4c5611a8b101}</destination>

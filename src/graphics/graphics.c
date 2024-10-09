@@ -17,6 +17,7 @@
 #include "webgpu.h"
 #include "fonts/font.h"
 
+// TODO remove all global variables
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 
@@ -549,31 +550,11 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
         layer_draw(&graphics->ui_layers.middle, &camera, render_pass);
 
+        layer_draw(&graphics->ui_layers.foreground, &camera, render_pass);
+
         // imgui is used for debug tools, so we want that to be on top of most
         // of the game's ui
         ImGui_ImplWGPU_RenderDrawData(igGetDrawData(), render_pass);
-
-        wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.forward.ui_sprite);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, sprite_bind_group, 0,
-                                          NULL);
-        wgpuRenderPassEncoderSetVertexBuffer(
-            render_pass, 0, graphics->quad_manager.buffer, 0, quad_buffer_size);
-        wgpuRenderPassEncoderSetIndexBuffer(render_pass,
-                                            graphics->quad_manager.index_buffer,
-                                            WGPUIndexFormat_Uint16, 0, 12);
-
-        // imgui might set weird viewport and scissor rect values, so we need to
-        // reset
-        wgpuRenderPassEncoderSetViewport(
-            render_pass, 0, 0, graphics->wgpu.surface_config.width,
-            graphics->wgpu.surface_config.height, 0, 1);
-        wgpuRenderPassEncoderSetScissorRect(
-            render_pass, 0, 0, graphics->wgpu.surface_config.width,
-            graphics->wgpu.surface_config.height);
-
-        // however... we do want the foreground ui to be on top of imgui
-        layer_draw(&graphics->ui_layers.foreground, &camera, render_pass);
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);

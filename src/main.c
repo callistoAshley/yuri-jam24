@@ -1,5 +1,6 @@
 #include "SDL3/SDL_events.h"
 #include "scenes/title.h"
+#include "settings.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -27,6 +28,8 @@
 #include "scenes/scene.h"
 #include "debug/debug_window.h"
 
+#define WINDOW_NAME "i am the window"
+
 int main(int argc, char **argv)
 {
     bool imgui_demo = false;
@@ -46,7 +49,7 @@ int main(int argc, char **argv)
 
     // audio things
     Audio audio;
-    audio_init(&audio);
+    audio_init(&audio, debug);
 
     Input input;
     input_init(&input);
@@ -70,11 +73,26 @@ int main(int argc, char **argv)
     Fonts fonts;
     fonts_init(&fonts);
 
-    window = SDL_CreateWindow("i am the window", WINDOW_WIDTH, WINDOW_HEIGHT,
+    window = SDL_CreateWindow(WINDOW_NAME, WINDOW_WIDTH, WINDOW_HEIGHT,
                               SDL_WINDOW_HIDDEN);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     graphics_init(&graphics, window);
+
+    const char *pref_path =
+        SDL_GetPrefPath("callistoAshley", "transbian-god-conquerer");
+    const char *settings_name = "settings.ini";
+    char *settings_path = malloc(strlen(pref_path) + strlen(settings_name) + 1);
+    strcpy(settings_path, pref_path);
+    strcat(settings_path, settings_name);
+
+    printf("settings path: %s\n", settings_path);
+
+    Settings settings;
+    settings_load_from(&settings, settings_path, window, &graphics.wgpu);
+    // this may have initialized with defaults, so we need to save the settings
+    // right after
+    settings_save_to(&settings, settings_path);
 
     char *files[] = {
         "assets/events.txt",
@@ -110,6 +128,7 @@ int main(int argc, char **argv)
         .audio = &audio,
         .input = &input,
         .fonts = &fonts,
+        .settings = &settings,
         .raw_camera = &raw_camera,
         .current_scene = &scene_data,
         .current_scene_interface = &scene,
@@ -145,7 +164,7 @@ int main(int argc, char **argv)
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
-            input_process(&event, &input);
+            input_process(&event, &input, &settings);
 
             if (event.type == SDL_EVENT_WINDOW_RESIZED)
             {
@@ -174,6 +193,14 @@ int main(int argc, char **argv)
 
         igRender();
         graphics_render(&graphics, &physics, raw_camera);
+
+        if (debug)
+        {
+            u32 fps = 1.0 / input.delta_seconds;
+            char title[256];
+            snprintf(title, 256, WINDOW_NAME " %dfps", fps);
+            SDL_SetWindowTitle(window, title);
+        }
 
         if (first_frame)
         {
