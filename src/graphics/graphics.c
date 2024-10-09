@@ -17,6 +17,7 @@
 #include "webgpu.h"
 #include "fonts/font.h"
 
+// TODO remove all global variables
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 

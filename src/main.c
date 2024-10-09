@@ -27,6 +27,8 @@
 #include "scenes/scene.h"
 #include "debug/debug_window.h"
 
+#define WINDOW_NAME "i am the window"
+
 int main(int argc, char **argv)
 {
     bool imgui_demo = false;
@@ -70,7 +72,7 @@ int main(int argc, char **argv)
     Fonts fonts;
     fonts_init(&fonts);
 
-    window = SDL_CreateWindow("i am the window", WINDOW_WIDTH, WINDOW_HEIGHT,
+    window = SDL_CreateWindow(WINDOW_NAME, WINDOW_WIDTH, WINDOW_HEIGHT,
                               SDL_WINDOW_HIDDEN);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
@@ -174,6 +176,14 @@ int main(int argc, char **argv)
 
         igRender();
         graphics_render(&graphics, &physics, raw_camera);
+
+        if (debug)
+        {
+            u32 fps = 1.0 / input.delta_seconds;
+            char title[256];
+            snprintf(title, 256, WINDOW_NAME " %dfps", fps);
+            SDL_SetWindowTitle(window, title);
+        }
 
         if (first_frame)
         {
