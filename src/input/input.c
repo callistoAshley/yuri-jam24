@@ -23,7 +23,7 @@ void input_start_frame(Input *input)
     input->last_frame = current_frame;
 }
 
-void input_process(SDL_Event *event, Input *input)
+void input_process(SDL_Event *event, Input *input, Settings *settings)
 {
     bool button_is_down = event->type == SDL_EVENT_KEY_DOWN ||
                           event->type == SDL_EVENT_MOUSE_BUTTON_DOWN;
@@ -57,45 +57,42 @@ void input_process(SDL_Event *event, Input *input)
         break;
     case SDL_EVENT_KEY_UP:
     case SDL_EVENT_KEY_DOWN:
-        switch (event->key.key)
+    {
+        u32 key = event->key.key;
+        if (key == settings->keybinds.up)
         {
-        case SDLK_LEFT:
-            TOGGLE_BUTTON_IF_DOWN(Button_Left);
-            break;
-        case SDLK_RIGHT:
-            TOGGLE_BUTTON_IF_DOWN(Button_Right);
-            break;
-        case SDLK_UP:
-            TOGGLE_BUTTON_IF_DOWN(Button_Up);
-            break;
-        case SDLK_DOWN:
-            TOGGLE_BUTTON_IF_DOWN(Button_Down);
-            break;
-        case SDLK_SPACE:
-            TOGGLE_BUTTON_IF_DOWN(Button_Jump);
-            break;
-        case SDLK_C:
-            TOGGLE_BUTTON_IF_DOWN(Button_Crouch);
-            break;
-        case SDLK_Q:
-            TOGGLE_BUTTON_IF_DOWN(Button_Quit);
-            break;
-        case SDLK_ESCAPE:
-            TOGGLE_BUTTON_IF_DOWN(Button_Back);
-            break;
-        case SDLK_F11:
-            TOGGLE_BUTTON_IF_DOWN(Button_Fullscreen);
-            break;
-        case SDLK_GRAVE:
-            TOGGLE_BUTTON_IF_DOWN(Button_Freecam);
-            break;
-        case SDLK_TAB:
-            TOGGLE_BUTTON_IF_DOWN(Button_LevelEdit);
-            break;
-        default:
-            break;
+            TOGGLE_BUTTON_IF_DOWN(Button_Up)
         }
-        break;
+        if (key == settings->keybinds.down)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Down)
+        }
+        if (key == settings->keybinds.left)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Left)
+        }
+        if (key == settings->keybinds.right)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Right)
+        }
+        if (key == settings->keybinds.jump)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Jump)
+        }
+        if (key == settings->keybinds.crouch)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Crouch)
+        }
+        if (key == settings->keybinds.back)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Back)
+        }
+        if (key == settings->keybinds.quit)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Quit)
+        }
+    }
+    break;
     default:
         break;
     }

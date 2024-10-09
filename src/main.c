@@ -1,5 +1,6 @@
 #include "SDL3/SDL_events.h"
 #include "scenes/title.h"
+#include "settings.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -78,6 +79,21 @@ int main(int argc, char **argv)
 
     graphics_init(&graphics, window);
 
+    const char *pref_path =
+        SDL_GetPrefPath("callistoAshley", "transbian-god-conquerer");
+    const char *settings_name = "settings.ini";
+    char *settings_path = malloc(strlen(pref_path) + strlen(settings_name) + 1);
+    strcpy(settings_path, pref_path);
+    strcat(settings_path, settings_name);
+
+    printf("settings path: %s\n", settings_path);
+
+    Settings settings;
+    settings_load_from(&settings, settings_path, window, &graphics.wgpu);
+    // this may have initialized with defaults, so we need to save the settings
+    // right after
+    settings_save_to(&settings, settings_path);
+
     char *files[] = {
         "assets/events.txt",
     };
@@ -112,6 +128,7 @@ int main(int argc, char **argv)
         .audio = &audio,
         .input = &input,
         .fonts = &fonts,
+        .settings = &settings,
         .raw_camera = &raw_camera,
         .current_scene = &scene_data,
         .current_scene_interface = &scene,
@@ -147,7 +164,7 @@ int main(int argc, char **argv)
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
-            input_process(&event, &input);
+            input_process(&event, &input, &settings);
 
             if (event.type == SDL_EVENT_WINDOW_RESIZED)
             {

@@ -112,9 +112,6 @@ void map_scene_update(Scene *scene_data, Resources *resources)
 {
     MapScene *map_scene = (MapScene *)scene_data;
 
-    if (input_is_pressed(resources->input, Button_Freecam))
-        map_scene->freecam = !map_scene->freecam;
-
     if (input_is_pressed(resources->input, Button_Back))
         map_scene->settings.open = true;
 

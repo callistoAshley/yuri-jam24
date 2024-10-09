@@ -6,6 +6,7 @@
 #include "audio/audio.h"
 #include "input/input.h"
 #include "sensible_nums.h"
+#include "settings.h"
 #include "utility/macros.h"
 
 typedef enum
@@ -32,6 +33,7 @@ typedef struct
     Input *input;
     Camera *raw_camera;
     Fonts *fonts;
+    Settings *settings;
 
     // only used to modify the current scene
     Scene **current_scene;
