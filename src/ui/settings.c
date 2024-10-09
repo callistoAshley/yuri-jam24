@@ -7,6 +7,7 @@
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
 #include "utility/graphics.h"
+#include "webgpu.h"
 
 void settings_menu_init(SettingsMenu *menu, Resources *resources)
 {
@@ -149,6 +150,25 @@ static void draw_number_selector_to(SDL_Surface *surface, Font *font, i32 x,
     SDL_DestroySurface(src);
 }
 
+static void draw_text_selector_to(SDL_Surface *surface, Font *font, i32 x,
+                                  i32 y, const char *value, u32 max_len)
+{
+    u32 len = strlen(value);
+    u32 left_pad = (max_len - len) / 2;
+    u32 right_pad = left_pad;
+    if (len % 2 == 1)
+        right_pad++;
+
+    char text[20];
+    snprintf(text, 20, "< %*s%s%*s >", left_pad, "", value, right_pad, "");
+
+    SDL_Color color = {255, 255, 255, 255};
+    SDL_Surface *src = font_render_surface(font, text, color);
+    SDL_Rect dst_rect = {.x = x, .y = y, .w = src->w, .h = src->h};
+    SDL_BlitSurface(src, NULL, surface, &dst_rect);
+    SDL_DestroySurface(src);
+}
+
 static void draw_text_at(SDL_Surface *surface, Font *font, i32 x, i32 y,
                          const char *text)
 {
@@ -157,6 +177,25 @@ static void draw_text_at(SDL_Surface *surface, Font *font, i32 x, i32 y,
     SDL_Rect dst_rect = {.x = x, .y = y, .w = src->w, .h = src->h};
     SDL_BlitSurface(src, NULL, surface, &dst_rect);
     SDL_DestroySurface(src);
+}
+
+static char *text_of_vsync_mode(WGPUPresentMode mode)
+{
+    switch (mode)
+    {
+
+    case WGPUPresentMode_Fifo:
+        return "Fifo";
+    case WGPUPresentMode_FifoRelaxed:
+        return "Relaxed";
+    case WGPUPresentMode_Immediate:
+        return "Immediate";
+    case WGPUPresentMode_Mailbox:
+        return "Mailbox";
+    // this should NEVER happen
+    case WGPUPresentMode_Force32:
+        return "oops";
+    }
 }
 
 void settings_menu_update(SettingsMenu *menu, Resources *resources)
@@ -335,23 +374,23 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
     bool repeat_clicked = (mouse_down && repeat) || mouse_clicked;
 
+#define MOUSE_INSIDE_BUTTON(x, y)                                              \
+    (relative_mouse_x >= x && relative_mouse_x <= x + character_width &&       \
+     relative_mouse_y >= y && relative_mouse_y <= y + character_height)
+
+    SDL_ClearSurface(menu->category_surf, 0, 0, 0, 0);
     switch (menu->selected_category)
     {
     case Cat_Audio:
     {
-        SDL_ClearSurface(menu->category_surf, 0, 0, 0, 0);
-
         // bgm volume
         draw_text_at(menu->category_surf, category_font, 0, 0, "BGM Volume");
-
         // sfx volume
         draw_text_at(menu->category_surf, category_font, 0,
                      character_height + 5, "SFX Volume");
-
         // bgm volume number
         draw_number_selector_to(menu->category_surf, category_font, 180, 2,
                                 resources->settings->audio.bgm_volume);
-
         // sfx volume number
         draw_number_selector_to(menu->category_surf, category_font, 180,
                                 2 + character_height + 5,
@@ -359,9 +398,6 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
         i32 button_x = 180;
         i32 button_y = 2;
-#define MOUSE_INSIDE_BUTTON(x, y)                                              \
-    (relative_mouse_x >= x && relative_mouse_x <= x + character_width &&       \
-     relative_mouse_y >= y && relative_mouse_y <= y + character_height)
 
         if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
         {
@@ -416,9 +452,79 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                                  &resources->graphics->wgpu);
         break;
     }
+    case Cat_Video:
+    {
+
+        // vsync
+        draw_text_at(menu->category_surf, category_font, 0, 0, "VSYNC Mode");
+
+        draw_text_at(menu->category_surf, category_font, 0,
+                     character_height + 5, "Fullscreen");
+
+        WGPUPresentMode current_mode = resources->settings->video.present_mode;
+        if (current_mode == WGPUPresentMode_Immediate ||
+            current_mode == WGPUPresentMode_Mailbox)
+        {
+            draw_text_at(menu->category_surf, category_font, 0,
+                         (character_height + 5) * 2, "Max Framerate");
+        }
+
+        u32 vsync_count =
+            resources->graphics->wgpu.surface_caps.presentModeCount;
+        const WGPUPresentMode *modes =
+            resources->graphics->wgpu.surface_caps.presentModes;
+        u32 current_index;
+        for (current_index = 0; current_index < vsync_count; current_index++)
+        {
+            WGPUPresentMode mode = modes[current_index];
+            if (current_mode == mode)
+                break;
+        }
+        char *vsync_text = text_of_vsync_mode(current_mode);
+        draw_text_selector_to(menu->category_surf, category_font, 180, 2,
+                              vsync_text, 10);
+
+        i32 button_x = 180;
+        i32 button_y = 2;
+        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
+        {
+            if (current_index == 0)
+                current_index = vsync_count - 1;
+            else
+                current_index--;
+            resources->settings->video.present_mode = modes[current_index];
+        }
+
+        // < + " " + 10 + " "
+        button_x = button_x + (character_width * 13);
+        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
+        {
+            if (current_index == vsync_count - 1)
+                current_index = 0;
+            else
+                current_index++;
+            resources->settings->video.present_mode = modes[current_index];
+        }
+
+        WGPUPresentMode new_mode = resources->settings->video.present_mode;
+        bool did_change_mode = new_mode != current_mode;
+        if (did_change_mode)
+        {
+            resources->graphics->wgpu.surface_config.presentMode = new_mode;
+            wgpuSurfaceConfigure(resources->graphics->wgpu.surface,
+                                 &resources->graphics->wgpu.surface_config);
+        }
+
+        break;
+    }
     default:
         break;
     }
+
+    WGPUTexture texture = texture_manager_get_texture(
+        &resources->graphics->texture_manager, menu->category.texture);
+    write_surface_to_texture(menu->category_surf, texture,
+                             &resources->graphics->wgpu);
 }
 
 void settings_menu_free(SettingsMenu *menu, Resources *resources)
