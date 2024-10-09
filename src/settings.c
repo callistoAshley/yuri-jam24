@@ -83,6 +83,8 @@ void settings_load_from(Settings *settings, const char *path,
 
             fprintf(stderr, "unrecognized ini section %s\n", section->name);
         }
+
+        ini_free(ini);
     }
     else
     {
@@ -105,7 +107,6 @@ void settings_load_from(Settings *settings, const char *path,
         settings->keybinds.back = SDLK_ESCAPE;
         settings->keybinds.quit = SDLK_Q;
     }
-    ini_free(ini);
 }
 
 void settings_save_to(Settings *settings, const char *path)
@@ -114,26 +115,26 @@ void settings_save_to(Settings *settings, const char *path)
     PTR_ERRCHK(file, "failed to open settings file");
 
     fprintf(file, "[audio]\n");
-    fprintf(file, "bgm_volume = %d\n", settings->audio.bgm_volume);
-    fprintf(file, "sfx_volume = %d\n", settings->audio.sfx_volume);
+    fprintf(file, "bgm_volume=%d\n", settings->audio.bgm_volume);
+    fprintf(file, "sfx_volume=%d\n", settings->audio.sfx_volume);
     fprintf(file, "\n");
 
     fprintf(file, "[video]\n");
-    fprintf(file, "frame_cap = %d\n", settings->video.frame_cap);
-    fprintf(file, "max_framerate = %d\n", settings->video.max_framerate);
-    fprintf(file, "present_mode = %d\n", settings->video.present_mode);
-    fprintf(file, "fullscreen = %d\n", settings->video.fullscreen);
+    fprintf(file, "frame_cap=%d\n", settings->video.frame_cap);
+    fprintf(file, "max_framerate=%d\n", settings->video.max_framerate);
+    fprintf(file, "present_mode=%d\n", settings->video.present_mode);
+    fprintf(file, "fullscreen=%d\n", settings->video.fullscreen);
     fprintf(file, "\n");
 
     fprintf(file, "[keybinds]\n");
-    fprintf(file, "up = %d\n", settings->keybinds.up);
-    fprintf(file, "left = %d\n", settings->keybinds.left);
-    fprintf(file, "right = %d\n", settings->keybinds.right);
-    fprintf(file, "down = %d\n", settings->keybinds.down);
-    fprintf(file, "jump = %d\n", settings->keybinds.jump);
-    fprintf(file, "crouch = %d\n", settings->keybinds.crouch);
-    fprintf(file, "back = %d\n", settings->keybinds.back);
-    fprintf(file, "quit = %d\n", settings->keybinds.quit);
+    fprintf(file, "up=%d\n", settings->keybinds.up);
+    fprintf(file, "left=%d\n", settings->keybinds.left);
+    fprintf(file, "right=%d\n", settings->keybinds.right);
+    fprintf(file, "down=%d\n", settings->keybinds.down);
+    fprintf(file, "jump=%d\n", settings->keybinds.jump);
+    fprintf(file, "crouch=%d\n", settings->keybinds.crouch);
+    fprintf(file, "back=%d\n", settings->keybinds.back);
+    fprintf(file, "quit=%d\n", settings->keybinds.quit);
 
     fclose(file);
 }
