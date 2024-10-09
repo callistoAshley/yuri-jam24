@@ -27,7 +27,7 @@ typedef struct
 {
     Button prev;
     Button curr;
-    bool requested_quit;
+    bool requested_quit, requested_fullscreen;
 
     i32 mouse_x, mouse_y;
 
