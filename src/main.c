@@ -1,7 +1,9 @@
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_timer.h"
 #include "SDL3/SDL_video.h"
 #include "scenes/title.h"
 #include "settings.h"
+#include "webgpu.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -198,7 +200,7 @@ int main(int argc, char **argv)
         igRender();
         graphics_render(&graphics, &physics, raw_camera);
 
-        // if (debug)
+        if (debug)
         {
             u32 fps = 1.0 / input.delta_seconds;
             char title[256];
@@ -210,6 +212,27 @@ int main(int argc, char **argv)
         {
             SDL_ShowWindow(window);
             first_frame = false;
+        }
+
+        // if the frame cap is enabled, and we've got a non-vsync present mode,
+        // block until the next frame
+        bool framecap_enabled =
+            settings.video.frame_cap &&
+            (settings.video.present_mode == WGPUPresentMode_Immediate ||
+             settings.video.present_mode == WGPUPresentMode_Mailbox);
+        if (framecap_enabled)
+        {
+            f32 frame_time = 1.0 / settings.video.max_framerate;
+
+            u64 now = SDL_GetTicksNS();
+            u64 delta = now - input.last_frame;
+            f32 delta_millis = SDL_NS_TO_SECONDS((f32)delta);
+
+            f32 sleep_time = frame_time - delta_millis;
+            if (sleep_time > 0.0)
+            {
+                SDL_Delay(sleep_time * 1000);
+            }
         }
     }
 

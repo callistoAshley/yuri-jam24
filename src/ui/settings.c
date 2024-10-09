@@ -579,7 +579,11 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             {
                 if (resources->settings->video.max_framerate > 30)
                 {
-                    resources->settings->video.max_framerate--;
+                    if (resources->settings->video.frame_cap)
+                        resources->settings->video.max_framerate--;
+                    else
+                        resources->settings->video.max_framerate =
+                            max_framerate;
                     resources->settings->video.frame_cap = true;
                     fire_and_forget(menu->hover_desc);
                 }
