@@ -1,12 +1,14 @@
 #include "settings.h"
 #include "SDL3/SDL_pixels.h"
 #include "SDL3/SDL_surface.h"
+#include "SDL3/SDL_video.h"
 #include "fmod_studio_common.h"
 #include "fonts/font.h"
 #include "graphics/tex_manager.h"
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
 #include "utility/graphics.h"
+#include "utility/macros.h"
 #include "webgpu.h"
 
 void settings_menu_init(SettingsMenu *menu, Resources *resources)
@@ -457,8 +459,9 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                      character_height + 5, "Fullscreen");
 
         WGPUPresentMode current_mode = resources->settings->video.present_mode;
-        if (current_mode == WGPUPresentMode_Immediate ||
-            current_mode == WGPUPresentMode_Mailbox)
+        bool frameratecap_enabled = current_mode == WGPUPresentMode_Immediate ||
+                                    current_mode == WGPUPresentMode_Mailbox;
+        if (frameratecap_enabled)
         {
             draw_text_at(menu->category_surf, category_font, 0,
                          (character_height + 5) * 2, "Max Framerate");
@@ -489,6 +492,26 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         draw_text_selector_to(menu->category_surf, category_font, 180,
                               2 + character_height + 5, fullscreen_text);
 
+        SDL_DisplayID display_id = SDL_GetDisplayForWindow(resources->window);
+        const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display_id);
+        SDL_PTR_ERRCHK(mode, "failed to get monitor display mode");
+        u32 max_framerate = mode->refresh_rate;
+        if (frameratecap_enabled)
+        {
+            i32 y = 2 + (character_height + 5) * 2;
+            if (resources->settings->video.frame_cap)
+            {
+                draw_number_selector_to(
+                    menu->category_surf, category_font, 220, y,
+                    resources->settings->video.max_framerate);
+            }
+            else
+            {
+                draw_text_selector_to(menu->category_surf, category_font, 220,
+                                      y, "Unlimited");
+            }
+        }
+
         i32 button_x = 180;
         i32 button_y = 2;
         if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
@@ -518,23 +541,65 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             resources->graphics->wgpu.surface_config.presentMode = new_mode;
             wgpuSurfaceConfigure(resources->graphics->wgpu.surface,
                                  &resources->graphics->wgpu.surface_config);
+
+            bool frameratecap_enabled = new_mode == WGPUPresentMode_Immediate ||
+                                        new_mode == WGPUPresentMode_Mailbox;
+            if (frameratecap_enabled)
+            {
+                resources->settings->video.frame_cap = true;
+                resources->settings->video.max_framerate = max_framerate;
+            }
+            fire_and_forget(menu->hover_desc);
         }
 
         button_x = 180;
         button_y = 2 + character_height + 5;
         bool fullscreen = resources->settings->video.fullscreen;
-        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
+
+        bool inside_left =
+            MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked;
+        // < + " " + fullscreen_len + " "
+        button_x = 180 + character_width * (fullscreen_len + 3);
+        bool inside_right =
+            MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked;
+
+        if (inside_left || inside_right)
         {
             resources->settings->video.fullscreen = !fullscreen;
             SDL_SetWindowFullscreen(resources->window, !fullscreen);
+            fire_and_forget(menu->hover_desc);
         }
 
-        // < + " " + 3 + " "
-        button_x = 180 + character_width * (fullscreen_len + 3);
-        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
+        if (frameratecap_enabled)
         {
-            resources->settings->video.fullscreen = !fullscreen;
-            SDL_SetWindowFullscreen(resources->window, !fullscreen);
+            button_x = 220;
+            button_y = 2 + (character_height + 5) * 2;
+
+            if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
+            {
+                if (resources->settings->video.max_framerate > 30)
+                {
+                    resources->settings->video.max_framerate--;
+                    resources->settings->video.frame_cap = true;
+                    fire_and_forget(menu->hover_desc);
+                }
+            }
+
+            if (resources->settings->video.frame_cap)
+            {
+                // < + " " + 3 + " "
+                button_x = 220 + character_width * 6;
+
+                if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
+                {
+                    if (resources->settings->video.max_framerate >=
+                        max_framerate)
+                        resources->settings->video.frame_cap = false;
+                    else
+                        resources->settings->video.max_framerate++;
+                    fire_and_forget(menu->hover_desc);
+                }
+            }
         }
 
         break;
