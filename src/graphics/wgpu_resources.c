@@ -240,17 +240,17 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window,
         if (mode == WGPUPresentMode_FifoRelaxed)
         {
             selected_present_mode = WGPUPresentMode_FifoRelaxed;
-            break;
         }
         // if Fifo is supported, use that, unless we find FifoRelaxed.
-        if (mode == WGPUPresentMode_Fifo)
+        if (mode == WGPUPresentMode_Fifo && mode != WGPUPresentMode_FifoRelaxed)
         {
             selected_present_mode = WGPUPresentMode_Fifo;
         }
         // if Mailbox is supported, use that, unless we find something better
         // (or did find something better).
         if (mode == WGPUPresentMode_Mailbox &&
-            selected_present_mode != WGPUPresentMode_Fifo)
+            selected_present_mode != WGPUPresentMode_Fifo &&
+            mode != WGPUPresentMode_FifoRelaxed)
         {
             selected_present_mode = WGPUPresentMode_Mailbox;
         }
@@ -258,7 +258,8 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window,
         // that.
         if (mode == WGPUPresentMode_Immediate &&
             selected_present_mode != WGPUPresentMode_Fifo &&
-            selected_present_mode != WGPUPresentMode_Mailbox)
+            selected_present_mode != WGPUPresentMode_Mailbox &&
+            mode != WGPUPresentMode_FifoRelaxed)
         {
             selected_present_mode = WGPUPresentMode_Immediate;
         }
