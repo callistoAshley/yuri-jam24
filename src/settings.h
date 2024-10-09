@@ -1,7 +1,6 @@
 #pragma once
 
 #include <SDL3/SDL.h>
-#include "graphics/wgpu_resources.h"
 #include "sensible_nums.h"
 #include <stdbool.h>
 #include <wgpu.h>
@@ -28,6 +27,5 @@ typedef struct
 } Settings;
 
 // loads settings, or uses defaults if possible
-void settings_load_from(Settings *settings, const char *path,
-                        SDL_Window *window, WGPUResources *resources);
+void settings_load_from(Settings *settings, const char *path);
 void settings_save_to(Settings *settings, const char *path);

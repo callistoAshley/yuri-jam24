@@ -1,4 +1,5 @@
 #include "SDL3/SDL_events.h"
+#include "SDL3/SDL_video.h"
 #include "scenes/title.h"
 #include "settings.h"
 #include <fmod_errors.h>
@@ -73,12 +74,6 @@ int main(int argc, char **argv)
     Fonts fonts;
     fonts_init(&fonts);
 
-    window = SDL_CreateWindow(WINDOW_NAME, WINDOW_WIDTH, WINDOW_HEIGHT,
-                              SDL_WINDOW_HIDDEN);
-    SDL_PTR_ERRCHK(window, "window creation failure");
-
-    graphics_init(&graphics, window);
-
     const char *pref_path =
         SDL_GetPrefPath("callistoAshley", "transbian-god-conquerer");
     const char *settings_name = "settings.ini";
@@ -89,9 +84,18 @@ int main(int argc, char **argv)
     printf("settings path: %s\n", settings_path);
 
     Settings settings;
-    settings_load_from(&settings, settings_path, window, &graphics.wgpu);
-    // this may have initialized with defaults, so we need to save the settings
-    // right after
+    settings_load_from(&settings, settings_path);
+
+    SDL_WindowFlags flags = SDL_WINDOW_HIDDEN;
+    if (settings.video.fullscreen)
+        flags |= SDL_WINDOW_FULLSCREEN;
+
+    window = SDL_CreateWindow(WINDOW_NAME, WINDOW_WIDTH, WINDOW_HEIGHT, flags);
+    SDL_PTR_ERRCHK(window, "window creation failure");
+
+    graphics_init(&graphics, window, &settings);
+
+    // graphics_init may have edited settings, so we need to save them again
     settings_save_to(&settings, settings_path);
 
     char *files[] = {

@@ -4,8 +4,7 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-void settings_load_from(Settings *settings, const char *path,
-                        SDL_Window *window, WGPUResources *resources)
+void settings_load_from(Settings *settings, const char *path)
 {
     struct stat buffer;
     bool exists = stat(path, &buffer) == 0;
@@ -93,7 +92,7 @@ void settings_load_from(Settings *settings, const char *path,
 
         settings->video.frame_cap = false;
         settings->video.max_framerate = 0;
-        settings->video.present_mode = resources->surface_config.presentMode;
+        settings->video.present_mode = WGPUPresentMode_FifoRelaxed;
         settings->video.fullscreen = false;
 
         settings->keybinds.up = SDLK_UP;

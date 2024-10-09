@@ -82,9 +82,9 @@ void shadowcaster_draw(void *thing, void *context, WGPURenderPassEncoder pass)
     wgpuRenderPassEncoderDraw(pass, cell.end - cell.start, 1, cell.start, 0);
 }
 
-void graphics_init(Graphics *graphics, SDL_Window *window)
+void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings)
 {
-    wgpu_resources_init(&graphics->wgpu, window);
+    wgpu_resources_init(&graphics->wgpu, window, settings);
     bind_group_layouts_init(&graphics->bind_group_layouts, &graphics->wgpu);
     shaders_init(&graphics->shaders, &graphics->bind_group_layouts,
                  &graphics->wgpu);

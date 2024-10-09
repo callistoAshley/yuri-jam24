@@ -52,7 +52,8 @@ static void handle_request_device(WGPURequestDeviceStatus status,
 #define INVALID_VALUE 0xDEADCAFE
 #define INVALID_POINTER (void *)INVALID_VALUE
 
-void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
+void wgpu_resources_init(WGPUResources *resources, SDL_Window *window,
+                         Settings *settings)
 {
     wgpuSetLogCallback(logCallback, NULL);
     wgpuSetLogLevel(WGPULogLevel_Info);
@@ -228,6 +229,13 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
     for (u32 i = 0; i < surface_caps.presentModeCount; i++)
     {
         WGPUPresentMode mode = surface_caps.presentModes[i];
+        // if we found the settings mode, use that.
+        // otherwise...
+        if (mode == settings->video.present_mode)
+        {
+            selected_present_mode = settings->video.present_mode;
+            break;
+        }
         // if FifoRelaxed is supported, use that.
         if (mode == WGPUPresentMode_FifoRelaxed)
         {
@@ -255,9 +263,10 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
             selected_present_mode = WGPUPresentMode_Immediate;
         }
     }
+    settings->video.present_mode = selected_present_mode;
+
     switch (selected_present_mode)
     {
-
     case WGPUPresentMode_Fifo:
         printf("Selected Fifo present mode\n");
         break;

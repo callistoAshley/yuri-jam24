@@ -5,6 +5,7 @@
 #include "graphics/shadowmap.h"
 #include "graphics/tex_manager.h"
 #include "physics/physics.h"
+#include "settings.h"
 #include "transform_manager.h"
 #include "wgpu_resources.h"
 #include "quad_manager.h"
@@ -62,7 +63,7 @@ typedef struct
     f32 x, y, z;
 } Camera;
 
-void graphics_init(Graphics *graphics, SDL_Window *window);
+void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings);
 void graphics_render(Graphics *graphics, Physics *physics, Camera camera);
 void graphics_free(Graphics *graphics);
 void graphics_resize(Graphics *graphics, int width, int height);

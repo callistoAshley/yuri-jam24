@@ -1,6 +1,7 @@
 #pragma once
 
 #include "sensible_nums.h"
+#include "settings.h"
 #include <wgpu.h>
 #include <SDL3/SDL.h>
 
@@ -35,5 +36,6 @@ typedef struct
     u32 first_instance;
 } DrawIndexedIndirectArgs;
 
-void wgpu_resources_init(WGPUResources *resources, SDL_Window *window);
+void wgpu_resources_init(WGPUResources *resources, SDL_Window *window,
+                         Settings *settings);
 void wgpu_resources_free(WGPUResources *resources);
