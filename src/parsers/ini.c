@@ -16,84 +16,99 @@ static IniPair *init_pair(void)
     return pair;
 }
 
-static bool is_whitespace(char c)
-{
-    return c == ' ' || c == '\n' || c == '\r';
-}
+static bool is_whitespace(char c) { return c == ' ' || c == '\n' || c == '\r'; }
 
-static Ini *parse_string(Ini *ini, char *str, size_t len, char out_err_msg[256])
+static Ini *parse_string(Ini *ini, const char *str, size_t len,
+                         char out_err_msg[256])
 {
-#define PARSE_ERR(str) snprintf(out_err_msg, 256, "ini.c parse_string: " str), NULL // to be used in a return statement 
+#define PARSE_ERR(str)                                                         \
+    snprintf(out_err_msg, 256, "ini.c parse_string: " str),                    \
+        NULL // to be used in a return statement
     IniSection *current_section = NULL;
     IniPair *current_pair = NULL;
     int write_idx = 0;
     bool escaped = false;
-    enum { PARSE_NONE, PARSE_SECTION, PARSE_KEY, PARSE_VALUE, PARSE_COMMENT } parse_state = PARSE_NONE;
+    enum
+    {
+        PARSE_NONE,
+        PARSE_SECTION,
+        PARSE_KEY,
+        PARSE_VALUE,
+        PARSE_COMMENT
+    } parse_state = PARSE_NONE;
 
     for (int i = 0; i < (int)len; i++)
     {
         switch (parse_state)
         {
-            case PARSE_NONE:
+        case PARSE_NONE:
+        {
+            if (*str == '[' && !escaped)
             {
-                if (*str == '[' && !escaped)
-                {
-                    if (current_section) linked_list_append(ini->sections, current_section);
-                    current_section = init_section();
-                    parse_state = PARSE_SECTION;
-                    write_idx = 0;
-                }
-                else if (*str == ';' && !escaped)
-                {
-                    parse_state = PARSE_COMMENT;
-                }
-                else if (!is_whitespace(*str))
-                {
-                    if (!current_section) return PARSE_ERR("stray pair (no section)");
-                    if (current_pair) linked_list_append(current_section->pairs, current_pair);
-                    current_pair = init_pair();
-                    parse_state = PARSE_KEY;
-                    write_idx = 0;
-                    current_pair->key[write_idx++] = *str;
-                }
-                break;
+                if (current_section)
+                    linked_list_append(ini->sections, current_section);
+                current_section = init_section();
+                parse_state = PARSE_SECTION;
+                write_idx = 0;
             }
-            case PARSE_SECTION:
+            else if (*str == ';' && !escaped)
             {
-                if (*str == ']' && !escaped)
-                {
-                    current_section->name[write_idx] = '\0';
-                    parse_state = PARSE_NONE;
-                    write_idx = 0;
-                    break;
-                }
-                current_section->name = realloc(current_section->name, write_idx + 2);
-                PTR_ERRCHK(current_section->name, "ini.c parse_string: realloc failure.");
-                current_section->name[write_idx++] = *str;
-                break;
+                parse_state = PARSE_COMMENT;
             }
-            case PARSE_KEY:
+            else if (!is_whitespace(*str))
             {
-                if (*str == '=' && !escaped)
-                {
-                    current_pair->key[write_idx] = '\0';
-                    write_idx = 0;
-                    parse_state = PARSE_VALUE;
-                    break;
-                }
-                current_pair->key = realloc(current_pair->key, write_idx + 2);
-                PTR_ERRCHK(current_pair->key, "ini.c parse_string: realloc failure.");
+                if (!current_section)
+                    return PARSE_ERR("stray pair (no section)");
+                if (current_pair)
+                    linked_list_append(current_section->pairs, current_pair);
+                current_pair = init_pair();
+                parse_state = PARSE_KEY;
+                write_idx = 0;
                 current_pair->key[write_idx++] = *str;
-                break;
             }
-            case PARSE_VALUE:
+            break;
+        }
+        case PARSE_SECTION:
+        {
+            if (*str == ']' && !escaped)
             {
-                current_pair->value = realloc(current_pair->value, write_idx + 2);
-                PTR_ERRCHK(current_pair->value, "ini.c parse_string: realloc failure.");
-                current_pair->value[write_idx++] = *str;
+                current_section->name[write_idx] = '\0';
+                parse_state = PARSE_NONE;
+                write_idx = 0;
                 break;
             }
-            default: break; // thank you compiler very compiler
+            current_section->name =
+                realloc(current_section->name, write_idx + 2);
+            PTR_ERRCHK(current_section->name,
+                       "ini.c parse_string: realloc failure.");
+            current_section->name[write_idx++] = *str;
+            break;
+        }
+        case PARSE_KEY:
+        {
+            if (*str == '=' && !escaped)
+            {
+                current_pair->key[write_idx] = '\0';
+                write_idx = 0;
+                parse_state = PARSE_VALUE;
+                break;
+            }
+            current_pair->key = realloc(current_pair->key, write_idx + 2);
+            PTR_ERRCHK(current_pair->key,
+                       "ini.c parse_string: realloc failure.");
+            current_pair->key[write_idx++] = *str;
+            break;
+        }
+        case PARSE_VALUE:
+        {
+            current_pair->value = realloc(current_pair->value, write_idx + 2);
+            PTR_ERRCHK(current_pair->value,
+                       "ini.c parse_string: realloc failure.");
+            current_pair->value[write_idx++] = *str;
+            break;
+        }
+        default:
+            break; // thank you compiler very compiler
         }
 
         str++;
@@ -110,7 +125,8 @@ static Ini *parse_string(Ini *ini, char *str, size_t len, char out_err_msg[256])
             }
             else if (parse_state == PARSE_VALUE)
             {
-                if (!current_section) return PARSE_ERR("syntax error: no current section");
+                if (!current_section)
+                    return PARSE_ERR("syntax error: no current section");
 
                 current_pair->key[write_idx] = '\0';
                 linked_list_append(current_section->pairs, current_pair);
@@ -118,15 +134,18 @@ static Ini *parse_string(Ini *ini, char *str, size_t len, char out_err_msg[256])
             parse_state = PARSE_NONE;
         }
 
-        if (*str == '\\' && !escaped) escaped = true;
-        else if (escaped) escaped = false;
+        if (*str == '\\' && !escaped)
+            escaped = true;
+        else if (escaped)
+            escaped = false;
     }
 
     return ini;
 #undef PARSE_ERR
 }
 
-Ini *ini_parse_string_n(const char *string, size_t string_len, char out_err_msg[256])
+Ini *ini_parse_string_n(const char *string, size_t string_len,
+                        char out_err_msg[256])
 {
     Ini *ini = calloc(1, sizeof(Ini));
     ini->sections = linked_list_init();
