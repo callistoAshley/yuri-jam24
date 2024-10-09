@@ -215,6 +215,8 @@ int main(int argc, char **argv)
 
     scene.free(scene_data, &resources);
 
+    settings_save_to(&settings, settings_path);
+
     ImGui_ImplSDL3_Shutdown();
     ImGui_ImplWGPU_Shutdown();
     igDestroyContext(imgui);

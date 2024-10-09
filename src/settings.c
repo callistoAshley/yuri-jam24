@@ -6,6 +6,26 @@
 
 void settings_load_from(Settings *settings, const char *path)
 {
+    // set defaults
+    settings->audio.bgm_volume = 100;
+    settings->audio.sfx_volume = 100;
+
+    settings->video.frame_cap = false;
+    settings->video.max_framerate = 0;
+    settings->video.present_mode = WGPUPresentMode_FifoRelaxed;
+    settings->video.fullscreen = false;
+
+    settings->keybinds.up = SDLK_UP;
+    settings->keybinds.left = SDLK_LEFT;
+    settings->keybinds.right = SDLK_RIGHT;
+    settings->keybinds.down = SDLK_DOWN;
+
+    settings->keybinds.jump = SDLK_SPACE;
+    settings->keybinds.crouch = SDLK_C;
+
+    settings->keybinds.back = SDLK_ESCAPE;
+    settings->keybinds.quit = SDLK_Q;
+
     struct stat buffer;
     bool exists = stat(path, &buffer) == 0;
 
@@ -25,7 +45,7 @@ void settings_load_from(Settings *settings, const char *path)
 #define SET_VALUE_FROM_PAIR(pair, category, ini_key)                           \
     if (strcmp(pair->key, #ini_key) == 0)                                      \
     {                                                                          \
-        category.ini_key = atoi(pair->value);                                  \
+        category.ini_key = atol(pair->value);                                  \
         continue;                                                              \
     }
 
@@ -38,7 +58,7 @@ void settings_load_from(Settings *settings, const char *path)
                     SET_VALUE_FROM_PAIR(pair, settings->audio, bgm_volume);
                     SET_VALUE_FROM_PAIR(pair, settings->audio, sfx_volume);
 
-                    fprintf(stderr, "unrecognized ini field %s\n", pair->key);
+                    fprintf(stderr, "unrecognized ini field '%s'\n", pair->key);
                 }
 
                 continue;
@@ -53,7 +73,7 @@ void settings_load_from(Settings *settings, const char *path)
                     SET_VALUE_FROM_PAIR(pair, settings->video, present_mode);
                     SET_VALUE_FROM_PAIR(pair, settings->video, fullscreen);
 
-                    fprintf(stderr, "unrecognized ini field %s\n", pair->key);
+                    fprintf(stderr, "unrecognized ini field '%s'\n", pair->key);
                 }
 
                 continue;
@@ -74,37 +94,16 @@ void settings_load_from(Settings *settings, const char *path)
                     SET_VALUE_FROM_PAIR(pair, settings->keybinds, back);
                     SET_VALUE_FROM_PAIR(pair, settings->keybinds, quit);
 
-                    fprintf(stderr, "unrecognized ini field %s\n", pair->key);
+                    fprintf(stderr, "unrecognized ini field '%s'\n", pair->key);
                 }
 
                 continue;
             }
 
-            fprintf(stderr, "unrecognized ini section %s\n", section->name);
+            fprintf(stderr, "unrecognized ini section '%s'\n", section->name);
         }
 
         ini_free(ini);
-    }
-    else
-    {
-        settings->audio.bgm_volume = 100;
-        settings->audio.sfx_volume = 100;
-
-        settings->video.frame_cap = false;
-        settings->video.max_framerate = 0;
-        settings->video.present_mode = WGPUPresentMode_FifoRelaxed;
-        settings->video.fullscreen = false;
-
-        settings->keybinds.up = SDLK_UP;
-        settings->keybinds.left = SDLK_LEFT;
-        settings->keybinds.right = SDLK_RIGHT;
-        settings->keybinds.down = SDLK_DOWN;
-
-        settings->keybinds.jump = SDLK_SPACE;
-        settings->keybinds.crouch = SDLK_C;
-
-        settings->keybinds.back = SDLK_ESCAPE;
-        settings->keybinds.quit = SDLK_Q;
     }
 }
 
@@ -126,14 +125,14 @@ void settings_save_to(Settings *settings, const char *path)
     fprintf(file, "\n");
 
     fprintf(file, "[keybinds]\n");
-    fprintf(file, "up=%d\n", settings->keybinds.up);
-    fprintf(file, "left=%d\n", settings->keybinds.left);
-    fprintf(file, "right=%d\n", settings->keybinds.right);
-    fprintf(file, "down=%d\n", settings->keybinds.down);
-    fprintf(file, "jump=%d\n", settings->keybinds.jump);
-    fprintf(file, "crouch=%d\n", settings->keybinds.crouch);
-    fprintf(file, "back=%d\n", settings->keybinds.back);
-    fprintf(file, "quit=%d\n", settings->keybinds.quit);
+    fprintf(file, "up=%u\n", settings->keybinds.up);
+    fprintf(file, "left=%u\n", settings->keybinds.left);
+    fprintf(file, "right=%u\n", settings->keybinds.right);
+    fprintf(file, "down=%u\n", settings->keybinds.down);
+    fprintf(file, "jump=%u\n", settings->keybinds.jump);
+    fprintf(file, "crouch=%u\n", settings->keybinds.crouch);
+    fprintf(file, "back=%u\n", settings->keybinds.back);
+    fprintf(file, "quit=%u\n", settings->keybinds.quit);
 
     fclose(file);
 }

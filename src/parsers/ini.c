@@ -27,55 +27,64 @@ static Ini *parse_string(Ini *ini, const char *str, size_t len,
     {
         switch (*str)
         {
-            // skip whitespaces
-            case '\n':
-            case '\t':
-            case '\r':
-            case ' ':
-                break;
-            // new section
-            case '[':
+        // skip whitespaces
+        case '\n':
+        case '\t':
+        case '\r':
+        case ' ':
+            break;
+        // new section
+        case '[':
+        {
+            current_section = init_section();
+            int i;
+            str++;
+            for (i = 0; (*str != ']' && !escaped) && str != end; str++, i++)
             {
-                current_section = init_section();
-                int i;
-                str++;
-                for (i = 0; (*str != ']' && !escaped) && str != end; str++, i++)
-                {
-                    if (escaped = *str == '\\' && !escaped) break;
-                    PTR_ERRCHK((current_section->name = realloc(current_section->name, i + 2)), "realloc failure");
-                    current_section->name[i] = *str;
-                }
-                current_section->name[i] = '\0';
-                linked_list_append(ini->sections, current_section);
-                str++;
-                break;
+                if ((escaped = *str == '\\' && !escaped))
+                    break;
+                PTR_ERRCHK((current_section->name =
+                                realloc(current_section->name, i + 2)),
+                           "realloc failure");
+                current_section->name[i] = *str;
             }
-            default:
+            current_section->name[i] = '\0';
+            linked_list_append(ini->sections, current_section);
+            str++;
+            break;
+        }
+        default:
+        {
+            if (!current_section)
             {
-                if (!current_section)
-                {
-                    snprintf(out_err_msg, 256, "pair defined outside of a section");
-                    ini_free(ini);
-                    return NULL;
-                }
-                IniPair *pair = init_pair();
-                int i;
-                for (i = 0; (*str != '=' && !escaped) && str != end; str++, i++)
-                {
-                    if (escaped = *str == '\\' && !escaped) break;
-                    PTR_ERRCHK((pair->key = realloc(pair->key, i + 2)), "realloc failure");
-                    pair->key[i] = *str;
-                }
-                str++;
-                for (i = 0; (*str != '\n' && !escaped) && str != end; str++, i++)
-                {
-                    if (escaped = *str == '\\' && !escaped) break;
-                    PTR_ERRCHK((pair->value = realloc(pair->value, i + 2)), "realloc failure");
-                    pair->value[i] = *str;
-                }
-                linked_list_append(current_section->pairs, pair);
-                break;
+                snprintf(out_err_msg, 256, "pair defined outside of a section");
+                ini_free(ini);
+                return NULL;
             }
+            IniPair *pair = init_pair();
+            int i;
+            for (i = 0; (*str != '=' && !escaped) && str != end; str++, i++)
+            {
+                if ((escaped = *str == '\\' && !escaped))
+                    break;
+                PTR_ERRCHK((pair->key = realloc(pair->key, i + 2)),
+                           "realloc failure");
+                pair->key[i] = *str;
+            }
+            pair->key[i] = '\0';
+            str++;
+            for (i = 0; (*str != '\n' && !escaped) && str != end; str++, i++)
+            {
+                if ((escaped = *str == '\\' && !escaped))
+                    break;
+                PTR_ERRCHK((pair->value = realloc(pair->value, i + 2)),
+                           "realloc failure");
+                pair->value[i] = *str;
+            }
+            pair->value[i] = '\0';
+            linked_list_append(current_section->pairs, pair);
+            break;
+        }
         }
     }
 
