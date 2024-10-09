@@ -90,7 +90,7 @@ int main(int argc, char **argv)
 
     SDL_WindowFlags flags = SDL_WINDOW_HIDDEN;
     if (settings.video.fullscreen)
-        flags |= SDL_WINDOW_FULLSCREEN;
+        flags = SDL_WINDOW_FULLSCREEN;
 
     window = SDL_CreateWindow(WINDOW_NAME, WINDOW_WIDTH, WINDOW_HEIGHT, flags);
     SDL_PTR_ERRCHK(window, "window creation failure");
@@ -199,14 +199,6 @@ int main(int argc, char **argv)
 
         igRender();
         graphics_render(&graphics, &physics, raw_camera);
-
-        if (debug)
-        {
-            u32 fps = 1.0 / input.delta_seconds;
-            char title[256];
-            snprintf(title, 256, WINDOW_NAME " %dfps", fps);
-            SDL_SetWindowTitle(window, title);
-        }
 
         if (first_frame)
         {
