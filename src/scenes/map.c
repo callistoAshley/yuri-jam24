@@ -41,22 +41,6 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
         FMOD_Studio_EventInstance_Start(resources->audio->current_bgm);
     }
 
-    {
-        FMOD_3D_ATTRIBUTES attrs = {.position = {15, -8, 0},
-                                    .velocity = {0.0, 0.0, 0.0},
-                                    .forward = {0.0, 0.0, 1.0},
-                                    .up = {0.0, 1.0, 0.0}};
-        FMOD_STUDIO_EVENTDESCRIPTION *desc;
-        FMOD_STUDIO_EVENTINSTANCE *inst;
-        result = FMOD_Studio_System_GetEvent(resources->audio->system,
-                                             "event:/sfx/clang", &desc);
-        FMOD_ERRCHK(result, "Failed to get event");
-        FMOD_Studio_EventDescription_CreateInstance(desc, &inst);
-        result = FMOD_Studio_EventInstance_Set3DAttributes(inst, &attrs);
-        FMOD_ERRCHK(result, "Failed to set event properties");
-        FMOD_Studio_EventInstance_Start(inst);
-    }
-
     map_scene->freecam = false;
 
     tmx_map *map = tmx_load(args->map_path);
