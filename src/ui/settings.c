@@ -92,7 +92,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
     }
 
     {
-        WGPUTexture texture = blank_texture(400, 200,
+        WGPUTexture texture = blank_texture(500, 200,
                                             WGPUTextureUsage_CopyDst |
                                                 WGPUTextureUsage_TextureBinding,
                                             &resources->graphics->wgpu);
@@ -106,7 +106,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
             &resources->graphics->transform_manager, transform);
 
         Quad quad = {
-            .rect = rect_from_size((vec2s){.x = 400, .y = 200}),
+            .rect = rect_from_size((vec2s){.x = 500, .y = 200}),
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
         QuadEntry quad_entry =
@@ -117,7 +117,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
         menu->category_entry = layer_add(
             &resources->graphics->ui_layers.foreground, &menu->category);
     }
-    menu->category_surf = SDL_CreateSurface(400, 200, SDL_PIXELFORMAT_RGBA32);
+    menu->category_surf = SDL_CreateSurface(500, 200, SDL_PIXELFORMAT_RGBA32);
 
     menu->hovered_category = Cat_None;
     menu->selected_category = Cat_None;
@@ -151,16 +151,11 @@ static void draw_number_selector_to(SDL_Surface *surface, Font *font, i32 x,
 }
 
 static void draw_text_selector_to(SDL_Surface *surface, Font *font, i32 x,
-                                  i32 y, const char *value, u32 max_len)
+                                  i32 y, const char *value)
 {
-    u32 len = strlen(value);
-    u32 left_pad = (max_len - len) / 2;
-    u32 right_pad = left_pad;
-    if (len % 2 == 1)
-        right_pad++;
 
     char text[20];
-    snprintf(text, 20, "< %*s%s%*s >", left_pad, "", value, right_pad, "");
+    snprintf(text, 20, "< %s >", value);
 
     SDL_Color color = {255, 255, 255, 255};
     SDL_Surface *src = font_render_surface(font, text, color);
@@ -481,8 +476,18 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                 break;
         }
         char *vsync_text = text_of_vsync_mode(current_mode);
+        u32 vsync_len = strlen(vsync_text);
         draw_text_selector_to(menu->category_surf, category_font, 180, 2,
-                              vsync_text, 10);
+                              vsync_text);
+
+        char *fullscreen_text;
+        if (resources->settings->video.fullscreen)
+            fullscreen_text = "ON";
+        else
+            fullscreen_text = "OFF";
+        u32 fullscreen_len = strlen(fullscreen_text);
+        draw_text_selector_to(menu->category_surf, category_font, 180,
+                              2 + character_height + 5, fullscreen_text);
 
         i32 button_x = 180;
         i32 button_y = 2;
@@ -495,8 +500,8 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             resources->settings->video.present_mode = modes[current_index];
         }
 
-        // < + " " + 10 + " "
-        button_x = button_x + (character_width * 13);
+        // < + " " + vsync_len + " "
+        button_x = button_x + character_width * (vsync_len + 3);
         if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
         {
             if (current_index == vsync_count - 1)
@@ -513,6 +518,23 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             resources->graphics->wgpu.surface_config.presentMode = new_mode;
             wgpuSurfaceConfigure(resources->graphics->wgpu.surface,
                                  &resources->graphics->wgpu.surface_config);
+        }
+
+        button_x = 180;
+        button_y = 2 + character_height + 5;
+        bool fullscreen = resources->settings->video.fullscreen;
+        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
+        {
+            resources->settings->video.fullscreen = !fullscreen;
+            SDL_SetWindowFullscreen(resources->window, !fullscreen);
+        }
+
+        // < + " " + 3 + " "
+        button_x = 180 + character_width * (fullscreen_len + 3);
+        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
+        {
+            resources->settings->video.fullscreen = !fullscreen;
+            SDL_SetWindowFullscreen(resources->window, !fullscreen);
         }
 
         break;

@@ -38,6 +38,8 @@ typedef struct
     // only used to modify the current scene
     Scene **current_scene;
     SceneInterface *current_scene_interface;
+
+    SDL_Window *window;
 } Resources;
 
 typedef void (*SceneInit)(Scene **scene_data, Resources *resources,

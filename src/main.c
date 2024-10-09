@@ -136,6 +136,7 @@ int main(int argc, char **argv)
         .raw_camera = &raw_camera,
         .current_scene = &scene_data,
         .current_scene_interface = &scene,
+        .window = window,
     };
 
     scene.init(&scene_data, &resources, NULL);
@@ -147,7 +148,6 @@ int main(int argc, char **argv)
     u64 accumulator = 0;
     const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;
 
-    bool fullscreen = false;
     while (!input_is_down(&input, Button_Quit) && !input.requested_quit)
     {
         SDL_Event event;
@@ -179,8 +179,8 @@ int main(int argc, char **argv)
 
         if (input_is_pressed(&input, Button_Fullscreen))
         {
-            fullscreen = !fullscreen;
-            SDL_SetWindowFullscreen(window, fullscreen);
+            settings.video.fullscreen = !settings.video.fullscreen;
+            SDL_SetWindowFullscreen(window, settings.video.fullscreen);
         }
 
         FMOD_Studio_System_Update(audio.system);
@@ -198,7 +198,7 @@ int main(int argc, char **argv)
         igRender();
         graphics_render(&graphics, &physics, raw_camera);
 
-        if (debug)
+        // if (debug)
         {
             u32 fps = 1.0 / input.delta_seconds;
             char title[256];
