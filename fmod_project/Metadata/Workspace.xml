@@ -29,7 +29,7 @@
 			<destination>{74373005-656f-40dc-a5bb-62023f6eabe3}</destination>
 		</relationship>
 		<relationship name="profilerSessionFolder">
-			<destination>{0e20400c-8b21-4333-9e4a-79d60787c3e1}</destination>
+			<destination>{33ffb0d4-e7d6-4533-98d0-00c5d6e6e0ee}</destination>
 		</relationship>
 		<relationship name="platforms">
 			<destination>{30da0d2a-808f-4f64-a0d6-78e6b3c5db4e}</destination>
