@@ -141,7 +141,8 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window)
             WGPUNativeFeature_SampledTextureAndStorageBufferArrayNonUniformIndexing,
         // any hardware that we target that supports the above should support
         // this, right???
-        (WGPUFeatureName)WGPUNativeFeature_PushConstants};
+        (WGPUFeatureName)WGPUNativeFeature_PushConstants,
+    };
 
     // this imposes an upper limit of 2048 textures per shader stage, which is a
     // LOT of wiggle room

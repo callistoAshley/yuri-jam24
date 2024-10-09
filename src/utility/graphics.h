@@ -10,3 +10,5 @@ void write_surface_to_texture(SDL_Surface *surface, WGPUTexture texture,
                               WGPUResources *wgpu);
 void write_surface_to_texture_at(u32 x, u32 y, SDL_Surface *surface,
                                  WGPUTexture texture, WGPUResources *wgpu);
+WGPUTexture blank_texture(u32 w, u32 h, WGPUTextureUsage usage,
+                          WGPUResources *wgpu);

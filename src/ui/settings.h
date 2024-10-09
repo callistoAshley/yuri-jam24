@@ -1,5 +1,6 @@
 #pragma once
 
+#include "SDL3/SDL_surface.h"
 #include "graphics/layer.h"
 #include "graphics/ui_sprite.h"
 #include "scenes/scene.h"
@@ -26,6 +27,12 @@ typedef struct
 
     FMOD_STUDIO_EVENTDESCRIPTION *hover_desc;
     FMOD_STUDIO_EVENTDESCRIPTION *click_desc;
+
+    UiSprite category;
+    LayerEntry category_entry;
+    SDL_Surface *category_surf;
+
+    f32 repeat_input_timer;
 
     bool open;
     bool is_closing;

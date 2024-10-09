@@ -70,3 +70,28 @@ void write_surface_to_texture_at(u32 x, u32 y, SDL_Surface *surface,
     if (converted != surface)
         SDL_DestroySurface(converted);
 }
+
+WGPUTexture blank_texture(u32 w, u32 h, WGPUTextureUsage usage,
+                          WGPUResources *wgpu)
+{
+    WGPUTextureFormat view_formats[] = {WGPUTextureFormat_RGBA8Unorm,
+                                        WGPUTextureFormat_RGBA8UnormSrgb};
+    WGPUTextureDescriptor descriptor = {
+        .size =
+            (WGPUExtent3D){
+                .width = w,
+                .height = h,
+                .depthOrArrayLayers = 1,
+            },
+        .mipLevelCount = 1,
+        .sampleCount = 1,
+        .dimension = WGPUTextureDimension_2D,
+        .format = WGPUTextureFormat_RGBA8UnormSrgb,
+        .usage = usage | WGPUTextureUsage_CopyDst,
+        .viewFormats = view_formats,
+        .viewFormatCount = 2,
+    };
+    WGPUTexture texture = wgpuDeviceCreateTexture(wgpu->device, &descriptor);
+
+    return texture;
+}
