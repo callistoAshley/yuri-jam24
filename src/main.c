@@ -160,16 +160,6 @@ int main(int argc, char **argv)
         input_start_frame(&input);
         accumulator += input.delta;
 
-        ImGui_ImplWGPU_NewFrame();
-        ImGui_ImplSDL3_NewFrame();
-        igNewFrame();
-
-        if (imgui_demo)
-            igShowDemoWindow(NULL);
-
-        if (debug)
-            debug_wnd_show(&dbg_wnd);
-
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
@@ -181,6 +171,19 @@ int main(int argc, char **argv)
                                 event.window.data2);
             }
         }
+
+        // we have to start the frame after we hand imgui all the events,
+        // otherwise imgui will lag 1 frame behind the game logic. this is
+        // especially important if the window is resized!
+        ImGui_ImplWGPU_NewFrame();
+        ImGui_ImplSDL3_NewFrame();
+        igNewFrame();
+
+        if (imgui_demo)
+            igShowDemoWindow(NULL);
+
+        if (debug)
+            debug_wnd_show(&dbg_wnd);
 
         if (input_is_pressed(&input, Button_Fullscreen))
         {
