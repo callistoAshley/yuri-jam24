@@ -1,4 +1,5 @@
 add_subdirectory(audio)
+add_subdirectory(characters)
 add_subdirectory(debug)
 add_subdirectory(events)
 add_subdirectory(fonts)

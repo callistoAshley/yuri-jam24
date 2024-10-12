@@ -6,7 +6,7 @@
 #include "ui/settings.h"
 #include "ui/textbox.h"
 
-typedef struct
+typedef struct MapScene
 {
     // because this struct starts with SceneType (and so does Scene) we can cast
     // between them
@@ -19,6 +19,7 @@ typedef struct
 
     vec colliders;
     vec renderables;
+    vec characters;
 
     SettingsMenu settings;
     Textbox textbox;

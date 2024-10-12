@@ -6,8 +6,15 @@
 #include "utility/common_defines.h"
 #include "utility/macros.h"
 #include "map_loader.h"
+#include "characters/character.h"
 
 #include <tmx.h>
+
+typedef struct
+{
+    CharacterInterface interface;
+    void *state;
+} MapCharacterEntry;
 
 static char *tiled_image_path_to_actual(char *path)
 {
@@ -28,6 +35,7 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
 
     vec_init(&map_scene->colliders, sizeof(b2BodyId));
     vec_init(&map_scene->renderables, sizeof(MapRenderable));
+    vec_init(&map_scene->characters, sizeof(MapCharacterEntry));
 
     FMOD_RESULT result;
     if (!resources->audio->current_bgm)
@@ -145,6 +153,12 @@ void map_scene_update(Scene *scene_data, Resources *resources)
             resources->raw_camera->y = bottom_edge;
     }
 
+    for (u32 i = 0; i < map_scene->characters.len; i++)
+    {
+        MapCharacterEntry *chara = vec_get(&map_scene->characters, i);        
+        chara->interface.update_fn(chara->state, resources, map_scene);
+    }
+
     textbox_update(&map_scene->textbox, resources);
 }
 
@@ -218,6 +232,13 @@ void map_scene_free(Scene *scene_data, Resources *resources)
         }
     }
     vec_free(&map_scene->renderables);
+
+    for (u32 i = 0; i < map_scene->characters.len; i++)
+    {
+        MapCharacterEntry *chara = vec_get(&map_scene->characters, i);        
+        chara->interface.free_fn(chara->state, resources, map_scene);
+    }
+    vec_free(&map_scene->characters);
 
     settings_menu_free(&map_scene->settings, resources);
 
