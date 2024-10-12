@@ -62,6 +62,7 @@ struct ShadowCasterContext
 {
     mat4s camera;
     vec2s light_position;
+    vec2s camera_position;
 };
 void shadowcaster_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 {
@@ -70,9 +71,11 @@ void shadowcaster_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 
     ShadowmapPushConstants constants = {
         .transform_index = caster->transform,
-        .offset = caster->offset,
         .camera = caster_context->camera,
         .light_position = caster_context->light_position,
+
+        .camera_position = caster_context->camera_position,
+        .radius = caster->radius,
     };
     CasterCell cell = caster->caster->cells[caster->cell];
 
@@ -446,7 +449,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
             struct ShadowCasterContext context = {
                 .camera = camera,
                 .light_position = position,
-            };
+                .camera_position = {.x = raw_camera.x, .y = raw_camera.y}};
 
             layer_draw(&graphics->shadowcasters, &context, render_pass);
         }

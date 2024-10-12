@@ -34,7 +34,7 @@ typedef struct
 {
     TransformEntry transform;
     CasterEntry *caster;
-    vec2s offset;
+    f32 radius;
     u32 cell;
 } ShadowCaster;
 

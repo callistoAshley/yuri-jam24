@@ -294,7 +294,7 @@ void handle_shadow_layer(tmx_layer *layer, Resources *resources,
     renderable.data.caster = malloc(sizeof(ShadowCaster));
     renderable.data.caster->transform = transform_entry;
     renderable.data.caster->caster = caster_entry;
-    renderable.data.caster->offset = (vec2s){.x = 0, .y = 0};
+    renderable.data.caster->radius = -1.0;
     renderable.data.caster->cell = 0;
 
     renderable.entry =

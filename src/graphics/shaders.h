@@ -112,8 +112,10 @@ typedef struct
 {
     mat4s camera;
     u32 transform_index;
-    alignas(8) vec2s offset;
-    vec2s light_position;
+    alignas(8) vec2s light_position;
+
+    vec2s camera_position;
+    f32 radius;
 } ShadowmapPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
