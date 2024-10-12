@@ -7,7 +7,11 @@ set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd
 set(CMAKE_BUILD_TYPE Debug) # force debug build for now
 
 # hack to tell cmake to prefer static libraries over shared ones
-SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
+if(WIN32)
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".lib" ".dll" ".so")
+else()
+  SET(CMAKE_FIND_LIBRARY_SUFFIXES ".a" ".so")
+endif()
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/cmake/")
 
@@ -86,6 +90,14 @@ target_link_libraries(
     accesskit
     tmx
 )
+
+if (WIN32)
+  target_link_libraries(
+    ${EXECUTABLE_NAME}
+    "C:/Windows/System32/d3dcompiler_47.dll"
+    "C:/Windows/System32/opengl32.dll"
+  )
+endif()
 
 if (CMAKE_BUILD_TYPE STREQUAL "Debug")
     # add the debug definition to the executable target
