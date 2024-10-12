@@ -314,12 +314,55 @@ void handle_image_layer(tmx_layer *layer, Resources *resources,
                              &resources->graphics->wgpu);
     free(actual_path);
 
-    Transform transform = transform_from_xyz(layer->offsetx, layer->offsety, 0);
+#define REPEAT_LAYER_DIM_LEN 100000
+#define REPEAT_LAYER_DIM_OFFSET (-REPEAT_LAYER_DIM_LEN / 2)
+
+    Rect rect;
+    Rect tex_coords;
+    i32 x;
+    i32 y;
+
+    if (layer->repeatx && layer->repeaty)
+    {
+        rect = rect_from_size(
+            (vec2s){.x = REPEAT_LAYER_DIM_LEN, .y = REPEAT_LAYER_DIM_LEN});
+        tex_coords = rect_from_size((vec2s){
+            .x = (f32)REPEAT_LAYER_DIM_LEN / image->width,
+            .y = (f32)REPEAT_LAYER_DIM_LEN / image->height,
+        });
+        x = REPEAT_LAYER_DIM_OFFSET - layer->offsetx;
+        y = REPEAT_LAYER_DIM_OFFSET - layer->offsety;
+    }
+    else if (layer->repeatx)
+    {
+        rect = rect_from_size(
+            (vec2s){.x = REPEAT_LAYER_DIM_LEN, .y = image->height});
+        tex_coords = rect_from_size(
+            (vec2s){.x = (f32)REPEAT_LAYER_DIM_LEN / image->width, .y = 1.0});
+        x = REPEAT_LAYER_DIM_OFFSET - layer->offsetx;
+        y = layer->offsety;
+    }
+    else if (layer->repeaty)
+    {
+        rect = rect_from_size(
+            (vec2s){.x = image->width, .y = REPEAT_LAYER_DIM_LEN});
+        tex_coords = rect_from_size(
+            (vec2s){.x = 1.0, .y = (f32)REPEAT_LAYER_DIM_LEN / image->height});
+        x = layer->offsetx;
+        y = REPEAT_LAYER_DIM_OFFSET - layer->offsety;
+    }
+    else
+    {
+        rect = rect_from_size((vec2s){.x = image->width, .y = image->height});
+        tex_coords = RECT_UNIT_TEX_COORDS;
+        x = layer->offsetx;
+        y = layer->offsety;
+    };
+
+    Transform transform = transform_from_xyz(x, y, 0);
     TransformEntry transform_entry = transform_manager_add(
         &resources->graphics->transform_manager, transform);
 
-    Rect rect = rect_from_size((vec2s){.x = image->width, .y = image->height});
-    Rect tex_coords = RECT_UNIT_TEX_COORDS;
     Quad quad = {.rect = rect, .tex_coords = tex_coords};
 
     QuadEntry quad_entry =

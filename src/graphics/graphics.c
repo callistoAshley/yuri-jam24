@@ -166,7 +166,15 @@ void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings)
         graphics->lit_view = wgpuTextureCreateView(graphics->lit, NULL);
     }
 
-    graphics->sampler = wgpuDeviceCreateSampler(graphics->wgpu.device, NULL);
+    WGPUSamplerDescriptor sampler_desc = {
+        .addressModeU = WGPUAddressMode_Repeat,
+        .addressModeV = WGPUAddressMode_Repeat,
+        .addressModeW = WGPUAddressMode_Repeat,
+        .label = "texture sampler",
+        .maxAnisotropy = 1,
+    };
+    graphics->sampler =
+        wgpuDeviceCreateSampler(graphics->wgpu.device, &sampler_desc);
 
     // screen quad
     {

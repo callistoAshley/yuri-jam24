@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="4" nextobjectid="4">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="4">
  <tileset firstgid="1" source="../tilesets/tileset_coolfuckingtileset.tsx"/>
+ <imagelayer id="4" name="Image Layer 1" repeatx="1" repeaty="1">
+  <image source="../textures/load_bearing_molly.png" width="32" height="32"/>
+ </imagelayer>
+ <imagelayer id="5" name="Image Layer 2" offsetx="-4.18182" offsety="95.0909" repeatx="1">
+  <image source="../textures/player.png" width="20" height="18"/>
+ </imagelayer>
  <layer id="1" name="Tile Layer 1" width="30" height="20">
   <data encoding="csv">
 0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,
