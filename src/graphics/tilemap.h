@@ -16,6 +16,8 @@ typedef struct
 {
     Tilemap *tilemap;
     int layer;
+
+    vec2s parallax_factor;
 } TilemapLayer;
 
 void tilemap_init(Tilemap *tilemap, Graphics *graphics, TextureEntry *tileset,

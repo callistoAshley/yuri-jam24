@@ -1,4 +1,5 @@
 #include "map_loader.h"
+#include "cglm/types-struct.h"
 #include "utility/log.h"
 
 #define COLLISION_CLASS "collision"
@@ -373,6 +374,9 @@ void handle_image_layer(tmx_layer *layer, Resources *resources,
     renderable.data.sprite.ptr = malloc(sizeof(Sprite));
     sprite_init(renderable.data.sprite.ptr, texture_entry, transform_entry,
                 quad_entry);
+    renderable.data.sprite.ptr->parallax_factor =
+        (vec2s){.x = layer->parallaxx, .y = layer->parallaxy};
+
     renderable.entry = layer_add(&resources->graphics->sprite_layers.background,
                                  renderable.data.sprite.ptr);
     renderable.data.sprite.layer = Layer_Back;
@@ -399,6 +403,8 @@ void handle_tile_layer(tmx_layer *layer, Resources *resources,
     renderable.data.tile.ptr = malloc(sizeof(TilemapLayer));
     renderable.data.tile.ptr->tilemap = load->tilemap;
     renderable.data.tile.ptr->layer = load->layers - 1;
+    renderable.data.tile.ptr->parallax_factor =
+        (vec2s){.x = layer->parallaxx, .y = layer->parallaxy};
 
     renderable.entry = layer_add(&resources->graphics->tilemap_layers.middle,
                                  renderable.data.tile.ptr);

@@ -7,6 +7,8 @@ typedef struct
     TextureEntry *texture;
     TransformEntry transform;
     QuadEntry quad;
+
+    vec2s parallax_factor;
 } Sprite;
 
 void sprite_init(Sprite *sprite, TextureEntry *texture,

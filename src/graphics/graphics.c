@@ -21,18 +21,54 @@
 QuadEntry screen_quad_index;
 QuadEntry graphics_screen_quad_entry(void) { return screen_quad_index; }
 
+struct DeferredContext
+{
+    mat4s camera;
+    mat4s camera_projection;
+    vec2s camera_position;
+};
+
 void tilemap_layer_draw(void *layer, void *context, WGPURenderPassEncoder pass)
 {
-
     TilemapLayer *tilemap_layer = layer;
-    tilemap_render(tilemap_layer->tilemap, *(mat4s *)context,
-                   tilemap_layer->layer, pass);
+    struct DeferredContext *def_context = context;
+
+    mat4s camera = def_context->camera;
+    if (tilemap_layer->parallax_factor.x != 1.0 ||
+        tilemap_layer->parallax_factor.y != 1.0)
+    {
+        vec2s camera_position = glms_vec2_mul(def_context->camera_position,
+                                              tilemap_layer->parallax_factor);
+        mat4s camera_transform = glms_look(
+            (vec3s){.x = camera_position.x, .y = camera_position.y, .z = 0.0},
+            (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+            (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
+        camera =
+            glms_mat4_mul(def_context->camera_projection, camera_transform);
+    }
+
+    tilemap_render(tilemap_layer->tilemap, camera, tilemap_layer->layer, pass);
 }
 
 void sprite_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 {
+    struct DeferredContext *def_context = context;
     Sprite *sprite = thing;
-    sprite_render(sprite, *(mat4s *)context, pass);
+
+    mat4s camera = def_context->camera;
+    if (sprite->parallax_factor.x != 1.0 || sprite->parallax_factor.y != 1.0)
+    {
+        vec2s camera_position = glms_vec2_mul(def_context->camera_position,
+                                              sprite->parallax_factor);
+        mat4s camera_transform = glms_look(
+            (vec3s){.x = camera_position.x, .y = camera_position.y, .z = 0.0},
+            (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
+            (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
+        camera =
+            glms_mat4_mul(def_context->camera_projection, camera_transform);
+    }
+
+    sprite_render(sprite, camera, pass);
 }
 
 void ui_sprite_draw(void *thing, void *context, WGPURenderPassEncoder pass)
@@ -347,6 +383,11 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
     mat4s camera = glms_mat4_mul(camera_projection, camera_transform);
 
+    struct DeferredContext def_context = {
+        .camera = camera,
+        .camera_position = (vec2s){.x = raw_camera.x, .y = raw_camera.y},
+        .camera_projection = camera_projection};
+
     u64 quad_buffer_size = wgpuBufferGetSize(graphics->quad_manager.buffer);
     {
         WGPURenderPassColorAttachment defferred_attachments[] = {{
@@ -368,7 +409,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                                          graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
-        layer_draw(&graphics->tilemap_layers.background, &camera, render_pass);
+        layer_draw(&graphics->tilemap_layers.background, &def_context,
+                   render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.sprite);
@@ -379,13 +421,14 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetIndexBuffer(render_pass,
                                             graphics->quad_manager.index_buffer,
                                             WGPUIndexFormat_Uint16, 0, 12);
-        layer_draw(&graphics->sprite_layers.background, &camera, render_pass);
+        layer_draw(&graphics->sprite_layers.background, &def_context,
+                   render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
-        layer_draw(&graphics->tilemap_layers.middle, &camera, render_pass);
+        layer_draw(&graphics->tilemap_layers.middle, &def_context, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.sprite);
@@ -396,13 +439,14 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetIndexBuffer(render_pass,
                                             graphics->quad_manager.index_buffer,
                                             WGPUIndexFormat_Uint16, 0, 12);
-        layer_draw(&graphics->sprite_layers.middle, &camera, render_pass);
+        layer_draw(&graphics->sprite_layers.middle, &def_context, render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.tilemap);
         wgpuRenderPassEncoderSetBindGroup(render_pass, 0, tilemap_bind_group, 0,
                                           NULL);
-        layer_draw(&graphics->tilemap_layers.foreground, &camera, render_pass);
+        layer_draw(&graphics->tilemap_layers.foreground, &def_context,
+                   render_pass);
 
         wgpuRenderPassEncoderSetPipeline(render_pass,
                                          graphics->shaders.defferred.sprite);
@@ -413,7 +457,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderSetIndexBuffer(render_pass,
                                             graphics->quad_manager.index_buffer,
                                             WGPUIndexFormat_Uint16, 0, 12);
-        layer_draw(&graphics->sprite_layers.foreground, &camera, render_pass);
+        layer_draw(&graphics->sprite_layers.foreground, &def_context,
+                   render_pass);
 
         wgpuRenderPassEncoderEnd(render_pass);
         wgpuRenderPassEncoderRelease(render_pass);

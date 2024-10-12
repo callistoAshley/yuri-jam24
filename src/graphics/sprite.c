@@ -8,6 +8,8 @@ void sprite_init(Sprite *sprite, TextureEntry *texture,
     sprite->texture = texture;
     sprite->transform = transform;
     sprite->quad = quad;
+
+    sprite->parallax_factor = (vec2s){.x = 1.0, .y = 1.0};
 }
 
 void sprite_free(Sprite *sprite, Graphics *graphics)
