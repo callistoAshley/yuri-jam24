@@ -12,9 +12,10 @@ var<storage> transforms: array<mat4x4f>;
 
 struct PushConstants {
   camera: mat4x4f,
-  transform_index: u32,
   light_position: vec2f,
+  transform_index: u32,
 
+  viewport_offset: vec2f,
   camera_position: vec2f,
   radius: f32
 }
@@ -47,7 +48,8 @@ fn fs_main(in: VertexOutput) -> FragmentOutput {
     var out: FragmentOutput;
 
     if push_constants.radius != -1.0 {
-        let distance = distance(in.position.xy, in.center_position);
+        let frag_position = in.position.xy - push_constants.viewport_offset;
+        let distance = distance(frag_position, in.center_position);
         out.color = vec4(1.0 - distance / push_constants.radius, 0.0, 0.0, 0.0);
     } else {
     // we're only outputting the red channel

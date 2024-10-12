@@ -1,6 +1,7 @@
 #pragma once
 
 #include <wgpu.h>
+#include "cglm/types-struct.h"
 #include "cglm/types.h"
 #include "utility/list.h"
 #include "webgpu.h"
@@ -111,9 +112,10 @@ typedef struct
 typedef struct
 {
     mat4s camera;
-    u32 transform_index;
     alignas(8) vec2s light_position;
+    u32 transform_index;
 
+    alignas(8) vec2s viewport_offset;
     vec2s camera_position;
     f32 radius;
 } ShadowmapPushConstants;
