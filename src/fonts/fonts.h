@@ -19,6 +19,7 @@ typedef struct
 typedef struct
 {
     FontCollection compaq;
+    FontCollection monogram;
 } Fonts;
 
 void fonts_init(Fonts *fonts);

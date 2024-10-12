@@ -18,6 +18,7 @@ void free_font_collection(FontCollection *collection)
 void fonts_init(Fonts *fonts)
 {
     init_font_collection(&fonts->compaq, "assets/fonts/Mx437_Compaq_Port3.ttf");
+    init_font_collection(&fonts->monogram, "assets/fonts/monogram.ttf");
 }
 
 void fonts_free(Fonts *fonts) { free_font_collection(&fonts->compaq); }

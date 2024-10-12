@@ -12,7 +12,7 @@ typedef enum
     Button_Down = 1 << 3,
 
     Button_Jump = 1 << 4,
-    Button_Crouch = 1 << 5,
+    Button_Cancel = 1 << 5,
     Button_Back = 1 << 6,
     Button_Quit = 1 << 7,
 

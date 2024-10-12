@@ -79,9 +79,9 @@ void input_process(SDL_Event *event, Input *input, Settings *settings)
         {
             TOGGLE_BUTTON_IF_DOWN(Button_Jump)
         }
-        if (key == settings->keybinds.crouch)
+        if (key == settings->keybinds.cancel)
         {
-            TOGGLE_BUTTON_IF_DOWN(Button_Crouch)
+            TOGGLE_BUTTON_IF_DOWN(Button_Cancel)
         }
         if (key == settings->keybinds.back)
         {

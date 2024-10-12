@@ -133,7 +133,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
         // we're on the ground
         player->fall_time = 0;
         player->jumping = false;
-        if (input_is_down(resources->input, Button_Up) && !disable_input)
+        if (input_is_down(resources->input, Button_Jump) && !disable_input)
         {
             player_jump(player);
         }
@@ -143,7 +143,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     {
         player->fall_time += resources->input->delta_seconds;
         if (player->fall_time < 0.3f &&
-            input_is_down(resources->input, Button_Up) && !disable_input)
+            input_is_down(resources->input, Button_Jump) && !disable_input)
         {
             // coyote jump
             player_jump(player);

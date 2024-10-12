@@ -20,8 +20,8 @@ void settings_load_from(Settings *settings, const char *path)
     settings->keybinds.right = SDLK_RIGHT;
     settings->keybinds.down = SDLK_DOWN;
 
-    settings->keybinds.jump = SDLK_SPACE;
-    settings->keybinds.crouch = SDLK_C;
+    settings->keybinds.jump = SDLK_Z;
+    settings->keybinds.cancel = SDLK_X;
 
     settings->keybinds.back = SDLK_ESCAPE;
     settings->keybinds.quit = SDLK_Q;
@@ -89,7 +89,7 @@ void settings_load_from(Settings *settings, const char *path)
                     SET_VALUE_FROM_PAIR(pair, settings->keybinds, down);
 
                     SET_VALUE_FROM_PAIR(pair, settings->keybinds, jump);
-                    SET_VALUE_FROM_PAIR(pair, settings->keybinds, crouch);
+                    SET_VALUE_FROM_PAIR(pair, settings->keybinds, cancel);
 
                     SET_VALUE_FROM_PAIR(pair, settings->keybinds, back);
                     SET_VALUE_FROM_PAIR(pair, settings->keybinds, quit);
@@ -130,7 +130,7 @@ void settings_save_to(Settings *settings, const char *path)
     fprintf(file, "right=%u\n", settings->keybinds.right);
     fprintf(file, "down=%u\n", settings->keybinds.down);
     fprintf(file, "jump=%u\n", settings->keybinds.jump);
-    fprintf(file, "crouch=%u\n", settings->keybinds.crouch);
+    fprintf(file, "cancel=%u\n", settings->keybinds.cancel);
     fprintf(file, "back=%u\n", settings->keybinds.back);
     fprintf(file, "quit=%u\n", settings->keybinds.quit);
 

@@ -90,6 +90,7 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     player_init(&map_scene->player, player_position, resources);
 
     settings_menu_init(&map_scene->settings, resources);
+    textbox_init(&map_scene->textbox, resources);
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)
@@ -143,6 +144,8 @@ void map_scene_update(Scene *scene_data, Resources *resources)
         else if (resources->raw_camera->y > bottom_edge)
             resources->raw_camera->y = bottom_edge;
     }
+
+    textbox_update(&map_scene->textbox, resources);
 }
 
 void map_scene_free(Scene *scene_data, Resources *resources)

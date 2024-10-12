@@ -4,6 +4,7 @@
 #include "scene.h"
 #include "player.h"
 #include "ui/settings.h"
+#include "ui/textbox.h"
 
 typedef struct
 {
@@ -20,6 +21,7 @@ typedef struct
     vec renderables;
 
     SettingsMenu settings;
+    Textbox textbox;
 } MapScene;
 
 // NOTE: MUST BE PASSED TO scene_change!!!!!!
