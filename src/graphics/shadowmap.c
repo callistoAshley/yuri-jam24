@@ -32,7 +32,7 @@ void shadowmap_free(ShadowMap *shadowmap)
     wgpuTextureRelease(shadowmap->texture);
 }
 
-ShadowMapEntry shadowmap_add(ShadowMap *shadowmap, vec2s position)
+ShadowMapEntry shadowmap_add(ShadowMap *shadowmap, vec2s position, f32 radius)
 {
     ShadowMapEntry entry = shadowmap->next;
 
@@ -41,15 +41,19 @@ ShadowMapEntry shadowmap_add(ShadowMap *shadowmap, vec2s position)
 
     if (shadowmap->next == shadowmap->filled_to)
     {
-        shadowmap->entries[entry].position = position;
+        ShadowMapEntryData *data = &shadowmap->entries[entry];
+        data->inner.position = position;
+        data->inner.radius = radius;
+
         shadowmap->filled_to++;
         shadowmap->next++;
     }
     else
     {
-        ShadowMapEntryData *entry_data = &shadowmap->entries[shadowmap->next];
-        entry_data->position = position;
-        shadowmap->next = entry_data->next.entry;
+        ShadowMapEntryData *data = &shadowmap->entries[shadowmap->next];
+        data->inner.position = position;
+        data->inner.radius = radius;
+        shadowmap->next = data->next.entry;
     }
 
     return entry;
@@ -69,7 +73,7 @@ void shadowmap_iter_init(ShadowMap *shadowmap, ShadowMapIter *iter)
     iter->current_entry = 0;
 }
 
-bool shadowmap_iter_next(ShadowMapIter *iter, vec2s *position)
+bool shadowmap_iter_next(ShadowMapIter *iter, vec2s *position, f32 *radius)
 {
     ShadowMap *shadowmap = iter->shadowmap;
     while (iter->current_entry < shadowmap->filled_to)
@@ -78,7 +82,9 @@ bool shadowmap_iter_next(ShadowMapIter *iter, vec2s *position)
         iter->current_entry++;
         if (data->next.is_free != SHADOWMAP_ENTRY_FREE)
         {
-            *position = data->position;
+            *position = data->inner.position;
+            *radius = data->inner.radius;
+
             return true;
         }
     }

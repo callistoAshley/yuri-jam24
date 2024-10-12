@@ -190,7 +190,7 @@ static char *text_of_vsync_mode(WGPUPresentMode mode)
     case WGPUPresentMode_Mailbox:
         return "Mailbox";
     // this should NEVER happen
-    case WGPUPresentMode_Force32:
+    default:
         return "oops";
     }
 }

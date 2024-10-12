@@ -12,6 +12,7 @@
 #include "imgui_wgpu.h"
 #include "input/input.h"
 #include "physics/debug_draw.h"
+#include "utility/common_defines.h"
 #include "utility/log.h"
 #include "utility/macros.h"
 #include "webgpu.h"
@@ -493,7 +494,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         shadowmap_iter_init(&graphics->shadowmap, &iter);
 
         vec2s position;
-        while (shadowmap_iter_next(&iter, &position))
+        f32 radius;
+        while (shadowmap_iter_next(&iter, &position, &radius))
         {
             vec2s tex_position =
                 SHADOWMAP_ENTRY_POS_OFFSET(iter.current_entry - 1);
@@ -506,6 +508,34 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                 .light_position = position,
                 .camera_position = {.x = raw_camera.x, .y = raw_camera.y},
                 .viewport_offset = tex_position};
+
+            if (radius != -1)
+            {
+                Rect screen_rect = rect_from_size((vec2s){
+                    .x = INTERNAL_SCREEN_WIDTH, .y = INTERNAL_SCREEN_HEIGHT});
+
+                Rect light_rect = rect_from_center_radius(
+                    glms_vec2_sub(position, context.camera_position),
+                    VEC2_SPLAT(radius));
+
+                Rect clipped_rect = rect_clip(screen_rect, light_rect);
+                if (rect_width(clipped_rect) == 0 ||
+                    rect_height(clipped_rect) == 0)
+                    continue;
+
+                vec2s actual_pos =
+                    glms_vec2_add(clipped_rect.min, tex_position);
+
+                wgpuRenderPassEncoderSetScissorRect(
+                    render_pass, actual_pos.x, actual_pos.y,
+                    rect_width(clipped_rect), rect_height(clipped_rect));
+            }
+            else
+            {
+                wgpuRenderPassEncoderSetScissorRect(
+                    render_pass, tex_position.x, tex_position.y,
+                    INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT);
+            }
 
             layer_draw(&graphics->shadowcasters, &context, render_pass);
         }

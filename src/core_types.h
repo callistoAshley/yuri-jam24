@@ -53,6 +53,7 @@ typedef struct
 Rect rect_init(vec2s min, vec2s max);
 Rect rect_from_min_size(vec2s min, vec2s size);
 Rect rect_from_size(vec2s size);
+Rect rect_from_center_radius(vec2s center, vec2s radius);
 
 #define RECT_UNIT_TEX_COORDS rect_from_size((vec2s){.x = 1, .y = 1})
 
@@ -74,6 +75,12 @@ vec2s rect_bottom_left(Rect rect);
 vec2s rect_bottom_right(Rect rect);
 
 bool rect_contains(Rect rect, vec2s point);
+bool rect_contains_other(Rect rect, Rect other);
+
+vec2s rect_clamp(Rect rect, vec2s point);
+Rect rect_clip(Rect rect, Rect other);
+
+f32 fclamp(f32 val, f32 min, f32 max);
 
 typedef struct
 {

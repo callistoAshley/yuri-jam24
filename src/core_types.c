@@ -1,5 +1,6 @@
 #include "core_types.h"
 #include "cglm/types-struct.h"
+#include "utility/common_defines.h"
 
 Transform transform_from_xyz(float x, float y, float z)
 {
@@ -149,6 +150,12 @@ Rect rect_from_size(vec2s size)
     return rect_from_min_size(GLMS_VEC2_ZERO, size);
 }
 
+Rect rect_from_center_radius(vec2s center, vec2s size)
+{
+    return rect_from_min_size(glms_vec2_sub(center, size),
+                              glms_vec2_mul(size, VEC2_SPLAT(2.0)));
+}
+
 // ----
 
 float rect_area(Rect rect)
@@ -192,6 +199,32 @@ bool rect_contains(Rect rect, vec2s point)
            point.y >= rect.min.y && point.y <= rect.max.y;
 }
 
+bool rect_contains_other(Rect rect, Rect other)
+{
+    return rect_contains(rect, other.min) || rect_contains(rect, other.max);
+}
+
+vec2s rect_clamp(Rect rect, vec2s point)
+{
+    return (vec2s){.x = fclamp(point.x, rect.min.x, rect.max.x),
+                   .y = fclamp(point.y, rect.min.y, rect.max.y)};
+}
+
+Rect rect_clip(Rect rect, Rect other)
+{
+    return (Rect){.min = rect_clamp(rect, other.min),
+                  .max = rect_clamp(rect, other.max)};
+}
+
+f32 fclamp(f32 val, f32 min, f32 max)
+{
+    if (val < min)
+        return min;
+    if (val > max)
+        return max;
+    return val;
+}
+
 // ----
 
 Quad quad_init(Rect rect, Rect tex_coords)
@@ -233,7 +266,7 @@ void quad_into_corners(Quad quad, Vertex corners[4])
     };
 }
 
-Quad quad_from_corners(Vertex *vertices)
+Quad quad_from_corners(Vertex vertices[CORNERS_PER_QUAD])
 {
     Rect rect = rect_init(vertices[0].position, vertices[5].position);
     Rect tex_coords = rect_init(vertices[0].tex_coords, vertices[5].tex_coords);

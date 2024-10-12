@@ -16,7 +16,11 @@ typedef u32 ShadowMapEntry;
 
 typedef union
 {
-    vec2s position;
+    struct
+    {
+        vec2s position;
+        f32 radius;
+    } inner;
     struct
     {
         u32 is_free;
@@ -46,8 +50,9 @@ typedef struct
 void shadowmap_init(ShadowMap *shadowmap, WGPUResources *wgpu);
 void shadowmap_free(ShadowMap *shadowmap);
 
-ShadowMapEntry shadowmap_add(ShadowMap *shadowmap, vec2s position);
+// radius is used for clipping, -1 = do not clip
+ShadowMapEntry shadowmap_add(ShadowMap *shadowmap, vec2s position, f32 radius);
 void shadowmap_remove(ShadowMap *shadowmap, ShadowMapEntry entry);
 
 void shadowmap_iter_init(ShadowMap *shadowmap, ShadowMapIter *iter);
-bool shadowmap_iter_next(ShadowMapIter *iter, vec2s *position);
+bool shadowmap_iter_next(ShadowMapIter *iter, vec2s *position, f32 *radius);
