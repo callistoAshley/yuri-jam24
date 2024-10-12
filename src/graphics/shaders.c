@@ -182,6 +182,7 @@ void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
     WGPUColorTargetState shadowmap_targets[] = {(WGPUColorTargetState){
         .format = WGPUTextureFormat_R8Unorm,
         .writeMask = WGPUColorWriteMask_All,
+        .blend = &additive_blend,
     }};
 
     WGPUPushConstantRange sprite_constants[] =
