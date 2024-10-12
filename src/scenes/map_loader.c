@@ -181,8 +181,8 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
 
             if (renderable.data.light->casts_shadows)
             {
-                renderable.data.light->shadowmap_entry =
-                    shadowmap_add(&resources->graphics->shadowmap, position);
+                renderable.data.light->shadowmap_entry = shadowmap_add(
+                    &resources->graphics->shadowmap, position, radius);
             }
 
             break;
@@ -200,12 +200,13 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
 
             if (renderable.data.light->casts_shadows)
             {
-                vec2s really_far = (vec2s){.x = 1000000, .y = 1000000};
+                vec2s really_far =
+                    (vec2s){.x = pow(10.0, 15), .y = pow(10.0, 15)};
                 vec2s position = glms_vec2_rotate(really_far, angle);
                 position.y = -position.y;
 
-                renderable.data.light->shadowmap_entry =
-                    shadowmap_add(&resources->graphics->shadowmap, position);
+                renderable.data.light->shadowmap_entry = shadowmap_add(
+                    &resources->graphics->shadowmap, position, -1);
             }
 
             break;
