@@ -1,5 +1,7 @@
 #include "map_loader.h"
 #include "cglm/types-struct.h"
+#include "graphics/graphics.h"
+#include "scenes/scene.h"
 #include "utility/log.h"
 
 #define COLLISION_CLASS "collision"
@@ -12,6 +14,31 @@ static char *tiled_image_path_to_actual(char *path)
     strcpy(new_path, prefix);
     strcat(new_path, path);
     return new_path;
+}
+
+static void layer_for(i32 layer, StandardLayers *layers, Layer **target,
+                      MapLayer *target_layer)
+{
+    switch (layer)
+    {
+    case 1:
+        *target = &layers->background;
+        *target_layer = Layer_Back;
+        break;
+    case 2:
+        *target = &layers->middle;
+        *target_layer = Layer_Middle;
+        break;
+    case 3:
+        *target = &layers->foreground;
+        *target_layer = Layer_Front;
+        break;
+    default:
+        log_warn("unrecognized layer %d", layer);
+        *target = &layers->background;
+        *target_layer = Layer_Back;
+        break;
+    }
 }
 
 void handle_collision_layer(tmx_layer *layer, Resources *resources,
@@ -377,9 +404,17 @@ void handle_image_layer(tmx_layer *layer, Resources *resources,
     renderable.data.sprite.ptr->parallax_factor =
         (vec2s){.x = layer->parallaxx, .y = layer->parallaxy};
 
-    renderable.entry = layer_add(&resources->graphics->sprite_layers.background,
-                                 renderable.data.sprite.ptr);
-    renderable.data.sprite.layer = Layer_Back;
+    Layer *target = &resources->graphics->sprite_layers.middle;
+    MapLayer target_enum = Layer_Middle;
+    tmx_property *prop = tmx_get_property(layer->properties, "layer");
+    if (prop)
+    {
+        layer_for(prop->value.integer, &resources->graphics->sprite_layers,
+                  &target, &target_enum);
+    }
+
+    renderable.entry = layer_add(target, renderable.data.sprite.ptr);
+    renderable.data.sprite.layer = target_enum;
 
     vec_push(load->renderables, &renderable);
 }
@@ -406,9 +441,17 @@ void handle_tile_layer(tmx_layer *layer, Resources *resources,
     renderable.data.tile.ptr->parallax_factor =
         (vec2s){.x = layer->parallaxx, .y = layer->parallaxy};
 
-    renderable.entry = layer_add(&resources->graphics->tilemap_layers.middle,
-                                 renderable.data.tile.ptr);
-    renderable.data.tile.layer = Layer_Middle;
+    Layer *target = &resources->graphics->tilemap_layers.middle;
+    MapLayer target_enum = Layer_Middle;
+    tmx_property *prop = tmx_get_property(layer->properties, "layer");
+    if (prop)
+    {
+        layer_for(prop->value.integer, &resources->graphics->tilemap_layers,
+                  &target, &target_enum);
+    }
+
+    renderable.entry = layer_add(target, renderable.data.tile.ptr);
+    renderable.data.tile.layer = target_enum;
 
     vec_push(load->renderables, &renderable);
 }
