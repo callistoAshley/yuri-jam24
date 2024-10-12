@@ -3,6 +3,7 @@
 #include "input/input.h"
 #include "player.h"
 #include "ui/settings.h"
+#include "ui/textbox.h"
 #include "utility/common_defines.h"
 #include "utility/macros.h"
 #include "map_loader.h"
@@ -220,6 +221,8 @@ void map_scene_free(Scene *scene_data, Resources *resources)
     vec_free(&map_scene->renderables);
 
     settings_menu_free(&map_scene->settings, resources);
+
+    textbox_free(&map_scene->textbox, resources);
 
     // hack to clear shadow casters, under the assumption that they'll all get
     // loaded again

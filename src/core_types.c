@@ -266,7 +266,7 @@ void quad_into_corners(Quad quad, Vertex corners[4])
     };
 }
 
-Quad quad_from_corners(Vertex *vertices)
+Quad quad_from_corners(Vertex vertices[CORNERS_PER_QUAD])
 {
     Rect rect = rect_init(vertices[0].position, vertices[5].position);
     Rect tex_coords = rect_init(vertices[0].tex_coords, vertices[5].tex_coords);
