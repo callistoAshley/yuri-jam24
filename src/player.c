@@ -30,7 +30,7 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
         &resources->graphics->transform_manager, player->transform);
 
     // player is 10x18px
-    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 10, .y = 18});
+    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = PLAYER_W, .y = PLAYER_H});
     Rect tex_coords =
         rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 0.5, .y = 1.0});
     player->quad = (Quad){rect, tex_coords};

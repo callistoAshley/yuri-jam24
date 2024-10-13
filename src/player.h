@@ -4,7 +4,8 @@
 #include "graphics/sprite.h"
 #include "scenes/scene.h"
 
-// general player state should be kept here, like inventory and puzzle flags
+#define PLAYER_W 10
+#define PLAYER_H 18
 
 typedef struct
 {

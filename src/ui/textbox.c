@@ -166,5 +166,5 @@ void textbox_display_text(Textbox *textbox, Resources *resources, char *text)
                                  "textbox_text_sprite"),
         transform_entry, quad_entry, 1.0f);
     textbox->text_sprite_entry = layer_add(
-        &resources->graphics->ui_layers.foreground, &textbox->sprite_entry);
+        &resources->graphics->ui_layers.foreground, &textbox->text_sprite);
 }
