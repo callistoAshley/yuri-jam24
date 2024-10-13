@@ -15,7 +15,7 @@ typedef struct
 {
     CharacterInterface interface;
     void *state;
-} MapCharacterEntry;
+} MapCharacterEntry; // FIXME: give this a better name
 
 static char *tiled_image_path_to_actual(char *path)
 {
@@ -64,6 +64,9 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     PTR_ERRCHK(map->ts_head->tileset->image,
                "Tileset does not have an image source");
 
+    vec load_characters;
+    vec_init(&load_characters, sizeof(MapCharacterObj));
+
     b2Vec2 player_position = {0, 0};
     MapLoadArgs load = {
         .tiles = NULL,
@@ -73,6 +76,7 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
         .player_position = &player_position,
         .colliders = &map_scene->colliders,
         .renderables = &map_scene->renderables,
+        .characters = &load_characters,
         .tilemap = &map_scene->tilemap,
     };
     handle_map_layers(map->ly_head, resources, &load);
@@ -94,12 +98,27 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
 
     free(load.tiles);
 
-    tmx_map_free(map);
-
     player_init(&map_scene->player, player_position, resources);
 
     settings_menu_init(&map_scene->settings, resources);
     textbox_init(&map_scene->textbox, resources);
+    
+    for (usize i = 0; i < load_characters.len; i++)
+    {
+        MapCharacterObj *obj = vec_get(&load_characters, i);
+        void *state;
+        obj->interface.init_fn(&state, resources, map_scene, obj->rect, &obj->properties, NULL);
+
+        MapCharacterEntry *entry = malloc(sizeof(MapCharacterEntry));
+        entry->interface = obj->interface;
+        entry->state = state;
+        vec_push(&map_scene->characters, entry);
+
+        hashmap_free(&obj->properties);
+    }
+
+    vec_free(&load_characters);
+    tmx_map_free(map);
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)

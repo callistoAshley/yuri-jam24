@@ -52,9 +52,14 @@ void basic_char_update(void *self, Resources *resources, MapScene *map_scene)
 
 void basic_char_free(void *self, Resources *resources, MapScene *map_scene)
 {
-    free(self);
-    (void)resources;
     (void)map_scene;
+    BasicCharState *state = self;
+    if (state->texture)
+    {
+        sprite_free(&state->sprite, resources->graphics);
+        layer_remove(&resources->graphics->sprite_layers.middle, state->layer_entry);
+    }
+    free(state);
 }
 
 const CharacterInterface BASIC_CHARACTER_INTERFACE = 

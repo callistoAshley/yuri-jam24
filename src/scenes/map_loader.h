@@ -1,5 +1,6 @@
 #pragma once
 
+#include "characters/character.h"
 #include "graphics/caster_manager.h"
 #include "graphics/layer.h"
 #include "graphics/tilemap.h"
@@ -20,6 +21,7 @@ typedef struct
 
     vec *colliders;
     vec *renderables;
+    vec *characters;
 } MapLoadArgs;
 
 typedef enum
@@ -59,6 +61,13 @@ typedef struct
 
     LayerEntry entry;
 } MapRenderable;
+
+typedef struct
+{
+    Rect rect;
+    HashMap properties;
+    CharacterInterface interface;
+} MapCharacterObj; // FIXME: give this a better name
 
 void handle_map_layers(tmx_layer *head, Resources *resources,
                        MapLoadArgs *map_data);

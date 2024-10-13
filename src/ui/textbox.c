@@ -12,6 +12,10 @@
 void textbox_init(Textbox *textbox, Resources *resources)
 {
     memset(textbox->text, 0, sizeof(textbox->text));
+    textbox->text_idx = 0;
+    textbox->text_type_time = 0.0f;
+    textbox->typing = false;
+    textbox->waiting_for_input = false;
 
     {
         TextureEntry *texture = texture_manager_load(
@@ -44,6 +48,7 @@ void textbox_init(Textbox *textbox, Resources *resources)
 void textbox_free(Textbox *textbox, Resources *resources)
 {
     ui_sprite_free(&textbox->sprite, resources->graphics);
+    layer_remove(&resources->graphics->ui_layers.middle, textbox->sprite_entry);
 }
 
 static void update_text(Textbox *textbox, Resources *resources)
@@ -161,5 +166,5 @@ void textbox_display_text(Textbox *textbox, Resources *resources, char *text)
                                  "textbox_text_sprite"),
         transform_entry, quad_entry, 1.0f);
     textbox->text_sprite_entry = layer_add(
-        &resources->graphics->ui_layers.foreground, &textbox->text_sprite);
+        &resources->graphics->ui_layers.foreground, &textbox->sprite_entry);
 }

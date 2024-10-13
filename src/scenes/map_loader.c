@@ -3,9 +3,12 @@
 #include "graphics/graphics.h"
 #include "scenes/scene.h"
 #include "utility/log.h"
+#include "characters/basic.h"
 
 #define COLLISION_CLASS "collision"
 #define LIGHTS_CLASS "lights"
+#define SHADOWS_CLASS "shadows"
+#define CHARACTERS_CLASS "characters"
 
 static char *tiled_image_path_to_actual(char *path)
 {
@@ -72,9 +75,7 @@ void handle_collision_layer(tmx_layer *layer, Resources *resources,
             groundBodyDef.position =
                 (b2Vec2){(current->x + current->width / 2) / PX_PER_M,
                          -(current->y + current->height / 2) / PX_PER_M};
-
-            b2BodyId groundId =
-                b2CreateBody(resources->physics->world, &groundBodyDef);
+b2BodyId groundId = b2CreateBody(resources->physics->world, &groundBodyDef);
 
             b2Vec2 *points =
                 malloc(sizeof(b2Vec2) * current->content.shape->points_len);
@@ -457,6 +458,33 @@ void handle_tile_layer(tmx_layer *layer, Resources *resources,
     vec_push(load->renderables, &renderable);
 }
 
+static void prop_foreach_func(tmx_property *prop, void *ud)
+{
+    if (prop->type != PT_STRING) return;
+    hashmap_insert(ud, prop->name, prop->value.string);
+}
+
+void handle_character_layer(tmx_layer *layer, Resources *resources, MapLoadArgs *load)
+{
+    tmx_object *current = layer->content.objgr->head;
+    while (current)
+    {
+        // TODO: for now, all characters will use the 'basic' interface
+        // once the character list is added, use current->type to get the interface name
+        // also, remember to free this or i will cry
+        MapCharacterObj obj;
+        obj.rect = rect_from_min_size((vec2s){.x = current->x, .y = current->y}, (vec2s){.x = current->width, .y = current->height});
+        obj.interface = BASIC_CHARACTER_INTERFACE;
+
+        hashmap_init(&obj.properties, fnv_cstr_hash_function, strlen_eq_function, 256, 256);
+        tmx_property_foreach(current->properties, prop_foreach_func, &obj.properties);
+
+        vec_push(load->characters, &obj);
+
+        current = current->next;
+    }
+}
+
 void handle_map_layers(tmx_layer *head, Resources *resources, MapLoadArgs *load)
 {
     tmx_layer *current = head;
@@ -476,9 +504,13 @@ void handle_map_layers(tmx_layer *head, Resources *resources, MapLoadArgs *load)
             {
                 handle_light_layer(current, resources, load);
             }
-            else if (!strcmp(current->class_type, "shadows"))
+            else if (!strcmp(current->class_type, SHADOWS_CLASS))
             {
                 handle_shadow_layer(current, resources, load);
+            }
+            else if (!strcmp(current->class_type, CHARACTERS_CLASS))
+            {
+                handle_character_layer(current, resources, load);
             }
             else
             {
