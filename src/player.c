@@ -3,6 +3,7 @@
 #include "box2d/collision.h"
 #include "cglm/struct/vec2.h"
 #include "core_types.h"
+#include "fmod_studio.h"
 #include "graphics/caster_manager.h"
 #include "physics/physics.h"
 #include "scenes/scene.h"
@@ -30,7 +31,8 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
         &resources->graphics->transform_manager, player->transform);
 
     // player is 10x18px
-    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = PLAYER_W, .y = PLAYER_H});
+    Rect rect = rect_from_min_size(GLMS_VEC2_ZERO,
+                                   (vec2s){.x = PLAYER_W, .y = PLAYER_H});
     Rect tex_coords =
         rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 0.5, .y = 1.0});
     player->quad = (Quad){rect, tex_coords};
@@ -128,6 +130,37 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     if (player->jump_timeout > 0)
         player->jump_timeout -= resources->input->delta_seconds;
 
+    b2Vec2 body_position = b2Body_GetPosition(player->body_id);
+
+    if (player->fall_time <= 0.01 && player->foot_contact_count == 0)
+    {
+        player->falling_from = body_position;
+    }
+
+    if (player->fall_time > 0.10 && player->foot_contact_count > 0)
+    {
+        f32 fall_distance =
+            (player->falling_from.y - body_position.y) * PX_PER_M;
+        if (fall_distance > 40.0)
+        {
+            FMOD_STUDIO_EVENTDESCRIPTION *desc;
+            FMOD_Studio_System_GetEvent(resources->audio->system,
+                                        "event:/sfx/player_land", &desc);
+
+            FMOD_STUDIO_EVENTINSTANCE *inst;
+            FMOD_Studio_EventDescription_CreateInstance(desc, &inst);
+            FMOD_Studio_EventInstance_SetParameterByName(inst, "fall_distance",
+                                                         fall_distance, false);
+            FMOD_Studio_EventInstance_Start(inst);
+            FMOD_Studio_EventInstance_Release(inst);
+        }
+    }
+
+    if (player->foot_contact_count == 0)
+    {
+        player->fall_time += resources->input->delta_seconds;
+    }
+
     if (player->foot_contact_count > 0 && player->jump_timeout <= 0)
     {
         // we're on the ground
@@ -141,7 +174,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     else if (!player->foot_contact_count && player->jump_timeout <= 0 &&
              !player->jumping)
     {
-        player->fall_time += resources->input->delta_seconds;
+
         if (player->fall_time < 0.3f &&
             input_is_down(resources->input, Button_Jump) && !disable_input)
         {
@@ -150,7 +183,6 @@ void player_update(Player *player, Resources *resources, bool disable_input)
         }
     }
 
-    b2Vec2 body_position = b2Body_GetPosition(player->body_id);
     // box2d has a different coordinate system than us
     // +y is up for box2d, down for us
     // so we need to negate the y component

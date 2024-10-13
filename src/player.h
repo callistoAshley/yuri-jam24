@@ -31,6 +31,8 @@ typedef struct
     f32 fall_time;
     bool jumping;
 
+    b2Vec2 falling_from;
+
     enum
     {
         Facing_Left,

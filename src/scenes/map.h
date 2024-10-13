@@ -21,6 +21,9 @@ typedef struct MapScene
     vec renderables;
     vec characters;
 
+    char *current_map;
+    bool should_free_current_map;
+
     SettingsMenu settings;
     Textbox textbox;
 } MapScene;
@@ -29,6 +32,7 @@ typedef struct MapScene
 typedef struct
 {
     char *map_path;
+    bool copy_map_path;
 } MapInitArgs;
 
 void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args);

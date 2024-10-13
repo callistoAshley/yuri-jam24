@@ -13,12 +13,13 @@ void debug_wnd_show(DebugWindowState *state)
             igCheckbox("Freecam", &map->freecam);
         }
         igSeparator();
-        igInputText("New Map", state->new_map, sizeof(state->new_map), 0, NULL, NULL);
+        igInputText("New Map", state->new_map, sizeof(state->new_map), 0, NULL,
+                    NULL);
         if (igSmallButton("Change Map"))
         {
             char path[512];
             snprintf(path, 512, "assets/maps/%s.tmx", state->new_map);
-            MapInitArgs args = {.map_path = path};
+            MapInitArgs args = {.map_path = path, .copy_map_path = true};
             scene_change(MAP_SCENE, state->resources, &args);
         }
     }

@@ -95,6 +95,10 @@ void input_process(SDL_Event *event, Input *input, Settings *settings)
         {
             TOGGLE_BUTTON_IF_DOWN(Button_Fullscreen)
         }
+        if (key == SDLK_F5)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Refresh)
+        }
     }
     break;
     default:

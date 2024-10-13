@@ -175,6 +175,20 @@ void physics_debug_draw_init(Box2DDebugCtx *ctx, Graphics *graphics,
     ctx->raw_camera = raw_camera;
 }
 
+void draw_solid_capsule(b2Vec2 c1, b2Vec2 c2, float rad, b2HexColor color,
+                        void *ctx)
+{
+    draw_circle(c1, rad, color, ctx);
+    draw_circle(c2, rad, color, ctx);
+
+    // TODO do this less shit
+}
+
+void draw_capsule(b2Vec2 c1, b2Vec2 c2, float rad, b2HexColor color, void *ctx)
+{
+    draw_solid_capsule(c1, c2, rad, color, ctx);
+}
+
 void physics_debug_draw(Box2DDebugCtx *ctx, Physics *physics,
                         WGPURenderPassEncoder pass)
 {
@@ -185,6 +199,8 @@ void physics_debug_draw(Box2DDebugCtx *ctx, Physics *physics,
                               .DrawSolidCircle = draw_solid_circle,
                               .DrawPolygon = draw_polygon,
                               .DrawSolidPolygon = draw_solid_polygon,
+                              .DrawSolidCapsule = draw_solid_capsule,
+                              .DrawCapsule = draw_capsule,
                               .drawShapes = true,
                               .drawContacts = true};
 

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="AudioFile" id="{a3a27fdf-e0b9-4cd7-9263-60965bde2a75}">
+		<property name="assetPath">
+			<value>sfx/fall_thuds/medium/1.mp3</value>
+		</property>
+		<property name="frequencyInKHz">
+			<value>44.0999985</value>
+		</property>
+		<property name="channelCount">
+			<value>2</value>
+		</property>
+		<property name="length">
+			<value>0.47020408163265304</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{31065946-1514-46ed-91b6-e08b20c50b22}</destination>
+		</relationship>
+	</object>
+</objects>

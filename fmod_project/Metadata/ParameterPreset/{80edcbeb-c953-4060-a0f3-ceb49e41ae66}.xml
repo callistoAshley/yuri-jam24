@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="ParameterPreset" id="{80edcbeb-c953-4060-a0f3-ceb49e41ae66}">
+		<property name="name">
+			<value>fall_distance</value>
+		</property>
+		<relationship name="folder">
+			<destination>{7d4b4e75-2b93-462c-97e8-33158114d103}</destination>
+		</relationship>
+		<relationship name="parameter">
+			<destination>{22c75294-dde2-4c42-9ccc-4db00ce3c8dd}</destination>
+		</relationship>
+	</object>
+	<object class="GameParameter" id="{22c75294-dde2-4c42-9ccc-4db00ce3c8dd}">
+		<property name="maximum">
+			<value>200</value>
+		</property>
+		<property name="initialValue">
+			<value>0</value>
+		</property>
+	</object>
+</objects>

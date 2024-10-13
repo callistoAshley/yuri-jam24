@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="10" height="30" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="7">
+ <tileset firstgid="1" source="../tilesets/tileset_coolfuckingtileset.tsx"/>
+ <layer id="2" name="Tile Layer 1" width="10" height="30">
+  <data encoding="csv">
+17,18,19,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,17,18,19,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,17,18,19,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,17,18,19,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1,
+1,1,1,1,1,1,1,1,1,1
+</data>
+ </layer>
+ <objectgroup id="3" name="collision" class="collision">
+  <object id="1" x="0.206398" y="-0.412797" width="23.7936" height="8.4128"/>
+  <object id="2" x="15.8927" y="40.0413" width="24.1073" height="7.95872"/>
+  <object id="3" x="24.1486" y="95.7688" width="23.8514" height="8.23117"/>
+  <object id="4" x="39.4221" y="159.546" width="24.5779" height="8.45408"/>
+  <object id="5" name="spawnpoint" type="spawnpoint" x="11.9711" y="-1.44479">
+   <point/>
+  </object>
+ </objectgroup>
+ <objectgroup id="4" name="lights" class="lights">
+  <object id="6" x="-22.9102" y="13.2095">
+   <properties>
+    <property name="casts_shadows" type="bool" value="false"/>
+    <property name="color" type="color" value="#ffffffff"/>
+    <property name="intensity" type="float" value="1"/>
+    <property name="volumetric_intensity" type="float" value="0"/>
+   </properties>
+   <polyline points="0,0 7.59546,22.9515"/>
+  </object>
+ </objectgroup>
+</map>

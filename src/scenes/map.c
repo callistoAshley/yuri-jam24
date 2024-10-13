@@ -34,6 +34,12 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     map_scene->type = Scene_Map;
     *scene_data = (Scene *)map_scene;
 
+    if (args->copy_map_path)
+        map_scene->current_map = strdup(args->map_path);
+    else
+        map_scene->current_map = args->map_path;
+    map_scene->should_free_current_map = args->copy_map_path;
+
     vec_init(&map_scene->colliders, sizeof(b2BodyId));
     vec_init(&map_scene->renderables, sizeof(MapRenderable));
     vec_init(&map_scene->characters, sizeof(MapCharacterEntry));
@@ -102,12 +108,13 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
 
     settings_menu_init(&map_scene->settings, resources);
     textbox_init(&map_scene->textbox, resources);
-    
+
     for (usize i = 0; i < load_characters.len; i++)
     {
         MapCharacterObj *obj = vec_get(&load_characters, i);
         void *state;
-        obj->interface.init_fn(&state, resources, map_scene, obj->rect, &obj->properties, NULL);
+        obj->interface.init_fn(&state, resources, map_scene, obj->rect,
+                               &obj->properties, NULL);
 
         MapCharacterEntry *entry = malloc(sizeof(MapCharacterEntry));
         entry->interface = obj->interface;
@@ -127,6 +134,17 @@ void map_scene_update(Scene *scene_data, Resources *resources)
 
     if (input_is_pressed(resources->input, Button_Back))
         map_scene->settings.open = true;
+
+    if (input_is_pressed(resources->input, Button_Refresh))
+    {
+        MapInitArgs args = {.map_path = map_scene->current_map,
+                            .copy_map_path = false};
+        // don't free the current map path because the reloaded scene will do it
+        // for us
+        map_scene->should_free_current_map = false;
+        scene_change(MAP_SCENE, resources, &args);
+        return; // return IMMEDIATELY. the current scene is no longer valid!!!
+    }
 
     settings_menu_update(&map_scene->settings, resources);
 
@@ -175,7 +193,7 @@ void map_scene_update(Scene *scene_data, Resources *resources)
 
     for (u32 i = 0; i < map_scene->characters.len; i++)
     {
-        MapCharacterEntry *chara = vec_get(&map_scene->characters, i);        
+        MapCharacterEntry *chara = vec_get(&map_scene->characters, i);
         chara->interface.update_fn(chara->state, resources, map_scene);
     }
 
@@ -187,6 +205,9 @@ void map_scene_free(Scene *scene_data, Resources *resources)
     MapScene *map_scene = (MapScene *)scene_data;
     tilemap_free(&map_scene->tilemap, resources->graphics);
     player_free(&map_scene->player, resources);
+
+    if (map_scene->should_free_current_map)
+        free(map_scene->current_map);
 
     for (u32 i = 0; i < map_scene->colliders.len; i++)
     {
@@ -255,7 +276,7 @@ void map_scene_free(Scene *scene_data, Resources *resources)
 
     for (u32 i = 0; i < map_scene->characters.len; i++)
     {
-        MapCharacterEntry *chara = vec_get(&map_scene->characters, i);        
+        MapCharacterEntry *chara = vec_get(&map_scene->characters, i);
         chara->interface.free_fn(chara->state, resources, map_scene);
     }
     vec_free(&map_scene->characters);

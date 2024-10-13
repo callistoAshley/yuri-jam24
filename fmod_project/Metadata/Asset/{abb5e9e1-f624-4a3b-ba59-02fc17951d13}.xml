@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<objects serializationModel="Studio.02.03.00">
+	<object class="EncodableAsset" id="{abb5e9e1-f624-4a3b-ba59-02fc17951d13}">
+		<property name="assetPath">
+			<value>sfx/fall_thuds/</value>
+		</property>
+		<relationship name="masterAssetFolder">
+			<destination>{31065946-1514-46ed-91b6-e08b20c50b22}</destination>
+		</relationship>
+	</object>
+</objects>

@@ -17,6 +17,7 @@ typedef enum
     Button_Quit = 1 << 7,
 
     Button_Fullscreen = 1 << 8,
+    Button_Refresh = 1 << 9,
 
     Button_MouseLeft = 1 << 11,
     Button_MouseRight = 1 << 12,
