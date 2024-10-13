@@ -2,7 +2,7 @@
 #include "sensible_nums.h"
 #include "utility/macros.h"
 
-void audio_init(Audio *audio, bool with_liveupdate)
+void audio_init(Audio *audio, bool with_liveupdate, Settings *settings)
 {
     unsigned int fmod_version;
     FMOD_RESULT result = 0;
@@ -40,6 +40,18 @@ void audio_init(Audio *audio, bool with_liveupdate)
         audio->system, "assets/audio/Desktop/SFX.bank",
         FMOD_STUDIO_LOAD_BANK_NORMAL, &audio->sfx_bank);
     FMOD_ERRCHK(result, "Loading Menu Bank");
+
+    result =
+        FMOD_Studio_System_GetBus(audio->system, "bus:/BGM", &audio->bgm_bus);
+    FMOD_ERRCHK(result, "Fetching BGM bus");
+    FMOD_Studio_Bus_SetVolume(audio->bgm_bus,
+                              settings->audio.bgm_volume / 100.0);
+
+    result =
+        FMOD_Studio_System_GetBus(audio->system, "bus:/SFX", &audio->sfx_bus);
+    FMOD_ERRCHK(result, "Fetching SFX bus");
+    FMOD_Studio_Bus_SetVolume(audio->sfx_bus,
+                              settings->audio.sfx_volume / 100.0);
 
     audio->current_bgm = NULL;
 }

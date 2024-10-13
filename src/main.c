@@ -50,10 +50,6 @@ int main(int argc, char **argv)
     // Graphics stuff
     Graphics graphics;
 
-    // audio things
-    Audio audio;
-    audio_init(&audio, debug);
-
     Input input;
     input_init(&input);
 
@@ -87,6 +83,10 @@ int main(int argc, char **argv)
 
     Settings settings;
     settings_load_from(&settings, settings_path);
+
+    // audio things
+    Audio audio;
+    audio_init(&audio, debug, &settings);
 
     SDL_WindowFlags flags = SDL_WINDOW_HIDDEN;
     if (settings.video.fullscreen)

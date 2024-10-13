@@ -200,6 +200,8 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     if (!menu->open)
         return;
 
+    Settings *settings = resources->settings;
+
     bool is_opening = menu->background.opacity < 1.0f && !menu->is_closing;
     if (is_opening)
     {
@@ -387,32 +389,37 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                      character_height + 5, "SFX Volume");
         // bgm volume number
         draw_number_selector_to(menu->category_surf, category_font, 180, 2,
-                                resources->settings->audio.bgm_volume);
+                                settings->audio.bgm_volume);
         // sfx volume number
         draw_number_selector_to(menu->category_surf, category_font, 180,
                                 2 + character_height + 5,
-                                resources->settings->audio.sfx_volume);
+                                settings->audio.sfx_volume);
 
         i32 button_x = 180;
         i32 button_y = 2;
 
+        bool did_change_bgm_volume = false;
+        bool did_change_sfx_volume = false;
+
         if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
         {
 
-            if (resources->settings->audio.bgm_volume > 0)
+            if (settings->audio.bgm_volume > 0)
             {
-                resources->settings->audio.bgm_volume--;
+                settings->audio.bgm_volume--;
                 fire_and_forget(menu->hover_desc);
+                did_change_bgm_volume = true;
             }
         }
 
         button_x = button_x + (character_width * 6);
         if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
         {
-            if (resources->settings->audio.bgm_volume < 100)
+            if (settings->audio.bgm_volume < 100)
             {
-                resources->settings->audio.bgm_volume++;
+                settings->audio.bgm_volume++;
                 fire_and_forget(menu->hover_desc);
+                did_change_bgm_volume = true;
             }
         }
 
@@ -422,10 +429,11 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         {
             if (repeat_clicked)
             {
-                if (resources->settings->audio.sfx_volume > 0)
+                if (settings->audio.sfx_volume > 0)
                 {
-                    resources->settings->audio.sfx_volume--;
+                    settings->audio.sfx_volume--;
                     fire_and_forget(menu->hover_desc);
+                    did_change_sfx_volume = true;
                 }
             }
         }
@@ -435,12 +443,25 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         {
             if (repeat_clicked)
             {
-                if (resources->settings->audio.sfx_volume < 100)
+                if (settings->audio.sfx_volume < 100)
                 {
-                    resources->settings->audio.sfx_volume++;
+                    settings->audio.sfx_volume++;
                     fire_and_forget(menu->hover_desc);
+                    did_change_sfx_volume = true;
                 }
             }
+        }
+
+        if (did_change_bgm_volume)
+        {
+            FMOD_Studio_Bus_SetVolume(resources->audio->bgm_bus,
+                                      settings->audio.bgm_volume / 100.0);
+        }
+
+        if (did_change_sfx_volume)
+        {
+            FMOD_Studio_Bus_SetVolume(resources->audio->sfx_bus,
+                                      settings->audio.sfx_volume / 100.0);
         }
 
         WGPUTexture texture = texture_manager_get_texture(
@@ -458,7 +479,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         draw_text_at(menu->category_surf, category_font, 0,
                      character_height + 5, "Fullscreen");
 
-        WGPUPresentMode current_mode = resources->settings->video.present_mode;
+        WGPUPresentMode current_mode = settings->video.present_mode;
         bool frameratecap_enabled = current_mode == WGPUPresentMode_Immediate ||
                                     current_mode == WGPUPresentMode_Mailbox;
         if (frameratecap_enabled)
@@ -484,7 +505,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                               vsync_text);
 
         char *fullscreen_text;
-        if (resources->settings->video.fullscreen)
+        if (settings->video.fullscreen)
             fullscreen_text = "ON";
         else
             fullscreen_text = "OFF";
@@ -499,11 +520,10 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         if (frameratecap_enabled)
         {
             i32 y = 2 + (character_height + 5) * 2;
-            if (resources->settings->video.frame_cap)
+            if (settings->video.frame_cap)
             {
-                draw_number_selector_to(
-                    menu->category_surf, category_font, 220, y,
-                    resources->settings->video.max_framerate);
+                draw_number_selector_to(menu->category_surf, category_font, 220,
+                                        y, settings->video.max_framerate);
             }
             else
             {
@@ -520,7 +540,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                 current_index = vsync_count - 1;
             else
                 current_index--;
-            resources->settings->video.present_mode = modes[current_index];
+            settings->video.present_mode = modes[current_index];
         }
 
         // < + " " + vsync_len + " "
@@ -531,10 +551,10 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                 current_index = 0;
             else
                 current_index++;
-            resources->settings->video.present_mode = modes[current_index];
+            settings->video.present_mode = modes[current_index];
         }
 
-        WGPUPresentMode new_mode = resources->settings->video.present_mode;
+        WGPUPresentMode new_mode = settings->video.present_mode;
         bool did_change_mode = new_mode != current_mode;
         if (did_change_mode)
         {
@@ -546,15 +566,15 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                                         new_mode == WGPUPresentMode_Mailbox;
             if (frameratecap_enabled)
             {
-                resources->settings->video.frame_cap = true;
-                resources->settings->video.max_framerate = max_framerate;
+                settings->video.frame_cap = true;
+                settings->video.max_framerate = max_framerate;
             }
             fire_and_forget(menu->hover_desc);
         }
 
         button_x = 180;
         button_y = 2 + character_height + 5;
-        bool fullscreen = resources->settings->video.fullscreen;
+        bool fullscreen = settings->video.fullscreen;
 
         bool inside_left =
             MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked;
@@ -565,7 +585,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
         if (inside_left || inside_right)
         {
-            resources->settings->video.fullscreen = !fullscreen;
+            settings->video.fullscreen = !fullscreen;
             SDL_SetWindowFullscreen(resources->window, !fullscreen);
             fire_and_forget(menu->hover_desc);
         }
@@ -577,30 +597,28 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
             if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
             {
-                if (resources->settings->video.max_framerate > 30)
+                if (settings->video.max_framerate > 30)
                 {
-                    if (resources->settings->video.frame_cap)
-                        resources->settings->video.max_framerate--;
+                    if (settings->video.frame_cap)
+                        settings->video.max_framerate--;
                     else
-                        resources->settings->video.max_framerate =
-                            max_framerate;
-                    resources->settings->video.frame_cap = true;
+                        settings->video.max_framerate = max_framerate;
+                    settings->video.frame_cap = true;
                     fire_and_forget(menu->hover_desc);
                 }
             }
 
-            if (resources->settings->video.frame_cap)
+            if (settings->video.frame_cap)
             {
                 // < + " " + 3 + " "
                 button_x = 220 + character_width * 6;
 
                 if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
                 {
-                    if (resources->settings->video.max_framerate >=
-                        max_framerate)
-                        resources->settings->video.frame_cap = false;
+                    if (settings->video.max_framerate >= max_framerate)
+                        settings->video.frame_cap = false;
                     else
-                        resources->settings->video.max_framerate++;
+                        settings->video.max_framerate++;
                     fire_and_forget(menu->hover_desc);
                 }
             }
