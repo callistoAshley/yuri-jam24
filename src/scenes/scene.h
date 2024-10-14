@@ -1,5 +1,6 @@
 #pragma once
 
+#include "events/event_loader.h"
 #include "fonts/fonts.h"
 #include "graphics/graphics.h"
 #include "physics/physics.h"
@@ -35,9 +36,10 @@ typedef struct
     Fonts *fonts;
     Settings *settings;
 
-    // only used to modify the current scene
     Scene **current_scene;
     SceneInterface *current_scene_interface;
+
+    EventLoader *event_loader;
 
     SDL_Window *window;
 } Resources;

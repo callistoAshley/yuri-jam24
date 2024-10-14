@@ -19,4 +19,4 @@ typedef struct
             char arg[256];
         } command;
     };
-} Token;
+} Instruction;

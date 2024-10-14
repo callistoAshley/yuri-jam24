@@ -6,4 +6,5 @@
 #include "token.h"
 
 // returns the number of characters read from str
-size_t lexer_next_token(char *str, Token *out_token, char out_err_msg[256]);
+size_t lexer_next_token(char *str, Instruction *out_token,
+                        char out_err_msg[256]);

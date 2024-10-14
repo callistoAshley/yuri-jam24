@@ -21,7 +21,7 @@ static Event construct_event(char *name, char *text)
     void *realloc_temp;
 
     Event event;
-    Token token;
+    Instruction token;
     char err_msg[256];
     size_t num_read;
 
@@ -29,7 +29,7 @@ static Event construct_event(char *name, char *text)
 
     event.name = malloc(strlen(name) + 1);
     strcpy(event.name, name);
-    event.tokens = calloc(1, sizeof(Token));
+    event.instructions = calloc(1, sizeof(Instruction));
     event.num_tokens = 0;
 
     while (num_read = lexer_next_token(text, &token, err_msg),
@@ -38,15 +38,15 @@ static Event construct_event(char *name, char *text)
         if (err_msg[0])
         {
             free(event.name);
-            free(event.tokens);
+            free(event.instructions);
             FATAL("ERROR: construct_event: %s\n", err_msg);
         }
 
         text += num_read;
-        realloc_temp =
-            realloc(event.tokens, ++event.num_tokens * sizeof(Token));
-        REALLOC_CHK(realloc_temp, event.tokens);
-        event.tokens[event.num_tokens - 1] = token;
+        realloc_temp = realloc(event.instructions,
+                               ++event.num_tokens * sizeof(Instruction));
+        REALLOC_CHK(realloc_temp, event.instructions);
+        event.instructions[event.num_tokens - 1] = token;
     }
 
     return event;
@@ -149,20 +149,21 @@ EventLoader *event_loader_init(char **files, int num_files)
             linked_list_append(interpreter->events, event);
 
             printf("%s:\n", event->name);
-            for (int tk = 0; tk < event->num_tokens; tk++)
+            for (u32 tk = 0; tk < event->num_tokens; tk++)
             {
                 printf("  ");
-                switch (event->tokens[tk].type)
+                switch (event->instructions[tk].type)
                 {
                 case TOKEN_NONE:
                     printf("(NONE)");
                     break;
                 case TOKEN_TEXT:
-                    printf("(TEXT): %s", event->tokens[tk].text);
+                    printf("(TEXT): %s", event->instructions[tk].text);
                     break;
                 case TOKEN_CMD:
-                    printf("(CMD): %s|%s||", event->tokens[tk].command.name,
-                           event->tokens[tk].command.arg);
+                    printf("(CMD): %s|%s||",
+                           event->instructions[tk].command.name,
+                           event->instructions[tk].command.arg);
                     break;
                 }
                 printf("\n");
@@ -184,7 +185,7 @@ void event_loader_free(EventLoader *interpreter)
     {
         Event *event = node->data;
         free(event->name);
-        free(event->tokens);
+        free(event->instructions);
         free(event);
     }
     linked_list_free(interpreter->events);

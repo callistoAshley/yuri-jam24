@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include "lexer.h"
+#include "sensible_nums.h"
 #include "token.h"
 #include "../utility/linked_list.h"
 #include "../utility/macros.h"
@@ -12,16 +13,14 @@
 typedef struct
 {
     char *name;
-    int num_tokens;
-    Token *tokens;
+    u32 num_tokens;
+    Instruction *instructions;
 } Event;
 
 typedef struct
 {
     LinkedList *events;
 
-    int cond_register;
-    char choice_buffer[256];
 } EventLoader;
 
 EventLoader *event_loader_init(char **files, int num_files);

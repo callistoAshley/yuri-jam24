@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     char *files[] = {
         "assets/events.txt",
     };
-    EventLoader *interpreter = event_loader_init(files, 1);
+    EventLoader *event_loader = event_loader_init(files, 1);
 
     WGPUMultisampleState multisample_state = {
         .count = 1,
@@ -142,6 +142,7 @@ int main(int argc, char **argv)
         .current_scene = &scene_data,
         .current_scene_interface = &scene,
         .window = window,
+        .event_loader = event_loader,
     };
 
     scene.init(&scene_data, &resources, NULL);
@@ -246,7 +247,7 @@ int main(int argc, char **argv)
     physics_free(&physics);
     graphics_free(&graphics);
     audio_free(&audio);
-    event_loader_free(interpreter);
+    event_loader_free(event_loader);
 
     SDL_DestroyWindow(window);
 

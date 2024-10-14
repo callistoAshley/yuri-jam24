@@ -1,6 +1,7 @@
 #pragma once
 
 #include "events/event_loader.h"
+#include "scenes/scene.h"
 #include "sensible_nums.h"
 
 typedef struct
@@ -9,8 +10,25 @@ typedef struct
 
     enum
     {
-        State_Executing,
-        State_Waiting,
+        Currently_Executing,
+        Currently_Waiting,
+    } currently;
+
+    union
+    {
+        struct
+        {
+            enum
+            {
+                Waiting_OnText,
+                Waiting_OnTimer
+            } on;
+
+            union
+            {
+                f32 timer;
+            } data;
+        } waiting;
     } state;
 
     // currently executing instruction
@@ -18,4 +36,4 @@ typedef struct
 } Interpreter;
 
 void interpreter_init(Interpreter *interpeter, Event *event);
-void interpreter_update(Interpreter *interpeter);
+void interpreter_update(Interpreter *interpeter, Resources *resources);
