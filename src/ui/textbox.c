@@ -140,6 +140,7 @@ void textbox_display_text(Textbox *textbox, Resources *resources, char *text)
     textbox->typing = true;
     textbox->waiting_for_input = false;
     textbox->sprite.opacity = 1.0f;
+    textbox->text_type_time = 0.0f;
 
     // render the text with an invisible colour to get its width and height
     SDL_Color color = {0, 0, 0, 0};
@@ -149,7 +150,7 @@ void textbox_display_text(Textbox *textbox, Resources *resources, char *text)
 
     u32 width = wgpuTextureGetWidth(texture),
         height = wgpuTextureGetHeight(texture);
-    Transform transform = transform_from_pos((vec3s){.x = 12, .y = 8});
+    Transform transform = transform_from_pos((vec3s){.x = 24, .y = 8});
     TransformEntry transform_entry = transform_manager_add(
         &resources->graphics->transform_manager, transform);
 
