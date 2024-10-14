@@ -6,6 +6,8 @@
 
 #define PLAYER_W 10
 #define PLAYER_H 18
+#define PLAYER_HW (PLAYER_W / 2.0)
+#define PLAYER_HH (PLAYER_H / 2.0)
 
 typedef struct
 {

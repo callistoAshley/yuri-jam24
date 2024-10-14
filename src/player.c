@@ -66,16 +66,21 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     bodyDef.fixedRotation = true;
     player->body_id = b2CreateBody(resources->physics->world, &bodyDef);
 
-    b2Polygon dynamicBox = b2MakeBox(5.0 / PX_PER_M, 9.0 / PX_PER_M);
+    f32 radius = PX_TO_M(PLAYER_HW);
+    b2Capsule capsule = {
+        .center1 = (b2Vec2){0, radius},
+        // no idea why we need radius * 3.0. it just works
+        .center2 = (b2Vec2){0, (radius * 3.0) - PX_TO_M((f32)PLAYER_H)},
+        .radius = radius};
     b2ShapeDef shapeDef = b2DefaultShapeDef();
     shapeDef.density = 1.0f;
     shapeDef.friction = 0.0f;
     player->shape_id =
-        b2CreatePolygonShape(player->body_id, &shapeDef, &dynamicBox);
+        b2CreateCapsuleShape(player->body_id, &shapeDef, &capsule);
 
-    b2Vec2 foot_offset = {.x = 0.0, -9.0 / PX_PER_M};
+    b2Vec2 foot_offset = {.x = 0.0, PX_TO_M(-8.0)};
     b2Polygon foot_sensor =
-        b2MakeOffsetBox(2.0 / PX_PER_M, 1.0 / PX_PER_M, foot_offset, 0.0);
+        b2MakeOffsetBox(PX_TO_M(3.0), PX_TO_M(0.5), foot_offset, 0.0);
 
     b2ShapeDef foot_def = b2DefaultShapeDef();
     foot_def.isSensor = true;
@@ -186,8 +191,8 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     // box2d has a different coordinate system than us
     // +y is up for box2d, down for us
     // so we need to negate the y component
-    player->transform.position.x = body_position.x * PX_PER_M - 5;
-    player->transform.position.y = -body_position.y * PX_PER_M - 9;
+    player->transform.position.x = M_TO_PX(body_position.x) - PLAYER_HW;
+    player->transform.position.y = M_TO_PX(-body_position.y) - PLAYER_HH;
 
     if (player->facing == Facing_Left)
     {
