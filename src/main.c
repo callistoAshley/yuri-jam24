@@ -24,7 +24,7 @@
 #include "utility/log.h"
 #include "utility/macros.h"
 #include "utility/common_defines.h"
-#include "events/interpreter.h"
+#include "events/event_loader.h"
 #include "player.h"
 #include "physics/physics.h"
 #include "scenes/map.h"
@@ -106,7 +106,7 @@ int main(int argc, char **argv)
     char *files[] = {
         "assets/events.txt",
     };
-    Interpreter *interpreter = interpreter_init(files, 1);
+    EventLoader *interpreter = event_loader_init(files, 1);
 
     WGPUMultisampleState multisample_state = {
         .count = 1,
@@ -246,7 +246,7 @@ int main(int argc, char **argv)
     physics_free(&physics);
     graphics_free(&graphics);
     audio_free(&audio);
-    interpreter_free(interpreter);
+    event_loader_free(interpreter);
 
     SDL_DestroyWindow(window);
 

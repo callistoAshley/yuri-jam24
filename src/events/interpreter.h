@@ -1,28 +1,21 @@
 #pragma once
-#include <stdio.h>
-#include <stdlib.h>
-#include <stdbool.h>
-#include <string.h>
 
-#include "lexer.h"
-#include "token.h"
-#include "../utility/linked_list.h"
-#include "../utility/macros.h"
+#include "events/event_loader.h"
+#include "sensible_nums.h"
 
 typedef struct
 {
-    char *name;
-    int num_tokens;
-    Token *tokens;
-} Event;
+    Event *event;
 
-typedef struct
-{
-    LinkedList *events;
+    enum
+    {
+        State_Executing,
+        State_Waiting,
+    } state;
 
-    int cond_register;
-    char choice_buffer[256];
+    // currently executing instruction
+    u32 instruction;
 } Interpreter;
 
-Interpreter *interpreter_init(char **files, int num_files);
-void interpreter_free(Interpreter *interpreter);
+void interpreter_init(Interpreter *interpeter, Event *event);
+void interpreter_update(Interpreter *interpeter);
