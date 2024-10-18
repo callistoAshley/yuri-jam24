@@ -22,6 +22,20 @@ void debug_wnd_show(DebugWindowState *state)
             MapInitArgs args = {.map_path = path, .copy_map_path = true};
             scene_change(MAP_SCENE, state->resources, &args);
         }
+
+        f32 speed = state->resources->time.virt->relative_speed;
+        igSliderFloat("Relative Speed", &speed, 0.0, 10.0, "%f", 0);
+        state->resources->time.virt->relative_speed = speed;
+
+        igCheckbox("Pause", &state->resources->time.virt->paused);
+
+        if (speed != 1.0)
+        {
+            if (igSmallButton("Reset"))
+            {
+                state->resources->time.virt->relative_speed = 1.0;
+            }
+        }
     }
     igEnd();
 }

@@ -203,7 +203,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
     Settings *settings = resources->settings;
 
-    f32 delta = duration_as_secs(resources->time.current.delta);
+    f32 delta = duration_as_secs(resources->time.real->time.delta);
     bool is_opening = menu->background.opacity < 1.0f && !menu->is_closing;
     if (is_opening)
     {
@@ -214,6 +214,8 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         {
             menu->categories[i].opacity = menu->background.opacity / 2.0;
         }
+
+        resources->time.virt->paused = true;
     }
 
     if (menu->is_closing)
@@ -235,6 +237,8 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
             menu->selected_category = Cat_None;
             menu->hovered_category = Cat_None;
+
+            resources->time.virt->paused = false;
 
             return;
         }
