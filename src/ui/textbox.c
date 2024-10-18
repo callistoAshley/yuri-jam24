@@ -16,6 +16,8 @@ void textbox_init(Textbox *textbox, Resources *resources)
     textbox->text_type_time = 0.0f;
     textbox->typing = false;
     textbox->waiting_for_input = false;
+    textbox->needs_remove_text = false;
+    textbox->open = false;
 
     {
         TextureEntry *texture = texture_manager_load(
@@ -85,6 +87,8 @@ static void process_escape_code(Textbox *textbox, Resources *resources)
 
 static void remove_text(Textbox *textbox, Resources *resources)
 {
+    textbox->sprite.opacity = 0.0f;
+    textbox->needs_remove_text = false;
     ui_sprite_free(&textbox->text_sprite, resources->graphics);
     layer_remove(&resources->graphics->ui_layers.foreground,
                  textbox->text_sprite_entry);
@@ -94,6 +98,8 @@ static void remove_text(Textbox *textbox, Resources *resources)
 void textbox_update(Textbox *textbox, Resources *resources)
 {
     f32 delta_seconds = resources->input->delta_seconds;
+
+    if (textbox->needs_remove_text) remove_text(textbox, resources);
 
     if (textbox->typing)
     {
@@ -124,8 +130,8 @@ void textbox_update(Textbox *textbox, Resources *resources)
     else if (textbox->waiting_for_input && INPUT_BUTTONS_DOWN(resources))
     {
         textbox->waiting_for_input = false;
-        remove_text(textbox, resources);
-        textbox->sprite.opacity = 0.0f;
+        textbox->needs_remove_text = true; // hold off calling remove_text until next frame, prevents flickering
+        textbox->open = false;
     }
 }
 
@@ -141,6 +147,7 @@ void textbox_display_text(Textbox *textbox, Resources *resources, char *text)
     textbox->waiting_for_input = false;
     textbox->sprite.opacity = 1.0f;
     textbox->text_type_time = 0.0f;
+    textbox->open = true;
 
     // render the text with an invisible colour to get its width and height
     SDL_Color color = {0, 0, 0, 0};

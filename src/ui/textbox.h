@@ -21,8 +21,8 @@ typedef struct
     char text[512];
     int text_idx;
     f32 text_type_time;
-    bool typing;
-    bool waiting_for_input;
+    bool typing, waiting_for_input,
+         needs_remove_text, open;
 } Textbox;
 
 void textbox_init(Textbox *textbox, Resources *resources);

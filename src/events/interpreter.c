@@ -22,7 +22,7 @@ void interpreter_update(Interpreter *interpeter, Resources *resources)
             {
             case Waiting_OnText:
             {
-                if (scene->textbox.sprite.opacity > 0.0)
+                if (scene->textbox.open)
                     return;
                 break;
             }
