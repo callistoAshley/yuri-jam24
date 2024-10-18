@@ -203,7 +203,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
     Settings *settings = resources->settings;
 
-    f32 delta = duration_as_secs(resources->time.real->time.delta);
+    f32 delta = duration_as_secs(resources->time.current.delta);
     bool is_opening = menu->background.opacity < 1.0f && !menu->is_closing;
     if (is_opening)
     {

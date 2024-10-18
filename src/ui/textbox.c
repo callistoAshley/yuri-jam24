@@ -97,7 +97,7 @@ static void remove_text(Textbox *textbox, Resources *resources)
 
 void textbox_update(Textbox *textbox, Resources *resources)
 {
-    f32 delta = duration_as_secs(resources->time.real->time.delta);
+    f32 delta = duration_as_secs(resources->time.current.delta);
 
     if (textbox->needs_remove_text)
         remove_text(textbox, resources);

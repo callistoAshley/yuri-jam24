@@ -12,7 +12,7 @@ void interpreter_init(Interpreter *interpeter, Event *event)
 void interpreter_update(Interpreter *interpeter, Resources *resources)
 {
     MapScene *scene = (MapScene *)*resources->current_scene;
-    f32 delta = duration_as_secs(resources->time.real->time.delta);
+    f32 delta = duration_as_secs(resources->time.current.delta);
     while (interpeter->instruction < interpeter->event->num_tokens)
     {
         switch (interpeter->currently)

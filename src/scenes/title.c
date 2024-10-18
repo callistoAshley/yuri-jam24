@@ -125,7 +125,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
                 INTERNAL_SCREEN_WIDTH;
     f32 start_y = 70 * scale;
 
-    f32 delta = duration_as_secs(resources->time.real->time.delta);
+    f32 delta = duration_as_secs(resources->time.current.delta);
 
     bool input_disabled =
         title_scene->settings_menu.open || title_scene->is_transitioning;

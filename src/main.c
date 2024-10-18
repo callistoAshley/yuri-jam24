@@ -209,11 +209,13 @@ int main(int argc, char **argv)
         // preform accumulated fixed updates
         while (time_fixed_expend(&fixed))
         {
-            physics_update(&physics, fixed);
+            resources.time.current = fixed.time;
+            physics_update(&physics, fixed.time);
             if (scene.fixed_update)
                 scene.fixed_update(scene_data, &resources);
         }
 
+        resources.time.current = virt.time;
         scene.update(scene_data, &resources);
 
         igRender();

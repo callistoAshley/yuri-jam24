@@ -115,7 +115,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     bool right_down =
         input_is_down(resources->input, Button_Right) && !disable_input;
 
-    f32 delta = duration_as_secs(resources->time.real->time.delta);
+    f32 delta = duration_as_secs(resources->time.current.delta);
 
     if (left_down && !right_down)
         player->facing = Facing_Left;

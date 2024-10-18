@@ -47,9 +47,18 @@ typedef struct
 
     struct
     {
+        // The real (actual) time. Use this if you *need* your code to run at
+        // the exact same speed.
         TimeReal *real;
+        // A virtual clock. Can be sped up, slowed down, or even paused.
         TimeVirt *virt;
         TimeFixed *fixed;
+
+        // The current generic time. When performing regualr updates, this will
+        // be virtual time. When performing fixed updates (i.e. physics) this
+        // will be the fixed time.
+        // Most logic should use this instead of real time.
+        Time current;
     } time;
 
     SDL_Window *window;

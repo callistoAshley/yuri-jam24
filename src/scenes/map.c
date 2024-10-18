@@ -158,7 +158,7 @@ void map_scene_update(Scene *scene_data, Resources *resources)
                   map_scene->freecam || map_scene->settings.open ||
                       map_scene->textbox.sprite.opacity > 0.0);
 
-    f32 delta = duration_as_secs(resources->time.real->time.delta);
+    f32 delta = duration_as_secs(resources->time.current.delta);
     if (map_scene->freecam)
     {
         bool left_down = input_is_down(resources->input, Button_Left);
