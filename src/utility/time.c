@@ -15,6 +15,11 @@ Duration duration_from_micros(u64 micros)
     return (Duration){SDL_US_TO_NS(micros)};
 }
 
+Duration duration_from_secs_f64(f64 secs)
+{
+    return (Duration){SDL_SECONDS_TO_NS(secs)};
+}
+
 f32 duration_as_secs_f32(Duration duration)
 {
     return SDL_NS_TO_SECONDS((f32)duration.nanos);
@@ -24,7 +29,16 @@ f64 duration_as_secs_f64(Duration duration)
     return SDL_NS_TO_SECONDS((f64)duration.nanos);
 }
 
-Instant instant_now(void) { return (Instant){SDL_GetTicksNS()}; }
+Duration duration_sub(Duration duration, Duration other)
+{
+    return (Duration){duration.nanos - other.nanos};
+}
+Duration duration_add(Duration duration, Duration other)
+{
+    return (Duration){duration.nanos + other.nanos};
+}
+
+Instant instant_now(void) { return (Instant){{SDL_GetTicksNS()}}; }
 
 Duration instant_elapsed(Instant instant)
 {
@@ -42,9 +56,9 @@ Duration instant_sub(Instant instant, Instant earlier)
 }
 Instant instant_sub_dur(Instant instant, Duration time)
 {
-    return (Instant){instant.dur.nanos - time.nanos};
+    return (Instant){{instant.dur.nanos - time.nanos}};
 }
 Instant instant_add(Instant instant, Duration time)
 {
-    return (Instant){instant.dur.nanos + time.nanos};
+    return (Instant){{instant.dur.nanos + time.nanos}};
 }

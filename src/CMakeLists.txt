@@ -10,6 +10,7 @@ add_subdirectory(physics)
 add_subdirectory(scenes)
 add_subdirectory(ui)
 add_subdirectory(utility)
+add_subdirectory(time)
 
 set(SOURCES 
     src/core_types.c 
