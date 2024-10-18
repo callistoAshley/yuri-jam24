@@ -2,7 +2,8 @@
 #include "time/time.h"
 #include "utility/time.h"
 
-TimeReal time_real_new(Instant startup)
+TimeReal time_real_new(void) { return time_real_new_with(instant_now()); }
+TimeReal time_real_new_with(Instant startup)
 {
     TimeReal real = {
         .time = time_new(),

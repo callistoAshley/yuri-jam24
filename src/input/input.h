@@ -30,10 +30,6 @@ typedef struct
     bool requested_quit, requested_fullscreen;
 
     i32 mouse_x, mouse_y;
-
-    u64 last_frame;
-    u64 delta;
-    f32 delta_seconds;
 } Input;
 
 void input_init(Input *input);

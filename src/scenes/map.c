@@ -158,6 +158,7 @@ void map_scene_update(Scene *scene_data, Resources *resources)
                   map_scene->freecam || map_scene->settings.open ||
                       map_scene->textbox.sprite.opacity > 0.0);
 
+    f32 delta = duration_as_secs(resources->time.real->time.delta);
     if (map_scene->freecam)
     {
         bool left_down = input_is_down(resources->input, Button_Left);
@@ -165,8 +166,7 @@ void map_scene_update(Scene *scene_data, Resources *resources)
         bool up_down = input_is_down(resources->input, Button_Up);
         bool down_down = input_is_down(resources->input, Button_Down);
 
-        const float freecam_move_speed =
-            M_TO_PX(16) * resources->input->delta_seconds;
+        const float freecam_move_speed = M_TO_PX(16) * delta;
         if (right_down)
             resources->raw_camera->x += freecam_move_speed;
         if (left_down)

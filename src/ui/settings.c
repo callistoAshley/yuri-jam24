@@ -9,6 +9,7 @@
 #include "utility/common_defines.h"
 #include "utility/graphics.h"
 #include "utility/macros.h"
+#include "utility/time.h"
 #include "webgpu.h"
 
 void settings_menu_init(SettingsMenu *menu, Resources *resources)
@@ -202,10 +203,11 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
     Settings *settings = resources->settings;
 
+    f32 delta = duration_as_secs(resources->time.real->time.delta);
     bool is_opening = menu->background.opacity < 1.0f && !menu->is_closing;
     if (is_opening)
     {
-        menu->background.opacity += 10.0f * resources->input->delta_seconds;
+        menu->background.opacity += 10.0f * delta;
         menu->background.opacity = fminf(menu->background.opacity, 1.0f);
 
         for (int i = 0; i < 4; i++)
@@ -216,7 +218,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
     if (menu->is_closing)
     {
-        menu->background.opacity -= 10.0f * resources->input->delta_seconds;
+        menu->background.opacity -= 10.0f * delta;
         menu->background.opacity = fmaxf(menu->background.opacity, 0.0f);
 
         menu->category.opacity = 0.0;
@@ -362,7 +364,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         menu->repeat_input_timer = 0.5;
 
     if (mouse_down)
-        menu->repeat_input_timer -= resources->input->delta_seconds;
+        menu->repeat_input_timer -= delta;
 
     bool repeat = false;
     if (menu->repeat_input_timer <= 0)

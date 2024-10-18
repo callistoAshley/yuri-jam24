@@ -18,7 +18,7 @@ Duration duration_from_micros(u64 micros);
 
 Duration duration_from_secs_f64(f64 secs);
 
-f32 duration_as_secs_f32(Duration duration);
+f32 duration_as_secs(Duration duration);
 f64 duration_as_secs_f64(Duration duration);
 
 Duration duration_sub(Duration duration, Duration other);

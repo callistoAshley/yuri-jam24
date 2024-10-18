@@ -115,12 +115,14 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     bool right_down =
         input_is_down(resources->input, Button_Right) && !disable_input;
 
+    f32 delta = duration_as_secs(resources->time.real->time.delta);
+
     if (left_down && !right_down)
         player->facing = Facing_Left;
     if (right_down && !left_down)
         player->facing = Facing_Right;
 
-    f32 walk_speed = WALK_SPEED_PXPS * resources->input->delta_seconds;
+    f32 walk_speed = WALK_SPEED_PXPS * delta;
     b2Vec2 current_speed = b2Body_GetLinearVelocity(player->body_id);
     if (left_down && current_speed.x > -WALK_SPEED_CAP)
         b2Body_ApplyLinearImpulseToCenter(player->body_id,
@@ -133,7 +135,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
             player->body_id, (b2Vec2){-current_speed.x / 2, 0}, true);
 
     if (player->jump_timeout > 0)
-        player->jump_timeout -= resources->input->delta_seconds;
+        player->jump_timeout -= delta;
 
     b2Vec2 body_position = b2Body_GetPosition(player->body_id);
 
@@ -163,7 +165,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
 
     if (player->foot_contact_count == 0)
     {
-        player->fall_time += resources->input->delta_seconds;
+        player->fall_time += delta;
     }
 
     if (player->foot_contact_count > 0 && player->jump_timeout <= 0)

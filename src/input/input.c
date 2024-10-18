@@ -7,21 +7,13 @@ void input_init(Input *input)
 {
     input->prev = 0;
     input->curr = 0;
-    input->last_frame = SDL_GetTicksNS();
     input->requested_quit = false;
 
     input->mouse_x = 0;
     input->mouse_y = 0;
 }
 
-void input_start_frame(Input *input)
-{
-    input->prev = input->curr;
-    u64 current_frame = SDL_GetTicksNS();
-    input->delta = current_frame - input->last_frame;
-    input->delta_seconds = SDL_NS_TO_SECONDS((f32)input->delta);
-    input->last_frame = current_frame;
-}
+void input_start_frame(Input *input) { input->prev = input->curr; }
 
 void input_process(SDL_Event *event, Input *input, Settings *settings)
 {

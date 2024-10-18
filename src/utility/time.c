@@ -20,7 +20,7 @@ Duration duration_from_secs_f64(f64 secs)
     return (Duration){SDL_SECONDS_TO_NS(secs)};
 }
 
-f32 duration_as_secs_f32(Duration duration)
+f32 duration_as_secs(Duration duration)
 {
     return SDL_NS_TO_SECONDS((f32)duration.nanos);
 }

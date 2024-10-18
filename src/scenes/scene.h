@@ -8,6 +8,10 @@
 #include "input/input.h"
 #include "sensible_nums.h"
 #include "settings.h"
+#include "time/fixed.h"
+#include "time/real.h"
+#include "time/time.h"
+#include "time/virt.h"
 #include "utility/macros.h"
 
 typedef enum
@@ -40,6 +44,13 @@ typedef struct
     SceneInterface *current_scene_interface;
 
     EventLoader *event_loader;
+
+    struct
+    {
+        TimeReal *real;
+        TimeVirt *virt;
+        TimeFixed *fixed;
+    } time;
 
     SDL_Window *window;
 } Resources;

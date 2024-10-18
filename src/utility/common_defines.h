@@ -9,9 +9,6 @@
 #define WINDOW_WIDTH (INTERNAL_SCREEN_WIDTH * WINDOW_SCALE)
 #define WINDOW_HEIGHT (INTERNAL_SCREEN_HEIGHT * WINDOW_SCALE)
 
-// we use 64hz as the fixed time step (see bevy's reasoning)
-#define FIXED_STEPS_PER_SEC 64
-
 // pixels per meter
 // one tile (8px) is one meter
 #define PX_PER_M TILE_SIZE

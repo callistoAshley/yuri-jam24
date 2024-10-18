@@ -97,13 +97,14 @@ static void remove_text(Textbox *textbox, Resources *resources)
 
 void textbox_update(Textbox *textbox, Resources *resources)
 {
-    f32 delta_seconds = resources->input->delta_seconds;
+    f32 delta = duration_as_secs(resources->time.real->time.delta);
 
-    if (textbox->needs_remove_text) remove_text(textbox, resources);
+    if (textbox->needs_remove_text)
+        remove_text(textbox, resources);
 
     if (textbox->typing)
     {
-        textbox->text_type_time += delta_seconds;
+        textbox->text_type_time += delta;
         if (textbox->text_type_time >= 0.01f)
         {
             textbox->text_idx++;
@@ -130,7 +131,8 @@ void textbox_update(Textbox *textbox, Resources *resources)
     else if (textbox->waiting_for_input && INPUT_BUTTONS_DOWN(resources))
     {
         textbox->waiting_for_input = false;
-        textbox->needs_remove_text = true; // hold off calling remove_text until next frame, prevents flickering
+        textbox->needs_remove_text = true; // hold off calling remove_text until
+                                           // next frame, prevents flickering
         textbox->open = false;
     }
 }

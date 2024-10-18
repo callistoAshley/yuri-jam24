@@ -125,13 +125,14 @@ void title_scene_update(Scene *scene_data, Resources *resources)
                 INTERNAL_SCREEN_WIDTH;
     f32 start_y = 70 * scale;
 
+    f32 delta = duration_as_secs(resources->time.real->time.delta);
+
     bool input_disabled =
         title_scene->settings_menu.open || title_scene->is_transitioning;
 
     if (title_scene->is_transitioning)
     {
-        title_scene->background.opacity -=
-            1.5f * resources->input->delta_seconds;
+        title_scene->background.opacity -= 1.5f * delta;
         title_scene->background.opacity =
             fmaxf(title_scene->background.opacity, 0.0f);
 
@@ -146,7 +147,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
 
         if (title_scene->background.opacity == 0.0f)
         {
-            title_scene->transition_timer += resources->input->delta_seconds;
+            title_scene->transition_timer += delta;
         }
 
         if (title_scene->transition_timer > 0.25f)

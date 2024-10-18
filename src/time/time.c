@@ -13,8 +13,5 @@ void time_advance_to(Time *time, Duration elapsed)
     time_advance_by(time, duration_sub(elapsed, time->elapsed));
 }
 
-f32 time_delta_seconds(Time time) { return duration_as_secs_f32(time.delta); }
-f32 time_elapsed_seconds(Time time)
-{
-    return duration_as_secs_f32(time.elapsed);
-}
+f32 time_delta_seconds(Time time) { return duration_as_secs(time.delta); }
+f32 time_elapsed_seconds(Time time) { return duration_as_secs(time.elapsed); }

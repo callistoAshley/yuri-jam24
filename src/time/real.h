@@ -13,7 +13,8 @@ typedef struct
     bool has_updated;
 } TimeReal;
 
-TimeReal time_real_new(Instant startup);
+TimeReal time_real_new(void);
+TimeReal time_real_new_with(Instant startup);
 
 void time_real_update(TimeReal *time);
 void time_real_update_with(TimeReal *time, Instant inst);

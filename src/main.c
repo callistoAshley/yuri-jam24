@@ -3,6 +3,9 @@
 #include "SDL3/SDL_video.h"
 #include "scenes/title.h"
 #include "settings.h"
+#include "time/fixed.h"
+#include "time/real.h"
+#include "time/virt.h"
 #include "webgpu.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
@@ -130,6 +133,10 @@ int main(int argc, char **argv)
     Scene *scene_data;
     SceneInterface scene = TITLE_SCENE;
 
+    TimeReal real = time_real_new();
+    TimeVirt virt = time_virt_new();
+    TimeFixed fixed = time_fixed_new();
+
     Resources resources = {
         .debug_mode = debug,
         .graphics = &graphics,
@@ -143,6 +150,10 @@ int main(int argc, char **argv)
         .current_scene_interface = &scene,
         .window = window,
         .event_loader = event_loader,
+
+        .time.real = &real,
+        .time.virt = &virt,
+        .time.fixed = &fixed,
     };
 
     scene.init(&scene_data, &resources, NULL);
@@ -151,15 +162,16 @@ int main(int argc, char **argv)
         .resources = &resources,
     };
 
-    u64 accumulator = 0;
-    const u64 FIXED_TIME_STEP = SDL_SECONDS_TO_NS(1) / FIXED_STEPS_PER_SEC;
-
     while (!input_is_down(&input, Button_Quit) && !input.requested_quit)
     {
         SDL_Event event;
 
         input_start_frame(&input);
-        accumulator += input.delta;
+
+        // update real, fixed, and virtual time
+        time_real_update(&real);
+        time_virt_advance_with(&virt, real.time.delta);
+        time_fixed_accumulate(&fixed, virt.time.delta);
 
         while (SDL_PollEvent(&event))
         {
@@ -194,12 +206,12 @@ int main(int argc, char **argv)
 
         FMOD_Studio_System_Update(audio.system);
 
-        while (accumulator >= FIXED_TIME_STEP)
+        // preform accumulated fixed updates
+        while (time_fixed_expend(&fixed))
         {
-            physics_update(&physics);
+            physics_update(&physics, fixed);
             if (scene.fixed_update)
                 scene.fixed_update(scene_data, &resources);
-            accumulator -= FIXED_TIME_STEP;
         }
 
         scene.update(scene_data, &resources);
@@ -223,9 +235,7 @@ int main(int argc, char **argv)
         {
             f32 frame_time = 1.0 / settings.video.max_framerate;
 
-            u64 now = SDL_GetTicksNS();
-            u64 delta = now - input.last_frame;
-            f32 delta_seconds = SDL_NS_TO_SECONDS((f32)delta);
+            f32 delta_seconds = time_delta_seconds(real.time);
 
             f32 sleep_time = frame_time - delta_seconds;
             if (sleep_time > 0.0)

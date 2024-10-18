@@ -2,6 +2,7 @@
 
 #include "box2d/box2d.h"
 #include "sensible_nums.h"
+#include "time/fixed.h"
 
 typedef struct
 {
@@ -22,6 +23,6 @@ typedef struct
     void *userdata;
 } SensorUserdata;
 
-void physics_init(Physics *physics);
-void physics_update(Physics *physics);
+void physics_init(Physics *Physics);
+void physics_update(Physics *physics, TimeFixed fixed);
 void physics_free(Physics *physics);

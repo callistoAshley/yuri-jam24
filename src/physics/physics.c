@@ -10,9 +10,9 @@ void physics_init(Physics *physics)
     physics->debug_draw = false;
 }
 
-void physics_update(Physics *physics)
+void physics_update(Physics *physics, TimeFixed fixed)
 {
-    f32 timestep = 1.0f / FIXED_STEPS_PER_SEC;
+    f32 timestep = duration_as_secs(fixed.time.delta);
     i32 substeps = 5;
 
     b2World_Step(physics->world, timestep, substeps);
