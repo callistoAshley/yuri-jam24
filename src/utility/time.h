@@ -2,7 +2,7 @@
 
 #include "sensible_nums.h"
 
-// Somewhat inspired by Rust's std::time::Duration, this represents a span of
+// Somewhat inspired by Rust's std_time_Duration, this represents a span of
 // time.
 // Durations are represented as nanoseconds.
 typedef struct
@@ -24,7 +24,7 @@ f64 duration_as_secs_f64(Duration duration);
 Duration duration_sub(Duration duration, Duration other);
 Duration duration_add(Duration duration, Duration other);
 
-// Instants are inspired by Rust's std::time::Instant, representing a fixed
+// Instants are inspired by Rust's std_time_Instant, representing a fixed
 // point in time. Barring platform bugs the should be nondecreasing.
 typedef struct
 {
