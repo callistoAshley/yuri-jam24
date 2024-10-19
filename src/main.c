@@ -30,6 +30,7 @@
 #include "events/event_loader.h"
 #include "player.h"
 #include "physics/physics.h"
+#include "scenes/fmod_logo.h"
 #include "scenes/map.h"
 #include "scenes/scene.h"
 #include "debug/debug_window.h"
@@ -131,7 +132,7 @@ int main(int argc, char **argv)
     ImGui_ImplWGPU_Init(&imgui_init_info);
 
     Scene *scene_data;
-    SceneInterface scene = TITLE_SCENE;
+    SceneInterface scene = FMOD_LOGO_SCENE;
 
     TimeReal real = time_real_new();
     TimeVirt virt = time_virt_new();
