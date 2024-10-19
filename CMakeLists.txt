@@ -46,8 +46,6 @@ add_subdirectory(vendor/cglm/)
 
 add_subdirectory(vendor/accesskit-c)
 
-add_subdirectory(vendor/libxml2)
-
 add_subdirectory(vendor/tmx)
 
 include_directories(
