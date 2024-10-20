@@ -8,6 +8,11 @@ typedef struct
     {
         // go to an instruction
         Code_Goto,
+        // go to an instruction if the specified condition is false
+        Code_GotoIf,
+
+        // Pop something off of the stack
+        Code_Pop,
 
         // unary ops
         Code_Negate,

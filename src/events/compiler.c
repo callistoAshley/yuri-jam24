@@ -18,6 +18,19 @@ static void advance(Compiler *compiler)
     lexer_next(&compiler->lexer, &compiler->current);
 }
 
+static bool check(Compiler *compiler, TokenType type)
+{
+    return compiler->current.type == type;
+}
+
+static bool match(Compiler *compiler, TokenType type)
+{
+    if (!check(compiler, type))
+        return false;
+    advance(compiler);
+    return true;
+}
+
 static void emit(Compiler *compiler, Instruction instruction)
 {
     vec_push(&compiler->instructions, &instruction);
@@ -116,6 +129,10 @@ typedef struct
 } ParseRule;
 
 static void expression(Compiler *compiler);
+// we don't support defining things (aside from
+// labels, but those are special anyway) so we
+// don't need to handle declarations
+static void statement(Compiler *compiler);
 static const ParseRule *get_rule(TokenType type);
 static void parse_precedence(Compiler *compiler, Precendence precedence);
 
@@ -279,6 +296,15 @@ static void expression(Compiler *compiler)
     parse_precedence(compiler, Prec_Set);
 }
 
+static void expression_statement(Compiler *compiler)
+{
+    expression(compiler);
+    consume(compiler, Token_Semicolon, "Expected ; after expression");
+    emit_basic(compiler, Code_Pop);
+}
+
+static void statement(Compiler *compiler) { expression_statement(compiler); }
+
 bool compiler_compile(Compiler *compiler, Event *event)
 {
     if (lexer_eof(&compiler->lexer))
@@ -292,9 +318,10 @@ bool compiler_compile(Compiler *compiler, Event *event)
     event->name = compiler->previous.data.string;
     consume(compiler, Token_BraceL, "Expected {");
 
-    expression(compiler);
-
-    consume(compiler, Token_BraceR, "Expected }");
+    while (!match(compiler, Token_BraceR))
+    {
+        statement(compiler);
+    }
 
     event->instructions_len = compiler->instructions.len;
     event->instructions = (Instruction *)compiler->instructions.data;

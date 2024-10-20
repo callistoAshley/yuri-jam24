@@ -8,6 +8,12 @@ void print_instruction(Instruction instruction)
     case Code_Goto:
         printf("goto %d", instruction.data.instruction);
         break;
+    case Code_GotoIf:
+        printf("goto (conditional) %d", instruction.data.instruction);
+        break;
+    case Code_Pop:
+        printf("pop");
+        break;
     case Code_Negate:
         printf("negate");
         break;
