@@ -13,6 +13,10 @@ typedef struct
 
         // Pop something off of the stack
         Code_Pop,
+        // Fetch a value from a slot
+        Code_Fetch,
+        // Set a value in a slot
+        Code_Set,
 
         // unary ops
         Code_Negate,
@@ -45,6 +49,9 @@ typedef struct
     {
         // goto this instruction
         u32 instruction;
+
+        // the slot to fetch/set to/from
+        u32 slot;
 
         // the integer value
         i32 _int;

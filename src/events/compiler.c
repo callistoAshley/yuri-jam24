@@ -3,11 +3,43 @@
 #include "events/instruction.h"
 #include "utility/macros.h"
 #include "utility/vec.h"
+#include <string.h>
 
 void compiler_init(Compiler *compiler, const char *source)
 {
     lexer_init(&compiler->lexer, source);
 }
+
+typedef enum
+{
+    Prec_None,
+    Prec_Set,     // =
+    Prec_Or,      // |
+    Prec_And,     // &
+    Prec_Equals,  // ==
+    Prec_Compare, // <, >, <=, >=
+    Prec_Term,    // +, -
+    Prec_Factor,  // *, /, %
+    Prec_Unary,   // !, -
+    Prec_Call,    // ()
+    Prec_Primary
+} Precendence;
+
+typedef void (*ParseFn)(Compiler *compiler, bool can_assign);
+typedef struct
+{
+    ParseFn prefix;
+    ParseFn infix;
+    Precendence precedence;
+} ParseRule;
+
+static void expression(Compiler *compiler);
+// we don't support defining things (aside from
+// labels, but those are special anyway) so we
+// don't need to handle declarations
+static void statement(Compiler *compiler);
+static const ParseRule *get_rule(TokenType type);
+static void parse_precedence(Compiler *compiler, Precendence precedence);
 
 // quite a lot of this is copied from
 // https://craftinginterpreters.com/compiling-expressions.html#a-pratt-parser
@@ -31,64 +63,6 @@ static bool match(Compiler *compiler, TokenType type)
     return true;
 }
 
-static void emit(Compiler *compiler, Instruction instruction)
-{
-    vec_push(&compiler->instructions, &instruction);
-}
-
-static void emit_basic(Compiler *compiler, InstructionCode code)
-{
-    Instruction instruction = {.code = code};
-    emit(compiler, instruction);
-}
-
-// emits an integer, assuming the previous consumed token was an int.
-// it is undefined behaviour if this is not the case.
-static void emit_int(Compiler *compiler)
-{
-    Instruction instruction = {
-        .code = Code_Int,
-        .data._int = compiler->previous.data._int,
-    };
-    emit(compiler, instruction);
-}
-
-static void emit_float(Compiler *compiler)
-{
-    Instruction instruction = {
-        .code = Code_Float,
-        .data._float = compiler->previous.data._float,
-    };
-    emit(compiler, instruction);
-}
-
-static void emit_string(Compiler *compiler)
-{
-    Instruction instruction = {
-        .code = Code_String,
-        .data.string = compiler->previous.data.string,
-    };
-    emit(compiler, instruction);
-}
-
-static void emit_keyword_literal(Compiler *compiler)
-{
-    switch (compiler->previous.type)
-    {
-    case Token_False:
-        emit_basic(compiler, Code_False);
-        break;
-    case Token_True:
-        emit_basic(compiler, Code_True);
-        break;
-    case Token_None:
-        emit_basic(compiler, Code_None);
-        break;
-    default:
-        return; // unreachable
-    }
-}
-
 // advances the compiler, and throws an error if the next token did not match
 // the expected token type.
 static void consume(Compiler *compiler, TokenType expected, const char *err)
@@ -105,46 +79,114 @@ static void consume(Compiler *compiler, TokenType expected, const char *err)
     exit(1);
 }
 
-typedef enum
+static void emit(Compiler *compiler, Instruction instruction)
 {
-    Prec_None,
-    Prec_Set,     // =
-    Prec_Or,      // |
-    Prec_And,     // &
-    Prec_Equals,  // ==
-    Prec_Compare, // <, >, <=, >=
-    Prec_Term,    // +, -
-    Prec_Factor,  // *, /, %
-    Prec_Unary,   // !, -
-    Prec_Call,    // ()
-    Prec_Primary
-} Precendence;
+    vec_push(&compiler->instructions, &instruction);
+}
 
-typedef void (*ParseFn)(Compiler *compiler);
-typedef struct
+static void emit_basic(Compiler *compiler, InstructionCode code)
 {
-    ParseFn prefix;
-    ParseFn infix;
-    Precendence precedence;
-} ParseRule;
+    Instruction instruction = {.code = code};
+    emit(compiler, instruction);
+}
 
-static void expression(Compiler *compiler);
-// we don't support defining things (aside from
-// labels, but those are special anyway) so we
-// don't need to handle declarations
-static void statement(Compiler *compiler);
-static const ParseRule *get_rule(TokenType type);
-static void parse_precedence(Compiler *compiler, Precendence precedence);
+// emits an integer, assuming the previous consumed token was an int.
+// it is undefined behaviour if this is not the case.
+static void emit_int(Compiler *compiler, bool can_assign)
+{
+    (void)can_assign;
+    Instruction instruction = {
+        .code = Code_Int,
+        .data._int = compiler->previous.data._int,
+    };
+    emit(compiler, instruction);
+}
+
+static void emit_float(Compiler *compiler, bool can_assign)
+{
+    (void)can_assign;
+    Instruction instruction = {
+        .code = Code_Float,
+        .data._float = compiler->previous.data._float,
+    };
+    emit(compiler, instruction);
+}
+
+static void emit_string(Compiler *compiler, bool can_assign)
+{
+    (void)can_assign;
+    Instruction instruction = {
+        .code = Code_String,
+        .data.string = compiler->previous.data.string,
+    };
+    emit(compiler, instruction);
+}
+
+static void emit_keyword_literal(Compiler *compiler, bool can_assign)
+{
+    (void)can_assign;
+    switch (compiler->previous.type)
+    {
+    case Token_False:
+        emit_basic(compiler, Code_False);
+        break;
+    case Token_True:
+        emit_basic(compiler, Code_True);
+        break;
+    case Token_None:
+        emit_basic(compiler, Code_None);
+        break;
+    default:
+        return; // unreachable
+    }
+}
+
+// TODO free variable name
+static u32 get_or_insert_variable(Compiler *compiler, const char *name)
+{
+    for (u32 i = 0; i < compiler->variables.len; i++)
+    {
+        char *var = *(char **)vec_get(&compiler->variables, i);
+        if (!strcmp(name, var))
+            return i;
+    }
+
+    // looks like this variable hasn't been used yet.
+    // push it to the array and return the slot
+    u32 slot = compiler->variables.len;
+    vec_push(&compiler->variables, &name);
+    return slot;
+}
+
+static void variable(Compiler *compiler, bool can_assign)
+{
+    char *variable = compiler->previous.data.ident;
+    u32 slot = get_or_insert_variable(compiler, variable);
+
+    Instruction instruction = {.data.slot = slot};
+    if (can_assign && match(compiler, Token_Set))
+    {
+        instruction.code = Code_Set;
+        expression(compiler);
+    }
+    else
+    {
+        instruction.code = Code_Fetch;
+    }
+    emit(compiler, instruction);
+}
 
 // assumes the initial ( was consumed
-static void grouping(Compiler *compiler)
+static void grouping(Compiler *compiler, bool can_assign)
 {
+    (void)can_assign;
     expression(compiler);
     consume(compiler, Token_ParenR, "Expected )");
 }
 
-static void binary(Compiler *compiler)
+static void binary(Compiler *compiler, bool can_assign)
 {
+    (void)can_assign;
     TokenType op = compiler->previous.type;
     const ParseRule *rule = get_rule(op);
     parse_precedence(compiler, rule->precedence + 1);
@@ -194,8 +236,9 @@ static void binary(Compiler *compiler)
     }
 }
 
-static void unary(Compiler *compiler)
+static void unary(Compiler *compiler, bool can_assign)
 {
+    (void)can_assign;
     TokenType op_type = compiler->previous.type;
 
     // compile the operand
@@ -233,7 +276,7 @@ const ParseRule rules[] = {
     [Token_False] = {emit_keyword_literal, NULL, Prec_None},
 
     // special
-    [Token_Ident] = NULL_RULE,
+    [Token_Ident] = {variable, NULL, Prec_None},
     [Token_Label] = NULL_RULE,
 
     // braces
@@ -281,13 +324,14 @@ static void parse_precedence(Compiler *compiler, Precendence precedence)
     if (rule->prefix == NULL)
         FATAL("Expected expression\n");
 
-    rule->prefix(compiler);
+    bool can_assign = precedence <= Prec_Set;
+    rule->prefix(compiler, can_assign);
 
     while (precedence <= get_rule(compiler->current.type)->precedence)
     {
         advance(compiler);
         rule = get_rule(compiler->previous.type);
-        rule->infix(compiler);
+        rule->infix(compiler, can_assign);
     }
 }
 
@@ -311,6 +355,7 @@ bool compiler_compile(Compiler *compiler, Event *event)
         return false;
 
     vec_init(&compiler->instructions, sizeof(Instruction));
+    vec_init(&compiler->variables, sizeof(char *));
 
     advance(compiler);
     consume(compiler, Token_Event, "Expected event definition");
@@ -325,6 +370,9 @@ bool compiler_compile(Compiler *compiler, Event *event)
 
     event->instructions_len = compiler->instructions.len;
     event->instructions = (Instruction *)compiler->instructions.data;
+
+    event->slots = (char **)compiler->variables.data;
+    event->slot_count = compiler->variables.len;
 
     return true;
 }

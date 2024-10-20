@@ -15,6 +15,12 @@ typedef struct
     Token previous;
 
     vec instructions; // vec<Instruction>
+
+    // list of variables. whenever the compiler finds a mention of a variable,
+    // it adds it to this list. the compiler never emits variable names though-
+    // only "slots" that variables are stored in.
+    // the interpreter is expected to reserve these slots for variables
+    vec variables; // vec<char*>
 } Compiler;
 
 typedef struct
@@ -24,8 +30,9 @@ typedef struct
     Instruction *instructions;
     u32 instructions_len;
 
-    // number of required slots
-    u32 required_slots;
+    // used for debug information
+    char **slots;
+    u32 slot_count;
 } Event;
 
 void compiler_init(Compiler *compiler, const char *source);

@@ -125,6 +125,12 @@ int main(int argc, char **argv)
         printf("\n");
     }
 
+    for (u32 i = 0; i < compiler.variables.len; i++)
+    {
+        char *variable = *(char **)vec_get(&compiler.variables, i);
+        printf("variable %s is in slot %d\n", variable, i);
+    }
+
     return 0;
 
     WGPUMultisampleState multisample_state = {

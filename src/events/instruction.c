@@ -14,6 +14,12 @@ void print_instruction(Instruction instruction)
     case Code_Pop:
         printf("pop");
         break;
+    case Code_Fetch:
+        printf("fetch %d", instruction.data.slot);
+        break;
+    case Code_Set:
+        printf("set %d", instruction.data.slot);
+        break;
     case Code_Negate:
         printf("negate");
         break;
@@ -30,7 +36,7 @@ void print_instruction(Instruction instruction)
         printf("multiply");
         break;
     case Code_Div:
-        printf("divode");
+        printf("divide");
         break;
     case Code_Mod:
         printf("modulo");
