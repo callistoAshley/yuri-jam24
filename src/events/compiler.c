@@ -44,6 +44,7 @@ static void parse_precedence(Compiler *compiler, Precendence precedence);
 // quite a lot of this is copied from
 // https://craftinginterpreters.com/compiling-expressions.html#a-pratt-parser
 
+// TODO handle EOF
 static void advance(Compiler *compiler)
 {
     compiler->previous = compiler->current;
@@ -340,6 +341,16 @@ static void expression(Compiler *compiler)
     parse_precedence(compiler, Prec_Set);
 }
 
+static void block(Compiler *compiler)
+{
+    while (!check(compiler, Token_BraceR) && !lexer_eof(&compiler->lexer))
+    {
+        statement(compiler);
+    }
+
+    consume(compiler, Token_BraceR, "Expected }");
+}
+
 static void expression_statement(Compiler *compiler)
 {
     expression(compiler);
@@ -347,7 +358,19 @@ static void expression_statement(Compiler *compiler)
     emit_basic(compiler, Code_Pop);
 }
 
-static void statement(Compiler *compiler) { expression_statement(compiler); }
+// we could probably remove statements and make them behave like rust does...
+static void statement(Compiler *compiler)
+{
+    // we don't do scopes, so blocks don't do much aside reduce visual clutter
+    if (match(compiler, Token_BraceL))
+    {
+        block(compiler);
+    }
+    else
+    {
+        expression_statement(compiler);
+    }
+}
 
 bool compiler_compile(Compiler *compiler, Event *event)
 {
