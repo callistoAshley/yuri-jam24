@@ -1,14 +1,11 @@
-#include "SDL3/SDL_events.h"
-#include "SDL3/SDL_timer.h"
-#include "SDL3/SDL_video.h"
-#include "events/lexer.h"
+#include "events/compiler.h"
+#include "events/instruction.h"
 #include "scenes/title.h"
 #include "settings.h"
 #include "time/fixed.h"
 #include "time/real.h"
 #include "time/virt.h"
 #include "utility/files.h"
-#include "webgpu.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -115,121 +112,19 @@ int main(int argc, char **argv)
     char *out;
     read_entire_file(files[0], &out, NULL);
 
-    Lexer lexer;
-    lexer_init(&lexer, out);
+    Compiler compiler;
+    compiler_init(&compiler, out);
 
-    Token token;
-    while (lexer_next(&lexer, &token))
+    Event event;
+    compiler_compile(&compiler, &event);
+    printf("Event name %s\n", event.name);
+
+    for (u32 i = 0; i < event.instructions_len; i++)
     {
-        switch (token.type)
-        {
-        case Token_Event:
-            printf("Event");
-            break;
-        case Token_Goto:
-            printf("Goto");
-            break;
-        case Token_If:
-            printf("If");
-            break;
-        case Token_Loop:
-            printf("Loop");
-            break;
-        case Token_Op:
-        {
-            printf("Op ");
-            switch (token.data.op)
-            {
-            case Op_Set:
-                printf("Set");
-                break;
-            case Op_Equals:
-                printf("Equals");
-                break;
-            case Op_NotEq:
-                printf("Not Eq");
-                break;
-            case Op_Less:
-                printf("Less");
-                break;
-            case Op_LessEq:
-                printf("Less Eq");
-                break;
-            case Op_Greater:
-                printf("Greater");
-                break;
-            case Op_GreaterEq:
-                printf("Greater Eq");
-                break;
-            case Op_Not:
-                printf("Not");
-                break;
-            case Op_And:
-                printf("And");
-                break;
-            case Op_Or:
-                printf("Or");
-                break;
-            case Op_Plus:
-                printf("Plus");
-                break;
-            case Op_Minus:
-                printf("Minus");
-                break;
-            case Op_Mult:
-                printf("Mult");
-                break;
-            case Op_Div:
-                printf("Div");
-                break;
-            case Op_Mod:
-                printf("Mod");
-                break;
-            }
-            break;
-        }
-        case Token_None:
-            printf("None");
-            break;
-        case Token_True:
-            printf("True");
-            break;
-        case Token_False:
-            printf("False");
-            break;
-        case Token_BraceL:
-            printf("Brace L");
-            break;
-        case Token_BraceR:
-            printf("Brace R");
-            break;
-        case Token_ParenL:
-            printf("Paren L");
-            break;
-        case Token_ParenR:
-            printf("Paren R");
-            break;
-        case Token_Comma:
-            printf("Comma");
-            break;
-        case Token_Ident:
-            printf("Ident: %s", token.data.ident);
-            break;
-        case Token_Label:
-            printf("Label: %s", token.data.label);
-            break;
-        case Token_String:
-            printf("String: %s", token.data.string);
-            break;
-        case Token_Int:
-            printf("Int: %d", token.data._int);
-            break;
-        case Token_Float:
-            printf("Float: %f", token.data._float);
-            break;
-        }
+        print_instruction(event.instructions[i]);
         printf("\n");
     }
+
     return 0;
 
     WGPUMultisampleState multisample_state = {

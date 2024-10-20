@@ -6,12 +6,13 @@ typedef struct
 {
     enum TokenType
     {
+        Token_Semicolon,
         // keywords
         Token_Event,
         Token_Goto,
         Token_If,
+        Token_Else,
         Token_Loop,
-        Token_Op,
         // keyword values
         Token_None,
         Token_True,
@@ -33,6 +34,27 @@ typedef struct
         Token_String,
         Token_Int,
         Token_Float,
+
+        Token_Set,
+
+        Token_Equals,
+        Token_NotEq,
+
+        Token_Less,
+        Token_LessEq,
+
+        Token_Greater,
+        Token_GreaterEq,
+
+        Token_Not,
+        Token_And,
+        Token_Or,
+
+        Token_Plus,
+        Token_Minus,
+        Token_Mult,
+        Token_Div,
+        Token_Mod,
     } type;
 
     union TokenData
@@ -42,37 +64,11 @@ typedef struct
         char *label;
         i32 _int;
         f32 _float;
-
-        // operators <, <=, etc..
-        enum OpType
-        {
-            Op_Set,
-
-            Op_Equals,
-            Op_NotEq,
-
-            Op_Less,
-            Op_LessEq,
-
-            Op_Greater,
-            Op_GreaterEq,
-
-            Op_Not,
-            Op_And,
-            Op_Or,
-
-            Op_Plus,
-            Op_Minus,
-            Op_Mult,
-            Op_Div,
-            Op_Mod,
-        } op;
     } data;
 } Token;
 
 typedef enum TokenType TokenType;
 typedef union TokenData TokenData;
-typedef enum OpType OpType;
 typedef struct
 {
     const char *start;
@@ -82,3 +78,6 @@ typedef struct
 void lexer_init(Lexer *lexer, const char *src);
 // returns true if there are any more tokens
 bool lexer_next(Lexer *lexer, Token *token);
+bool lexer_eof(Lexer *lexer);
+
+void token_debug_printf(Token token);

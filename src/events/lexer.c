@@ -1,5 +1,6 @@
 #include "lexer.h"
 #include "utility/macros.h"
+#include <stdio.h>
 #include <string.h>
 
 void lexer_init(Lexer *lexer, const char *src)
@@ -8,16 +9,16 @@ void lexer_init(Lexer *lexer, const char *src)
     lexer->current = src;
 }
 
-static char lexer_read(Lexer *lexer)
+static char read(Lexer *lexer)
 {
     char character = *lexer->current;
     lexer->current++;
     return character;
 }
 
-static bool lexer_eof(Lexer *lexer) { return *lexer->current == '\0'; }
+bool lexer_eof(Lexer *lexer) { return *lexer->current == '\0'; }
 
-static char lexer_peek(Lexer *lexer)
+static char peek(Lexer *lexer)
 {
     char character = *lexer->current;
     return character;
@@ -29,27 +30,21 @@ static Token basic_token(TokenType type)
     return token;
 }
 
-static Token op_token(OpType op)
-{
-    Token token = {.type = Token_Op, .data.op = op};
-    return token;
-}
-
-static bool lexer_match(Lexer *lexer, char expected)
+static bool match(Lexer *lexer, char expected)
 {
     if (lexer_eof(lexer))
         return false;
-    if (lexer_peek(lexer) != expected)
+    if (peek(lexer) != expected)
         return false;
-    lexer_read(lexer);
+    read(lexer);
     return true;
 }
 
-static void lexer_skip_whitespace(Lexer *lexer)
+static void skip_whitespace(Lexer *lexer)
 {
     for (;;)
     {
-        char c = lexer_peek(lexer);
+        char c = peek(lexer);
         switch (c)
         {
         // comments aren't really whitepace but they're convenient to handle
@@ -57,15 +52,15 @@ static void lexer_skip_whitespace(Lexer *lexer)
         case '#':
         {
             // read until we find a newline
-            while (lexer_peek(lexer) != '\n' && !lexer_eof(lexer))
-                lexer_read(lexer);
+            while (peek(lexer) != '\n' && !lexer_eof(lexer))
+                read(lexer);
             break;
         }
         case ' ':
         case '\r':
         case '\t':
         case '\n':
-            lexer_read(lexer);
+            read(lexer);
             break;
         default:
             return;
@@ -73,12 +68,12 @@ static void lexer_skip_whitespace(Lexer *lexer)
     }
 }
 
-static Token lexer_read_string(Lexer *lexer)
+static Token read_string(Lexer *lexer)
 {
     // read until we hit closing quote or eof
-    while (lexer_peek(lexer) != '"' && !lexer_eof(lexer))
+    while (peek(lexer) != '"' && !lexer_eof(lexer))
     {
-        lexer_read(lexer);
+        read(lexer);
     }
 
     // throw an error if eof
@@ -86,7 +81,7 @@ static Token lexer_read_string(Lexer *lexer)
         FATAL("Unterminated event string!");
 
     // closing quote
-    lexer_read(lexer);
+    read(lexer);
 
     // subtract 2 for opening and closing quotes
     usize string_len = lexer->current - lexer->start - 2;
@@ -107,23 +102,23 @@ static bool is_alpha(char c)
     return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z') || c == '_';
 }
 
-static Token lexer_read_number(Lexer *lexer)
+static Token read_number(Lexer *lexer)
 {
-    while (is_numeric(lexer_peek(lexer)))
-        lexer_read(lexer);
+    while (is_numeric(peek(lexer)))
+        read(lexer);
 
     // we don't need to check if the thing after the . is numeric because we
     // don't support method calls. lmao
     bool is_float = false;
     // . means float
-    if (lexer_peek(lexer) == '.')
+    if (peek(lexer) == '.')
     {
         is_float = true;
         // consume the '.'
-        lexer_read(lexer);
+        read(lexer);
 
-        while (is_numeric(lexer_peek(lexer)))
-            lexer_read(lexer);
+        while (is_numeric(peek(lexer)))
+            read(lexer);
     }
 
     // 64 digits is probably enough right? right.
@@ -151,16 +146,16 @@ static Token lexer_read_number(Lexer *lexer)
     return token;
 }
 
-static Token lexer_read_text(Lexer *lexer)
+static Token read_text(Lexer *lexer)
 {
     bool is_label = false;
-    char c = lexer_peek(lexer);
+    char c = peek(lexer);
     while (is_numeric(c) || is_alpha(c) || c == ':')
     {
         if (c == ':')
             is_label = true;
-        lexer_read(lexer);
-        c = lexer_peek(lexer);
+        read(lexer);
+        c = peek(lexer);
     }
 
     usize text_len = lexer->current - lexer->start;
@@ -182,6 +177,11 @@ static Token lexer_read_text(Lexer *lexer)
             return token;
         }
         if (!strncmp(lexer->start, "if", text_len))
+        {
+            token.type = Token_If;
+            return token;
+        }
+        if (!strncmp(lexer->start, "else", text_len))
         {
             token.type = Token_If;
             return token;
@@ -232,29 +232,33 @@ static Token lexer_read_text(Lexer *lexer)
 
 bool lexer_next(Lexer *lexer, Token *token)
 {
-    lexer_skip_whitespace(lexer);
+    skip_whitespace(lexer);
     lexer->start = lexer->current;
 
     if (lexer_eof(lexer))
         return false;
 
-    char c = lexer_read(lexer);
+    char c = read(lexer);
 
     if (is_numeric(c))
     {
-        *token = lexer_read_number(lexer);
+        *token = read_number(lexer);
         return true;
     }
 
     if (is_alpha(c))
     {
-        *token = lexer_read_text(lexer);
+        *token = read_text(lexer);
         return true;
     }
 
     // basic tokens
     switch (c)
     {
+    case ';':
+        *token = basic_token(Token_Semicolon);
+        return true;
+
     case '(':
         *token = basic_token(Token_ParenL);
         return true;
@@ -273,69 +277,178 @@ bool lexer_next(Lexer *lexer, Token *token)
 
     // bool ops
     case '&':
-        *token = op_token(Op_And);
+        *token = basic_token(Token_And);
         return true;
     case '|':
-        *token = op_token(Op_Or);
+        *token = basic_token(Token_Or);
         return true;
 
     // math ops
     case '-':
-        *token = op_token(Op_Minus);
+        *token = basic_token(Token_Minus);
         return true;
     case '+':
-        *token = op_token(Op_Plus);
+        *token = basic_token(Token_Plus);
         return true;
     case '*':
-        *token = op_token(Op_Mult);
+        *token = basic_token(Token_Mult);
         return true;
     case '/':
-        *token = op_token(Op_Div);
+        *token = basic_token(Token_Div);
         return true;
     case '%':
-        *token = op_token(Op_Mod);
+        *token = basic_token(Token_Mod);
         return true;
 
     // 2-char ops
     case '!':
     {
-        if (lexer_match(lexer, '='))
-            *token = op_token(Op_NotEq);
+        if (match(lexer, '='))
+            *token = basic_token(Token_NotEq);
         else
-            *token = op_token(Op_Not);
+            *token = basic_token(Token_Not);
         return true;
     }
     case '=':
     {
-        if (lexer_match(lexer, '='))
-            *token = op_token(Op_Equals);
+        if (match(lexer, '='))
+            *token = basic_token(Token_Equals);
         else
-            *token = op_token(Op_Set);
+            *token = basic_token(Token_Set);
         return true;
     }
     case '<':
     {
-        if (lexer_match(lexer, '='))
-            *token = op_token(Op_LessEq);
+        if (match(lexer, '='))
+            *token = basic_token(Token_LessEq);
         else
-            *token = op_token(Op_Less);
+            *token = basic_token(Token_Less);
         return true;
     }
     case '>':
     {
-        if (lexer_match(lexer, '='))
-            *token = op_token(Op_GreaterEq);
+        if (match(lexer, '='))
+            *token = basic_token(Token_GreaterEq);
         else
-            *token = op_token(Op_Greater);
+            *token = basic_token(Token_Greater);
         return true;
     }
 
     // literals
     case '"':
-        *token = lexer_read_string(lexer);
+        *token = read_string(lexer);
         return true;
     }
 
     // we couldn't handle this character. throw an error
     FATAL("Failed to handle character %c", c);
+}
+
+void token_debug_printf(Token token)
+{
+    switch (token.type)
+    {
+    case Token_Semicolon:
+        printf(";");
+        break;
+    case Token_Event:
+        printf("event");
+        break;
+    case Token_Goto:
+        printf("goto");
+        break;
+    case Token_If:
+        printf("if");
+        break;
+    case Token_Else:
+        printf("else");
+        break;
+    case Token_Loop:
+        printf("loop");
+        break;
+    case Token_None:
+        printf("none");
+        break;
+    case Token_True:
+        printf("true");
+        break;
+    case Token_False:
+        printf("false");
+        break;
+    case Token_Ident:
+        printf("%s", token.data.ident);
+        break;
+    case Token_Label:
+        printf("%s", token.data.label);
+        break;
+    case Token_BraceL:
+        printf("{");
+        break;
+    case Token_BraceR:
+        printf("}");
+        break;
+    case Token_ParenL:
+        printf("(");
+        break;
+    case Token_ParenR:
+        printf(")");
+        break;
+    case Token_Comma:
+        printf(",");
+        break;
+    case Token_String:
+        printf("'%s'", token.data.string);
+        break;
+    case Token_Int:
+        printf("%d", token.data._int);
+        break;
+    case Token_Float:
+        printf("%f", token.data._float);
+        break;
+    case Token_Set:
+        printf("=");
+        break;
+    case Token_Equals:
+        printf("==");
+        break;
+    case Token_NotEq:
+        printf("!=");
+        break;
+    case Token_Less:
+        printf("<");
+        break;
+    case Token_LessEq:
+        printf("<=");
+        break;
+    case Token_Greater:
+        printf(">");
+        break;
+    case Token_GreaterEq:
+        printf(">=");
+        break;
+    case Token_Not:
+        printf("!");
+        break;
+    case Token_And:
+        printf("&");
+        break;
+    case Token_Or:
+        printf("|");
+        break;
+    case Token_Plus:
+        printf("+");
+        break;
+    case Token_Minus:
+        printf("-");
+        break;
+    case Token_Mult:
+        printf("*");
+        break;
+    case Token_Div:
+        printf("/");
+        break;
+    case Token_Mod:
+        printf("%%");
+        break;
+    }
 }

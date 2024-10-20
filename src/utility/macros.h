@@ -3,9 +3,11 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#define FATAL(...)                                                             \
+#define FATAL_ERR_MSG(...)                                                     \
     fprintf(stderr, "%s:%d#%s\n", __FILE__, __LINE__, __func__),               \
-        fprintf(stderr, __VA_ARGS__), exit(1);
+        fprintf(stderr, __VA_ARGS__)
+
+#define FATAL(...) FATAL_ERR_MSG(__VA_ARGS__), exit(1);
 
 #define SDL_ERRCHK(expr, msg)                                                  \
     {                                                                          \
