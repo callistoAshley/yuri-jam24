@@ -37,7 +37,7 @@ typedef struct
 
         Token_Set,
 
-        Token_Equals,
+        Token_Eq,
         Token_NotEq,
 
         Token_Less,

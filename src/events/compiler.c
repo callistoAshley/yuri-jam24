@@ -40,6 +40,42 @@ static void emit_int(Compiler *compiler)
     emit(compiler, instruction);
 }
 
+static void emit_float(Compiler *compiler)
+{
+    Instruction instruction = {
+        .code = Code_Float,
+        .data._float = compiler->previous.data._float,
+    };
+    emit(compiler, instruction);
+}
+
+static void emit_string(Compiler *compiler)
+{
+    Instruction instruction = {
+        .code = Code_String,
+        .data.string = compiler->previous.data.string,
+    };
+    emit(compiler, instruction);
+}
+
+static void emit_keyword_literal(Compiler *compiler)
+{
+    switch (compiler->previous.type)
+    {
+    case Token_False:
+        emit_basic(compiler, Code_False);
+        break;
+    case Token_True:
+        emit_basic(compiler, Code_True);
+        break;
+    case Token_None:
+        emit_basic(compiler, Code_None);
+        break;
+    default:
+        return; // unreachable
+    }
+}
+
 // advances the compiler, and throws an error if the next token did not match
 // the expected token type.
 static void consume(Compiler *compiler, TokenType expected, const char *err)
@@ -98,6 +134,7 @@ static void binary(Compiler *compiler)
 
     switch (op)
     {
+    // math ops
     case Token_Plus: // +
         emit_basic(compiler, Code_Add);
         break;
@@ -113,6 +150,27 @@ static void binary(Compiler *compiler)
     case Token_Mod: // %
         emit_basic(compiler, Code_Mod);
         break;
+
+    // comparison ops
+    case Token_Eq: // ==
+        emit_basic(compiler, Code_Eq);
+        break;
+    case Token_NotEq: // !=
+        emit_basic(compiler, Code_NotEq);
+        break;
+    case Token_Greater: // >
+        emit_basic(compiler, Code_Greater);
+        break;
+    case Token_GreaterEq: // >=
+        emit_basic(compiler, Code_GreaterEq);
+        break;
+    case Token_Less: // <
+        emit_basic(compiler, Code_Less);
+        break;
+    case Token_LessEq: // <=
+        emit_basic(compiler, Code_LessEq);
+        break;
+
     // should be unreachable
     default:
         return;
@@ -153,9 +211,9 @@ const ParseRule rules[] = {
     [Token_Else] = NULL_RULE,
     [Token_Loop] = NULL_RULE,
     // keyword values
-    [Token_None] = NULL_RULE,
-    [Token_True] = NULL_RULE,
-    [Token_False] = NULL_RULE,
+    [Token_None] = {emit_keyword_literal, NULL, Prec_None},
+    [Token_True] = {emit_keyword_literal, NULL, Prec_None},
+    [Token_False] = {emit_keyword_literal, NULL, Prec_None},
 
     // special
     [Token_Ident] = NULL_RULE,
@@ -171,22 +229,22 @@ const ParseRule rules[] = {
     [Token_Comma] = NULL_RULE,
 
     // literals
-    [Token_String] = NULL_RULE,
+    [Token_String] = {emit_string, NULL, Prec_None},
     [Token_Int] = {emit_int, NULL, Prec_None},
-    [Token_Float] = NULL_RULE,
+    [Token_Float] = {emit_float, NULL, Prec_None},
 
     [Token_Set] = NULL_RULE,
 
     // equality
-    [Token_Equals] = NULL_RULE,
-    [Token_NotEq] = NULL_RULE,
-    [Token_Less] = NULL_RULE,
-    [Token_LessEq] = NULL_RULE,
-    [Token_Greater] = NULL_RULE,
-    [Token_GreaterEq] = NULL_RULE,
+    [Token_Eq] = {NULL, binary, Prec_Equals},
+    [Token_NotEq] = {NULL, binary, Prec_Equals},
+    [Token_Less] = {NULL, binary, Prec_Compare},
+    [Token_LessEq] = {NULL, binary, Prec_Compare},
+    [Token_Greater] = {NULL, binary, Prec_Compare},
+    [Token_GreaterEq] = {NULL, binary, Prec_Compare},
 
     // boolean logic
-    [Token_Not] = NULL_RULE,
+    [Token_Not] = {unary, NULL, Prec_Term},
     [Token_And] = NULL_RULE,
     [Token_Or] = NULL_RULE,
 
@@ -204,7 +262,7 @@ static void parse_precedence(Compiler *compiler, Precendence precedence)
     advance(compiler);
     const ParseRule *rule = get_rule(compiler->previous.type);
     if (rule->prefix == NULL)
-        FATAL("Expected expression");
+        FATAL("Expected expression\n");
 
     rule->prefix(compiler);
 

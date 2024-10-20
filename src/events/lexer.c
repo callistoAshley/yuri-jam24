@@ -312,7 +312,7 @@ bool lexer_next(Lexer *lexer, Token *token)
     case '=':
     {
         if (match(lexer, '='))
-            *token = basic_token(Token_Equals);
+            *token = basic_token(Token_Eq);
         else
             *token = basic_token(Token_Set);
         return true;
@@ -408,7 +408,7 @@ void token_debug_printf(Token token)
     case Token_Set:
         printf("=");
         break;
-    case Token_Equals:
+    case Token_Eq:
         printf("==");
         break;
     case Token_NotEq:

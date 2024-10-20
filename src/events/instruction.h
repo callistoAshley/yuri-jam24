@@ -27,6 +27,14 @@ typedef struct
         Code_True,
         Code_False,
         Code_None,
+
+        // comparison
+        Code_Eq,
+        Code_NotEq,
+        Code_Greater,
+        Code_GreaterEq,
+        Code_Less,
+        Code_LessEq,
     } code;
     union
     {

@@ -47,5 +47,23 @@ void print_instruction(Instruction instruction)
     case Code_None:
         printf("none (literal)");
         break;
+    case Code_Eq:
+        printf("==");
+        break;
+    case Code_NotEq:
+        printf("!=");
+        break;
+    case Code_Greater:
+        printf(">");
+        break;
+    case Code_GreaterEq:
+        printf(">=");
+        break;
+    case Code_Less:
+        printf("<");
+        break;
+    case Code_LessEq:
+        printf("<=");
+        break;
     }
 }
