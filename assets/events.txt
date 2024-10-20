@@ -1,26 +1,39 @@
-=do_nothing
+event "test" {
+  # comment
+  1 # number
+  3.145 # float
+  none # nil/null
+  true # bool
+  "gay gay homosexual gay" # string
+ 
+  text("WILLOW: Ren!!")
+  
+  scratch = player_x()
+  if scratch < 0 {
+    text("woag")
+  }
 
-=intro
-WILLOW: Ren!!
-WILLOW: Reeen~~~~!! Come on, sleepyhead!
-Someone's tugging at your arm.
-...Has the sun set already? \.Ugh... \.it always goes down so early this time of year.
-You pry your eyes open to a squint and acclimatize to the light.
-Willow is giving you a displeased look.
-WILLOW: You can't just sleep all night, you know. We have a job to do!
-Oh. She must mean the night squad.
-You moan and roll over.
-SERENITY: Mmm... it can wait for my beauty sleep.
-WILLOW: ...
-AH!\. You feel yourself being pulled out of bed.
-And... an arm wrapping around your body.
+  format("hello %d %s", 0, "a")
 
-=sunbeam
-Plugging in the toaster backwards makes the whole kitchen counter a live circuit.
-...You wish you weren't speaking from experience.
+  true
+  false
+  none
 
-=test
-i am fucking transgender
-this is an event that will run
-more text
-a
+  # moar ops
+  <=
+  >=
+  ==
+  !=
+  -
+  +
+  *
+  /
+  %
+
+  loop {
+    goto LABEL
+  }
+  
+LABEL:
+  text("i've been jumped")
+}

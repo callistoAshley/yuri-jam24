@@ -1,5 +1,4 @@
 #include "map.h"
-#include "events/interpreter.h"
 #include "fmod_studio.h"
 #include "input/input.h"
 #include "player.h"
@@ -125,9 +124,6 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
         hashmap_free(&obj->properties);
     }
 
-    Event *event = linked_list_at(resources->event_loader->events, 0);
-    interpreter_init(&map_scene->interpreter, event);
-
     vec_free(&load_characters);
     tmx_map_free(map);
 }
@@ -135,8 +131,6 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
 void map_scene_update(Scene *scene_data, Resources *resources)
 {
     MapScene *map_scene = (MapScene *)scene_data;
-
-    interpreter_update(&map_scene->interpreter, resources);
 
     if (input_is_pressed(resources->input, Button_Back))
         map_scene->settings.open = true;

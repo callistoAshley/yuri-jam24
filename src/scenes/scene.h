@@ -1,6 +1,5 @@
 #pragma once
 
-#include "events/event_loader.h"
 #include "fonts/fonts.h"
 #include "graphics/graphics.h"
 #include "physics/physics.h"
@@ -42,8 +41,6 @@ typedef struct
 
     Scene **current_scene;
     SceneInterface *current_scene_interface;
-
-    EventLoader *event_loader;
 
     struct
     {

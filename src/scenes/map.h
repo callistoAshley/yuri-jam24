@@ -1,6 +1,5 @@
 #pragma once
 
-#include "events/interpreter.h"
 #include "graphics/tilemap.h"
 #include "scene.h"
 #include "player.h"
@@ -27,8 +26,6 @@ typedef struct MapScene
 
     SettingsMenu settings;
     Textbox textbox;
-
-    Interpreter interpreter;
 } MapScene;
 
 // NOTE: MUST BE PASSED TO scene_change!!!!!!

@@ -10,7 +10,8 @@ void read_entire_file(const char *path, char **out, long *len)
     void *data = SDL_LoadFile(path, &size);
 
     *out = malloc(size + 1);
-    *len = size;
+    if (len)
+        *len = size;
     (*out)[size] = '\0';
 
     memcpy(*out, data, size);
