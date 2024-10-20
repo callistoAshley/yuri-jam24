@@ -34,6 +34,7 @@
  <objectgroup id="3" name="characters" class="characters">
   <object id="4" name="a character" x="144" y="120" width="8" height="16">
    <properties>
+    <property name="event" value="=test"/>
     <property name="sprite" value="assets/textures/chr_test.png"/>
    </properties>
   </object>

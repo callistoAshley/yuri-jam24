@@ -2,11 +2,12 @@
 #include "scenes/map.h"
 #include "utility/log.h"
 #include "input/input.h"
+#include <string.h>
 
 typedef struct
 {
-    char *sprite_name;
-    char *event_name;
+    char sprite_name[256];
+    char event_name[256];
     
     Transform transform;
     TransformEntry transform_entry;
@@ -25,13 +26,15 @@ void basic_char_init(void **out, Resources *resources, MapScene *map_scene, Rect
 
     BasicCharState *state = (*out = malloc(sizeof(BasicCharState)));
     state->rect = rect;
+    memset(state->sprite_name, 0, sizeof(state->sprite_name));
+    memset(state->event_name, 0, sizeof(state->event_name));
 
     state->transform = transform_from_xyz(rect.min.x, rect.min.y, 0);
     state->transform_entry = transform_manager_add(&resources->graphics->transform_manager, state->transform);
 
-    state->sprite_name = hashmap_get(metadata, "sprite");
-    if (state->sprite_name)
+    if (hashmap_get(metadata, "sprite"))
     {
+        strncpy(state->sprite_name, hashmap_get(metadata, "sprite"), sizeof(state->sprite_name));
         state->texture = texture_manager_load(&resources->graphics->texture_manager, state->sprite_name, &resources->graphics->wgpu);
         WGPUTexture wgpu_tex = texture_manager_get_texture(&resources->graphics->texture_manager, state->texture);
         u32 width = wgpuTextureGetWidth(wgpu_tex), height = wgpuTextureGetHeight(wgpu_tex);
@@ -45,7 +48,7 @@ void basic_char_init(void **out, Resources *resources, MapScene *map_scene, Rect
         state->layer_entry = layer_add(&resources->graphics->sprite_layers.middle, &state->sprite);
     }
 
-    state->event_name = hashmap_get(metadata, "event");
+    if (hashmap_get(metadata, "event")) strncpy(state->event_name, hashmap_get(metadata, "event"), sizeof(state->event_name));
 }
 
 void basic_char_update(void *self, Resources *resources, MapScene *map_scene)
@@ -57,9 +60,18 @@ void basic_char_update(void *self, Resources *resources, MapScene *map_scene)
         (vec2s){.x = PLAYER_W, .y = PLAYER_H}
     );
 
-    if (rect_contains_other(player_rect, state->rect) && !(*map_scene->textbox.text) && input_is_pressed(resources->input, Button_Jump))
+    if (rect_contains_other(player_rect, state->rect) && input_is_pressed(resources->input, Button_Jump) && !map_scene->interpreter.event && *state->event_name)
     {
-        textbox_display_text(&map_scene->textbox, resources, "text!");
+        for (int i = 0; i < resources->event_loader->events->len; i++)
+        {
+            Event *event = linked_list_at(resources->event_loader->events, i);
+            if (!strcmp(event->name, state->event_name))
+            {
+                interpreter_init(&map_scene->interpreter, event);
+                return;
+            }
+        }
+        log_warn("No such event `%s`", state->event_name);
     }
 }
 

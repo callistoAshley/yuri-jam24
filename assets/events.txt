@@ -1,6 +1,6 @@
 =do_nothing
 
-=test
+=intro
 WILLOW: Ren!!
 WILLOW: Reeen~~~~!! Come on, sleepyhead!
 Someone's tugging at your arm.
@@ -18,3 +18,9 @@ And... an arm wrapping around your body.
 =sunbeam
 Plugging in the toaster backwards makes the whole kitchen counter a live circuit.
 ...You wish you weren't speaking from experience.
+
+=test
+i am fucking transgender
+this is an event that will run
+more text
+a

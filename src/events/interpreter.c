@@ -13,6 +13,9 @@ void interpreter_update(Interpreter *interpeter, Resources *resources)
 {
     MapScene *scene = (MapScene *)*resources->current_scene;
     f32 delta = duration_as_secs(resources->time.current.delta);
+
+    if (!interpeter->event) return;
+
     while (interpeter->instruction < interpeter->event->num_tokens)
     {
         switch (interpeter->currently)
@@ -59,4 +62,6 @@ void interpreter_update(Interpreter *interpeter, Resources *resources)
 
         interpeter->instruction++;
     }
+
+    interpeter->event = NULL;
 }
