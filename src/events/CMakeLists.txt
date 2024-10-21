@@ -3,6 +3,8 @@ set(SOURCES
     src/events/compiler.c
     src/events/instruction.c
     src/events/event.c
+    src/events/value.c
+    src/events/vm.c
     ${SOURCES}
     PARENT_SCOPE
 )

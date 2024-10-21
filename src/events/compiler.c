@@ -524,7 +524,7 @@ static bool find_label(Compiler *compiler, char *wanted, u32 *location)
         LabelDef *label = vec_get(&compiler->labels, i);
         if (!strcmp(label->label, wanted))
         {
-            *location = i;
+            *location = label->instruction;
             return true;
         }
     }

@@ -1,9 +1,11 @@
 event "test" {
-  if true & false {
-    print("Hello!");
+  i = 0;
+  loop { 
+    i = i + 1;
+    print(i);
+    if i > 15 {
+      goto EOL;
+    }
   }
-  print("oh no");
-}
-event "test2" {
-  print("electric boogaloo");
+EOL:
 }

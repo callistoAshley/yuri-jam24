@@ -1,5 +1,6 @@
 #include "events/compiler.h"
 #include "events/instruction.h"
+#include "events/vm.h"
 #include "scenes/title.h"
 #include "settings.h"
 #include "time/fixed.h"
@@ -51,6 +52,10 @@ int main(int argc, char **argv)
     while (compiler_compile(&compiler, &event))
     {
         event_disassemble(&event);
+
+        VM vm;
+        vm_init(&vm, event);
+        vm_execute(&vm);
 
         event_free(&event);
     }

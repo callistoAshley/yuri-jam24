@@ -166,42 +166,44 @@ static Token read_text(Lexer *lexer)
     // identifier is, i really couldn't be bothered
     if (!is_label)
     {
-        if (!strncmp(lexer->start, "event", text_len))
+#define TEXT_IS_KW(keyword)                                                    \
+    (text_len >= strlen(keyword) && !strncmp(lexer->start, keyword, text_len))
+        if TEXT_IS_KW ("event")
         {
             token.type = Token_Event;
             return token;
         }
-        if (!strncmp(lexer->start, "goto", text_len))
+        if TEXT_IS_KW ("goto")
         {
             token.type = Token_Goto;
             return token;
         }
-        if (!strncmp(lexer->start, "if", text_len))
+        if TEXT_IS_KW ("if")
         {
             token.type = Token_If;
             return token;
         }
-        if (!strncmp(lexer->start, "else", text_len))
+        if TEXT_IS_KW ("else")
         {
             token.type = Token_Else;
             return token;
         }
-        if (!strncmp(lexer->start, "loop", text_len))
+        if TEXT_IS_KW ("loop")
         {
-            token.type = Token_Event;
+            token.type = Token_Loop;
             return token;
         }
-        if (!strncmp(lexer->start, "true", text_len))
+        if TEXT_IS_KW ("true")
         {
             token.type = Token_True;
             return token;
         }
-        if (!strncmp(lexer->start, "false", text_len))
+        if TEXT_IS_KW ("false")
         {
             token.type = Token_False;
             return token;
         }
-        if (!strncmp(lexer->start, "none", text_len))
+        if TEXT_IS_KW ("none")
         {
             token.type = Token_None;
             return token;
