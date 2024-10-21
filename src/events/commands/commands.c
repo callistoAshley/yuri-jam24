@@ -10,6 +10,8 @@
         FATAL("wrong arity (%d) for " #name, arg_count)                        \
     }
 
+#define CLEAR_CTX(vm) memset(vm->command_ctx, 0, sizeof(vm->command_ctx));
+
 static bool cmd_printf(VM *vm, Value *out, u32 arg_count, Resources *resources)
 {
     (void)resources;
@@ -55,21 +57,12 @@ static bool cmd_wait(VM *vm, Value *out, u32 arg_count, Resources *resources)
     Value wait_val = vm_peek(vm, vm->top - 1);
     u32 wait_count = wait_val.data._int;
 
-    // looks like this is the first run
-    struct WaitCtx *ctx = vm->command_ctx;
-    if (!vm->command_ctx)
-    {
-        ctx = malloc(sizeof(*ctx));
-        ctx->count = 0;
-        vm->command_ctx = ctx;
-    }
+    struct WaitCtx *ctx = (struct WaitCtx *)vm->command_ctx;
 
     // we're done waiting, stop yielding
     if (ctx->count >= wait_count)
     {
-        free(ctx);
-        vm->command_ctx = NULL;
-
+        CLEAR_CTX(vm);
         vm_pop(vm);
         return false;
     }
@@ -81,11 +74,18 @@ static bool cmd_wait(VM *vm, Value *out, u32 arg_count, Resources *resources)
 
 static bool cmd_text(VM *vm, Value *out, u32 arg_count, Resources *resources)
 {
+    struct TextCtx
+    {
+        bool has_started;
+    };
+
     (void)out;
     ARG_ERROR("text", 1);
 
+    struct TextCtx *ctx = (struct TextCtx *)vm->command_ctx;
     MapScene *scene = (MapScene *)*resources->current_scene;
-    if (vm->command_ctx)
+
+    if (ctx->has_started)
     {
         // we've already displayed the text, and are waiting for the textbox to
         // finish.
@@ -93,16 +93,16 @@ static bool cmd_text(VM *vm, Value *out, u32 arg_count, Resources *resources)
             return true;
 
         // we're done waiting, stop yielding, and pop the argument off the stack
+        CLEAR_CTX(vm);
         vm_pop(vm);
-        vm->command_ctx = 0;
         return false;
     }
 
+    // indicate that we are waiting for the textbox to finish
     Value text_val = vm_peek(vm, vm->top - 1);
     char *text = text_val.data.string;
     textbox_display_text(&scene->textbox, resources, text);
-    vm->command_ctx =
-        (void *)1; // indicate that we are waiting for the textbox to finish
+    ctx->has_started = true;
 
     return true;
 }

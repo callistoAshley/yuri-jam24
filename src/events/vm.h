@@ -6,20 +6,19 @@
 
 #define STACK_MAX 64
 #define SLOT_MAX 64
+#define COMMAND_CTX_MAX 64
 
 typedef struct
 {
     Event event;
 
-    Value stack[64];
-    u32 top;
-
+    Value stack[STACK_MAX];
     Value slots[SLOT_MAX];
 
+    char command_ctx[COMMAND_CTX_MAX];
+
+    u32 top;
     u32 ip;
-    // commands are free to modify this pointer so they can maintain state
-    // if they yield.
-    void *command_ctx;
 } VM;
 
 void vm_init(VM *vm, Event event);

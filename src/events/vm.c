@@ -16,7 +16,7 @@ void vm_init(VM *vm, Event event)
 
     vm->ip = 0;
 
-    vm->command_ctx = NULL;
+    memset(vm->command_ctx, 0, sizeof(vm->command_ctx));
 }
 
 static inline void push(VM *vm, Value value)
