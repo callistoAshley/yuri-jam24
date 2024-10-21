@@ -1,4 +1,7 @@
 event "test" {
-  wait(15);
-  printf("done!");
+  i = 0;
+  while i < 15 {
+    printf(i);
+    i = i + 1;
+  }
 }

@@ -193,6 +193,11 @@ static Token read_text(Lexer *lexer)
             token.type = Token_Loop;
             return token;
         }
+        if TEXT_IS_KW ("while")
+        {
+            token.type = Token_While;
+            return token;
+        }
         if TEXT_IS_KW ("true")
         {
             token.type = Token_True;
@@ -451,6 +456,9 @@ void token_debug_printf(Token token)
         break;
     case Token_Mod:
         printf("%%");
+        break;
+    case Token_While:
+        printf("while");
         break;
     }
 }

@@ -13,6 +13,7 @@ typedef struct
         Token_If,
         Token_Else,
         Token_Loop,
+        Token_While,
         // keyword values
         Token_None,
         Token_True,

@@ -527,6 +527,24 @@ static void loop_statement(Compiler *compiler)
     emit_jump(compiler, Code_Goto, loop_start);
 }
 
+static void while_statement(Compiler *compiler)
+{
+    u32 loop_start = compiler->instructions.len;
+    // condition
+    expression(compiler);
+    consume(compiler, Token_BraceL, "Expected '{' after while condition");
+
+    // loop body
+    u32 exit_jump = emit_unknown_jump(compiler, Code_GotoIfFalse);
+    emit_basic(compiler, Code_Pop); // pop condition
+    block(compiler);
+    emit_jump(compiler, Code_Goto, loop_start);
+
+    patch_jump(compiler, exit_jump);
+    // pop condition (we skipped over the other pop)
+    emit_basic(compiler, Code_Pop);
+}
+
 // tries to find a label.
 // returns false if no label could be found, or true if one was found.
 // fills out the location if a label was found.
@@ -602,6 +620,10 @@ static void statement(Compiler *compiler)
     else if (match(compiler, Token_Loop))
     {
         loop_statement(compiler);
+    }
+    else if (match(compiler, Token_While))
+    {
+        while_statement(compiler);
     }
     else if (match(compiler, Token_Goto))
     {
