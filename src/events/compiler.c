@@ -658,6 +658,11 @@ static void free_label_def(usize i, void *arg)
 // we could probably remove statements and make them behave like rust does...
 static void statement(Compiler *compiler)
 {
+    if (match(compiler, Token_Event))
+    {
+        FATAL("Event definition is not allowed inside events\n");
+    }
+
     // we don't do scopes, so blocks don't do much aside reduce visual clutter
     if (match(compiler, Token_BraceL))
     {

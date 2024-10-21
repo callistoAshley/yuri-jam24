@@ -4,8 +4,8 @@
 #include "events/value.h"
 #include "scenes/scene.h"
 
-#define STACK_MAX 64
-#define SLOT_MAX 64
+#define STACK_MAX 32
+#define SLOT_MAX 32
 #define COMMAND_CTX_MAX 64
 
 typedef struct

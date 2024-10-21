@@ -21,12 +21,24 @@ void vm_init(VM *vm, Event event)
 
 static inline void push(VM *vm, Value value)
 {
+#ifdef DEBUG
+    if (vm->top >= STACK_MAX)
+    {
+        FATAL("Out of stack space!");
+    }
+#endif
     vm->stack[vm->top] = value;
     vm->top++;
 }
 
 static inline Value pop(VM *vm)
 {
+#ifdef DEBUG
+    if (vm->top == 0)
+    {
+        FATAL("No more values to pop!");
+    }
+#endif
     vm->top--;
     Value value = vm->stack[vm->top];
     return value;
