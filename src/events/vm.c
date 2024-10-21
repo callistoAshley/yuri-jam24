@@ -193,8 +193,8 @@ bool vm_execute(VM *vm, Resources *resources)
         }
         case Code_Mod:
         {
-            Value v1 = pop(vm);
             Value v2 = pop(vm);
+            Value v1 = pop(vm);
             if (!VAL_IS_INT(v1) || !VAL_IS_INT(v2))
             {
                 FATAL("Operands to %% must be integers")
@@ -223,16 +223,16 @@ bool vm_execute(VM *vm, Resources *resources)
             break;
         case Code_Eq:
         {
-            Value v1 = pop(vm);
             Value v2 = pop(vm);
+            Value v1 = pop(vm);
             bool eq = value_is_eq(v1, v2);
             push(vm, BOOL_VAL(eq));
             break;
         }
         case Code_NotEq:
         {
-            Value v1 = pop(vm);
             Value v2 = pop(vm);
+            Value v1 = pop(vm);
             bool eq = value_is_eq(v1, v2);
             push(vm, BOOL_VAL(!eq));
             break;
