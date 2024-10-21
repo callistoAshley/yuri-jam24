@@ -1,20 +1,5 @@
 event "test" {
-  a_var = 1 / (2.0 * 4.0);
-  3 <= a_var;
-
-  if a_var == 1.0 {
-    b_var = false;
-  }
-
-  if b_var {
-    2 + 2;
-  } else {
-    1 + 1;
-  }
-
-  if c_var {
-    2 * 2;
-  } else if b_var != false {
-    3 % 3;
-  }
+  printf("Hello, world!");
+  printf("%s", "fhaavdhgaj");
+  exit(-1);
 }

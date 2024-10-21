@@ -95,7 +95,7 @@ static void emit_basic(Compiler *compiler, InstructionCode code)
 static u32 emit_unknown_jump(Compiler *compiler, InstructionCode code)
 {
     u32 current_instruction = compiler->instructions.len;
-    Instruction instruction = {.code = code, .data.instruction = UINT32_MAX};
+    Instruction instruction = {.code = code, .data.position = UINT32_MAX};
     emit(compiler, instruction);
     return current_instruction;
 }
@@ -105,12 +105,12 @@ static void patch_jump(Compiler *compiler, u32 offset)
     u32 jump_pos = compiler->instructions.len;
 
     Instruction *instruction = vec_get(&compiler->instructions, offset);
-    instruction->data.instruction = jump_pos;
+    instruction->data.position = jump_pos;
 }
 
 static void emit_jump(Compiler *compiler, InstructionCode code, u32 position)
 {
-    Instruction instruction = {.code = code, .data.instruction = position};
+    Instruction instruction = {.code = code, .data.position = position};
     emit(compiler, instruction);
 }
 
@@ -165,6 +165,42 @@ static void emit_keyword_literal(Compiler *compiler, bool can_assign)
     }
 }
 
+static u32 argument_list(Compiler *compiler)
+{
+
+    u32 count = 0;
+    if (!check(compiler, Token_ParenR))
+    {
+        do
+        {
+            expression(compiler);
+            count++;
+        } while (match(compiler, Token_Comma));
+    }
+    consume(compiler, Token_ParenR, "Expected )");
+    return count;
+}
+
+// assumes the initial ( was consumed
+// we don't support calling from anything but a hardcoded identifier so that has
+// to be handled in variable()
+static void grouping(Compiler *compiler, bool can_assign)
+{
+    (void)can_assign;
+    expression(compiler);
+    consume(compiler, Token_ParenR, "Expected )");
+}
+
+static void call(Compiler *compiler, char *command)
+{
+    u32 arg_count = argument_list(compiler);
+    Instruction instruction = {
+        .code = Code_Call,
+        .data.call = {command, arg_count},
+    };
+    emit(compiler, instruction);
+}
+
 // TODO free variable name
 static u32 get_or_insert_variable(Compiler *compiler, const char *name)
 {
@@ -182,11 +218,17 @@ static u32 get_or_insert_variable(Compiler *compiler, const char *name)
     return slot;
 }
 
-static void variable(Compiler *compiler, bool can_assign)
+static void identifier(Compiler *compiler, bool can_assign)
 {
-    char *variable = compiler->previous.data.ident;
-    u32 slot = get_or_insert_variable(compiler, variable);
+    // turns out this was a command call. handle that and return immediately
+    char *ident = compiler->previous.data.ident;
+    if (match(compiler, Token_ParenL))
+    {
+        call(compiler, ident);
+        return;
+    }
 
+    u32 slot = get_or_insert_variable(compiler, ident);
     Instruction instruction = {.data.slot = slot};
     if (can_assign && match(compiler, Token_Set))
     {
@@ -198,14 +240,6 @@ static void variable(Compiler *compiler, bool can_assign)
         instruction.code = Code_Fetch;
     }
     emit(compiler, instruction);
-}
-
-// assumes the initial ( was consumed
-static void grouping(Compiler *compiler, bool can_assign)
-{
-    (void)can_assign;
-    expression(compiler);
-    consume(compiler, Token_ParenR, "Expected )");
 }
 
 static void binary(Compiler *compiler, bool can_assign)
@@ -300,14 +334,16 @@ const ParseRule rules[] = {
     [Token_False] = {emit_keyword_literal, NULL, Prec_None},
 
     // special
-    [Token_Ident] = {variable, NULL, Prec_None},
+    [Token_Ident] = {identifier, NULL, Prec_None},
     [Token_Label] = NULL_RULE,
 
     // braces
     [Token_BraceL] = NULL_RULE,
     [Token_BraceR] = NULL_RULE,
 
-    // command calls
+    // grouping
+    // we don't support calling from anything but a hardcoded identifier, so we
+    // don't perform call parsing here
     [Token_ParenL] = {grouping, NULL, Prec_None},
     [Token_ParenR] = NULL_RULE,
     [Token_Comma] = NULL_RULE,

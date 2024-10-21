@@ -1,24 +1,28 @@
 #include "instruction.h"
 #include <stdio.h>
 
-void print_instruction(Instruction instruction)
+void print_instruction(Instruction insn)
 {
-    switch (instruction.code)
+    switch (insn.code)
     {
     case Code_Goto:
-        printf("goto %d", instruction.data.instruction);
+        printf("goto %d", insn.data.position);
         break;
     case Code_GotoIf:
-        printf("goto (conditional) %d", instruction.data.instruction);
+        printf("goto (conditional) %d", insn.data.position);
+        break;
+    case Code_Call:
+        printf("call %s with %d args", insn.data.call.command,
+               insn.data.call.arg_count);
         break;
     case Code_Pop:
         printf("pop");
         break;
     case Code_Fetch:
-        printf("fetch %d", instruction.data.slot);
+        printf("fetch %d", insn.data.slot);
         break;
     case Code_Set:
-        printf("set %d", instruction.data.slot);
+        printf("set %d", insn.data.slot);
         break;
     case Code_Negate:
         printf("negate");
@@ -42,13 +46,13 @@ void print_instruction(Instruction instruction)
         printf("modulo");
         break;
     case Code_Int:
-        printf("int %d", instruction.data._int);
+        printf("int %d", insn.data._int);
         break;
     case Code_Float:
-        printf("float %f", instruction.data._float);
+        printf("float %f", insn.data._float);
         break;
     case Code_String:
-        printf("string '%s'", instruction.data.string);
+        printf("string '%s'", insn.data.string);
         break;
     case Code_True:
         printf("true");

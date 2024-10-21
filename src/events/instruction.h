@@ -11,6 +11,9 @@ typedef struct
         // go to an instruction if the specified condition is false
         Code_GotoIf,
 
+        // call an in-built command
+        Code_Call,
+
         // Pop something off of the stack
         Code_Pop,
         // Fetch a value from a slot
@@ -47,8 +50,8 @@ typedef struct
     } code;
     union
     {
-        // goto this instruction
-        u32 instruction;
+        // goto this position
+        u32 position;
 
         // the slot to fetch/set to/from
         u32 slot;
@@ -59,6 +62,12 @@ typedef struct
         f32 _float;
         // the string value
         char *string;
+        // the command to call
+        struct
+        {
+            char *command;
+            u32 arg_count;
+        } call;
     } data;
 } Instruction;
 
