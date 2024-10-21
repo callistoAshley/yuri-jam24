@@ -1,4 +1,5 @@
 #include "event.h"
+#include "events/commands/commands.h"
 #include <stdio.h>
 #include <stdlib.h>
 

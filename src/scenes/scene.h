@@ -1,5 +1,6 @@
 #pragma once
 
+#include "events/event.h"
 #include "fonts/fonts.h"
 #include "graphics/graphics.h"
 #include "physics/physics.h"
@@ -27,7 +28,7 @@ typedef struct
 typedef struct SceneInterface SceneInterface;
 
 // FIXME: move to a more appropriate location?
-typedef struct
+typedef struct Resources
 {
     bool debug_mode;
 
@@ -57,6 +58,9 @@ typedef struct
         // Most logic should use this instead of real time.
         Time current;
     } time;
+
+    Event *events;
+    u32 event_count;
 
     SDL_Window *window;
 } Resources;

@@ -1,24 +1,16 @@
 #pragma once
 
 #include "events/value.h"
+#include "command.h"
+#include "events/vm.h"
+#include "scenes/scene.h"
 
-struct VM;
-
-typedef Value (*command_fn)(struct VM *vm, u32 arg_count);
+typedef Value (*command_fn)(VM *vm, u32 arg_count, Resources *resources);
 
 typedef struct
 {
     char *name;
     command_fn fn;
 } CommandData;
-
-typedef enum
-{
-    CMD_Printf = 0,
-    CMD_Text,
-    CMD_Wait,
-
-    Command_Max_Val,
-} Command;
 
 extern const CommandData COMMANDS[Command_Max_Val];

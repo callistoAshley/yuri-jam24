@@ -38,31 +38,6 @@
 
 int main(int argc, char **argv)
 {
-    char *files[] = {
-        "assets/events.txt",
-    };
-
-    char *out;
-    read_entire_file(files[0], &out, NULL);
-
-    Compiler compiler;
-    compiler_init(&compiler, out);
-
-    Event event;
-    while (compiler_compile(&compiler, &event))
-    {
-        event_disassemble(&event);
-
-        VM vm;
-        vm_init(&vm, event);
-        vm_execute(&vm);
-
-        event_free(&event);
-    }
-    free(out);
-
-    return 0;
-
     bool imgui_demo = false;
     bool debug = false;
 

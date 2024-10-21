@@ -1,9 +1,11 @@
 #include "commands.h"
 #include "events/vm.h"
+#include "scenes/scene.h"
 #include "utility/macros.h"
 
-static Value cmd_printf(VM *vm, u32 arg_count)
+static Value cmd_printf(VM *vm, u32 arg_count, Resources *resources)
 {
+    (void)resources;
     if (arg_count != 1)
     {
         FATAL("wrong arity (%d) for print", arg_count)
@@ -34,10 +36,11 @@ static Value cmd_printf(VM *vm, u32 arg_count)
     return NONE_VAL;
 }
 
-static Value unimplemented(VM *vm, u32 arg_count)
+static Value unimplemented(VM *vm, u32 arg_count, Resources *resources)
 {
     (void)vm;
     (void)arg_count;
+    (void)resources;
     FATAL("Unimplemented command!");
 }
 

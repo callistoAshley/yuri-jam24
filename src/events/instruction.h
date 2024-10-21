@@ -1,6 +1,6 @@
 #pragma once
 
-#include "events/commands/commands.h"
+#include "events/commands/command.h"
 #include "sensible_nums.h"
 
 typedef struct

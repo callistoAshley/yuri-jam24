@@ -1,4 +1,5 @@
 #include "vm.h"
+#include "events/commands/commands.h"
 #include "events/value.h"
 #include "utility/macros.h"
 #include <stdio.h>
@@ -7,29 +8,34 @@
 void vm_init(VM *vm, Event event)
 {
     vm->event = event;
+
     memset(vm->slots, 0, sizeof(vm->slots));
+
     memset(vm->stack, 0, sizeof(vm->stack));
-    vm->ip = 0;
     vm->top = 0;
+
+    vm->ip = 0;
+    vm->yield = false;
 }
 
-static void push(VM *vm, Value value)
+static inline void push(VM *vm, Value value)
 {
     vm->stack[vm->top] = value;
     vm->top++;
 }
 
-static Value pop(VM *vm)
+static inline Value pop(VM *vm)
 {
     vm->top--;
     Value value = vm->stack[vm->top];
     return value;
 }
 
-static Value peek(VM *vm, u32 idx) { return vm->stack[idx]; }
+static inline Value peek(VM *vm, u32 idx) { return vm->stack[idx]; }
 
 void vm_push(VM *vm, Value value) { push(vm, value); }
 Value vm_pop(VM *vm) { return pop(vm); }
+Value vm_peek(VM *vm, u32 index) { return peek(vm, index); }
 
 // because we're working with a stack, the right operand comes before the left
 // one
@@ -83,12 +89,12 @@ Value vm_pop(VM *vm) { return pop(vm); }
     }                                                                          \
     push(vm, out);
 
-void vm_execute(VM *vm)
+void vm_execute(VM *vm, Resources *resources)
 {
+    vm->yield = false;
     while (vm->ip < vm->event.instructions_len)
     {
         Instruction insn = vm->event.instructions[vm->ip];
-        vm->ip++;
 
         switch (insn.code)
         {
@@ -114,7 +120,7 @@ void vm_execute(VM *vm)
         case Code_Call:
         {
             command_fn command = COMMANDS[insn.data.call.command].fn;
-            Value value = command(vm, insn.data.call.arg_count);
+            Value value = command(vm, insn.data.call.arg_count, resources);
             push(vm, value);
             break;
         }
@@ -242,6 +248,11 @@ void vm_execute(VM *vm)
             break;
         }
         }
+
+        if (vm->yield)
+            return;
+
+        vm->ip++;
     }
 }
 
