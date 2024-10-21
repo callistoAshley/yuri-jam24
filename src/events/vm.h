@@ -6,7 +6,7 @@
 #define STACK_MAX 64
 #define SLOT_MAX 64
 
-typedef struct
+typedef struct VM
 {
     Event event;
 
@@ -21,3 +21,6 @@ typedef struct
 void vm_init(VM *vm, Event event);
 void vm_execute(VM *vm);
 void vm_free(VM *vm);
+
+void vm_push(VM *vm, Value value);
+Value vm_pop(VM *vm);

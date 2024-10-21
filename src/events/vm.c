@@ -27,42 +27,8 @@ static Value pop(VM *vm)
 
 static Value peek(VM *vm, u32 idx) { return vm->stack[idx]; }
 
-static Value call_command(VM *vm, const char *command, u32 arg_count)
-{
-    // TODO handle commands in lexer or compiler and compile them to an enum
-    if (!strcmp(command, "print"))
-    {
-        if (arg_count != 1)
-        {
-            FATAL("wrong arity (%d) for print", arg_count)
-        }
-
-        Value val = pop(vm);
-        switch (val.type)
-        {
-        case Val_None:
-            printf("none\n");
-            break;
-        case Val_Int:
-            printf("%i\n", val.data._int);
-            break;
-        case Val_Float:
-            printf("%f\n", val.data._float);
-            break;
-        case Val_String:
-            printf("%s\n", val.data.string);
-            break;
-        case Val_True:
-            printf("true\n");
-            break;
-        case Val_False:
-            printf("false\n");
-            break;
-        }
-        return NONE_VAL;
-    }
-    FATAL("Unrecognized command %s", command);
-}
+void vm_push(VM *vm, Value value) { push(vm, value); }
+Value vm_pop(VM *vm) { return pop(vm); }
 
 // because we're working with a stack, the right operand comes before the left
 // one
@@ -146,8 +112,8 @@ void vm_execute(VM *vm)
         }
         case Code_Call:
         {
-            Value value = call_command(vm, insn.data.call.command,
-                                       insn.data.call.arg_count);
+            command_fn command = COMMANDS[insn.data.call.command].fn;
+            Value value = command(vm, insn.data.call.arg_count);
             push(vm, value);
             break;
         }

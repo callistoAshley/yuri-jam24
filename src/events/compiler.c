@@ -1,4 +1,5 @@
 #include "compiler.h"
+#include "events/commands/commands.h"
 #include "events/lexer.h"
 #include "events/instruction.h"
 #include "utility/macros.h"
@@ -201,8 +202,20 @@ static void grouping(Compiler *compiler, bool can_assign)
     consume(compiler, Token_ParenR, "Expected '')' after grouping");
 }
 
-static void call(Compiler *compiler, char *command)
+static void call(Compiler *compiler, char *command_name)
 {
+    Command command = 0;
+    for (; command < Command_Max_Val; command++)
+    {
+        CommandData data = COMMANDS[command];
+        if (!strcmp(data.name, command_name))
+            break;
+    }
+    if (command == Command_Max_Val)
+    {
+        FATAL("Unrecognized command '%s'\n", command_name);
+    }
+
     u32 arg_count = argument_list(compiler);
     Instruction instruction = {
         .code = Code_Call,

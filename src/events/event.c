@@ -14,9 +14,10 @@ static void goto_instruction(const char *name, u32 from, u32 to)
     printf("%s %d -> %d\n", name, from, to);
 }
 
-static void call_instruction(const char *name, const char *command, u32 args)
+static void call_instruction(const char *name, Command command, u32 args)
 {
-    printf("%s %s (%d args)\n", name, command, args);
+    CommandData data = COMMANDS[command];
+    printf("%s %s (%d args)\n", name, data.name, args);
 }
 
 static void disassemble_instruction(Event *event, u32 pos)
@@ -133,9 +134,6 @@ void event_free(Event *event)
         {
         case Code_String:
             free(instruction.data.string);
-            break;
-        case Code_Call:
-            free(instruction.data.call.command);
             break;
         default:
             break;

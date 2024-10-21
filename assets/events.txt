@@ -2,7 +2,7 @@ event "test" {
   i = 0;
   loop { 
     i = i + 1;
-    print(i);
+    printf(i);
     if i > 15 {
       goto EOL;
     }

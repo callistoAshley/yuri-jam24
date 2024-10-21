@@ -1,5 +1,6 @@
 #pragma once
 
+#include "events/commands/commands.h"
 #include "sensible_nums.h"
 
 typedef struct
@@ -67,12 +68,10 @@ typedef struct
         // the command to call
         struct
         {
-            char *command;
+            Command command;
             u32 arg_count;
         } call;
     } data;
 } Instruction;
 
 typedef enum InstructionCode InstructionCode;
-
-void print_instruction(Instruction instruction);
