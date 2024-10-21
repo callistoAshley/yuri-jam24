@@ -545,6 +545,56 @@ static void while_statement(Compiler *compiler)
     emit_basic(compiler, Code_Pop);
 }
 
+static void for_statement(Compiler *compiler)
+{
+    if (match(compiler, Token_Semicolon))
+    {
+        // no initializer
+    }
+    else
+    {
+        expression_statement(compiler);
+    }
+
+    u32 loop_start = compiler->instructions.len;
+    u32 exit_jump = UINT32_MAX;
+    if (!match(compiler, Token_Semicolon))
+    {
+        expression(compiler);
+        consume(compiler, Token_Semicolon, "Expected ';' after loop condition");
+
+        // jump out of loop if condition is false.
+        exit_jump = emit_unknown_jump(compiler, Code_GotoIfFalse);
+        emit_basic(compiler, Code_Pop); // pop condition
+    }
+
+    // if there's an increment present
+    if (!match(compiler, Token_BraceL))
+    {
+        // need to do shenanigans because we want to execute this after the body
+        // but we have to emit the instructions *now*
+        u32 body_jump = emit_unknown_jump(compiler, Code_Goto);
+        u32 increment_start = compiler->instructions.len;
+        expression(compiler);
+        emit_basic(compiler, Code_Pop); // pop increment result
+        consume(compiler, Token_BraceL, "Expected '{' after for clauses");
+
+        emit_jump(compiler, Code_Goto, loop_start);
+        loop_start = increment_start;
+        patch_jump(compiler, body_jump);
+    }
+
+    block(compiler);
+    emit_jump(compiler, Code_Goto, loop_start);
+
+    // patch only if there was a condition
+    if (exit_jump != UINT32_MAX)
+    {
+        patch_jump(compiler, exit_jump);
+        emit_basic(compiler, Code_Pop); // pop condition
+    }
+}
+
 // tries to find a label.
 // returns false if no label could be found, or true if one was found.
 // fills out the location if a label was found.
@@ -624,6 +674,10 @@ static void statement(Compiler *compiler)
     else if (match(compiler, Token_While))
     {
         while_statement(compiler);
+    }
+    else if (match(compiler, Token_For))
+    {
+        for_statement(compiler);
     }
     else if (match(compiler, Token_Goto))
     {

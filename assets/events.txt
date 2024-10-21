@@ -1,7 +1,5 @@
 event "test" {
-  i = 0;
-  while i < 15 {
+  for i = 0; i < 15; i = i + 1 {
     printf(i);
-    i = i + 1;
   }
 }
