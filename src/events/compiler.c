@@ -557,8 +557,12 @@ static void goto_statement(Compiler *compiler)
 
 static void label_statement(Compiler *compiler)
 {
-    u32 label_position = compiler->instructions.len;
     char *label = compiler->previous.data.label;
+    u32 label_position = compiler->instructions.len;
+    if (find_label(compiler, label, &label_position))
+    {
+        FATAL("Label %s already defined\n", label);
+    }
     LabelDef definition = {.label = label, .instruction = label_position};
     vec_push(&compiler->labels, &definition);
 }
