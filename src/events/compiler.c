@@ -210,14 +210,17 @@ static void call(Compiler *compiler, char *command)
     emit(compiler, instruction);
 }
 
-// TODO free variable name
-static u32 get_or_insert_variable(Compiler *compiler, const char *name)
+// will free the variable name if it is already present!
+static u32 get_or_insert_variable(Compiler *compiler, char *name)
 {
     for (u32 i = 0; i < compiler->variables.len; i++)
     {
         char *var = *(char **)vec_get(&compiler->variables, i);
         if (!strcmp(name, var))
+        {
+            free(name);
             return i;
+        }
     }
 
     // looks like this variable hasn't been used yet.
@@ -500,6 +503,7 @@ static void goto_statement(Compiler *compiler)
     u32 jump_position;
     if (find_label(compiler, label, &jump_position))
     {
+        free(label);
         // looks like the label was defined before the goto, and we can fill it
         // in!
         emit_jump(compiler, Code_Goto, jump_position);
@@ -519,6 +523,13 @@ static void label_statement(Compiler *compiler)
     char *label = compiler->previous.data.label;
     LabelDef definition = {.label = label, .instruction = label_position};
     vec_push(&compiler->labels, &definition);
+}
+
+static void free_label_def(usize i, void *arg)
+{
+    (void)i;
+    LabelDef *def = arg;
+    free(def->label);
 }
 
 // we could probably remove statements and make them behave like rust does...
@@ -587,9 +598,11 @@ bool compiler_compile(Compiler *compiler, Event *event)
         Instruction *instruction =
             vec_get(&compiler->instructions, to_backfill->instruction);
         instruction->data.position = label_position;
+        free(to_backfill->label);
     }
-    vec_free(&compiler->labels);
     vec_free(&compiler->unresolved_gotos);
+
+    vec_free_with(&compiler->labels, free_label_def);
 
     event->instructions_len = compiler->instructions.len;
     event->instructions = (Instruction *)compiler->instructions.data;
@@ -598,4 +611,32 @@ bool compiler_compile(Compiler *compiler, Event *event)
     event->slot_count = compiler->variables.len;
 
     return true;
+}
+
+void event_free(Event *event)
+{
+    free(event->name);
+
+    for (u32 i = 0; i < event->slot_count; i++)
+    {
+        free(event->slots[i]);
+    }
+    free(event->slots);
+
+    for (u32 i = 0; i < event->instructions_len; i++)
+    {
+        Instruction instruction = event->instructions[i];
+        switch (instruction.code)
+        {
+        case Code_String:
+            free(instruction.data.string);
+            break;
+        case Code_Call:
+            free(instruction.data.call.command);
+            break;
+        default:
+            break;
+        }
+    }
+    free(event->instructions);
 }

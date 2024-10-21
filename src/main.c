@@ -37,6 +37,37 @@
 
 int main(int argc, char **argv)
 {
+    char *files[] = {
+        "assets/events.txt",
+    };
+
+    char *out;
+    read_entire_file(files[0], &out, NULL);
+
+    Compiler compiler;
+    compiler_init(&compiler, out);
+
+    Event event;
+    compiler_compile(&compiler, &event);
+    printf("Event name %s\n", event.name);
+
+    for (u32 i = 0; i < event.instructions_len; i++)
+    {
+        print_instruction(event.instructions[i]);
+        printf("\n");
+    }
+
+    for (u32 i = 0; i < compiler.variables.len; i++)
+    {
+        char *variable = *(char **)vec_get(&compiler.variables, i);
+        printf("variable %s is in slot %d\n", variable, i);
+    }
+
+    event_free(&event);
+    free(out);
+
+    return 0;
+
     bool imgui_demo = false;
     bool debug = false;
 
@@ -104,34 +135,6 @@ int main(int argc, char **argv)
 
     // graphics_init may have edited settings, so we need to save them again
     settings_save_to(&settings, settings_path);
-
-    char *files[] = {
-        "assets/events.txt",
-    };
-
-    char *out;
-    read_entire_file(files[0], &out, NULL);
-
-    Compiler compiler;
-    compiler_init(&compiler, out);
-
-    Event event;
-    compiler_compile(&compiler, &event);
-    printf("Event name %s\n", event.name);
-
-    for (u32 i = 0; i < event.instructions_len; i++)
-    {
-        print_instruction(event.instructions[i]);
-        printf("\n");
-    }
-
-    for (u32 i = 0; i < compiler.variables.len; i++)
-    {
-        char *variable = *(char **)vec_get(&compiler.variables, i);
-        printf("variable %s is in slot %d\n", variable, i);
-    }
-
-    return 0;
 
     WGPUMultisampleState multisample_state = {
         .count = 1,

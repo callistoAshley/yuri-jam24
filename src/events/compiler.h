@@ -28,7 +28,7 @@ typedef struct
 
 typedef struct
 {
-    const char *name;
+    char *name;
 
     Instruction *instructions;
     u32 instructions_len;
@@ -45,3 +45,5 @@ void compiler_init(Compiler *compiler, const char *source);
 // (we do not bother handling errors gracefully lol)
 // instructions can be retrieved from the instructions field.
 bool compiler_compile(Compiler *compiler, Event *event);
+
+void event_free(Event *event);
