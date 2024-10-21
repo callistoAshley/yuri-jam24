@@ -48,11 +48,12 @@ int main(int argc, char **argv)
     compiler_init(&compiler, out);
 
     Event event;
-    compiler_compile(&compiler, &event);
+    while (compiler_compile(&compiler, &event))
+    {
+        event_disassemble(&event);
 
-    event_disassemble(&event);
-
-    event_free(&event);
+        event_free(&event);
+    }
     free(out);
 
     return 0;

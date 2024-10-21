@@ -6,17 +6,17 @@ static void simple_instruction(const char *name) { printf("%s\n", name); }
 
 static void slot_instruction(const char *name, u32 slot)
 {
-    printf("%s %4d\n", name, slot);
+    printf("%s %d\n", name, slot);
 }
 
 static void goto_instruction(const char *name, u32 from, u32 to)
 {
-    printf("%s %4d -> %4d\n", name, from, to);
+    printf("%s %d -> %d\n", name, from, to);
 }
 
 static void call_instruction(const char *name, const char *command, u32 args)
 {
-    printf("%s %s(%4d args)\n", name, command, args);
+    printf("%s %s (%d args)\n", name, command, args);
 }
 
 static void disassemble_instruction(Event *event, u32 pos)

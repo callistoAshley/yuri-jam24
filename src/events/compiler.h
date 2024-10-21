@@ -11,6 +11,7 @@
 typedef struct
 {
     Lexer lexer;
+    bool is_primed;
 
     Token current;
     Token previous;

@@ -8,6 +8,7 @@
 void compiler_init(Compiler *compiler, const char *source)
 {
     lexer_init(&compiler->lexer, source);
+    compiler->is_primed = false;
 }
 
 typedef enum
@@ -186,7 +187,7 @@ static u32 argument_list(Compiler *compiler)
             count++;
         } while (match(compiler, Token_Comma));
     }
-    consume(compiler, Token_ParenR, "Expected )");
+    consume(compiler, Token_ParenR, "Expected ')' after argument list");
     return count;
 }
 
@@ -197,7 +198,7 @@ static void grouping(Compiler *compiler, bool can_assign)
 {
     (void)can_assign;
     expression(compiler);
-    consume(compiler, Token_ParenR, "Expected )");
+    consume(compiler, Token_ParenR, "Expected '')' after grouping");
 }
 
 static void call(Compiler *compiler, char *command)
@@ -461,13 +462,13 @@ static void block(Compiler *compiler)
         statement(compiler);
     }
 
-    consume(compiler, Token_BraceR, "Expected }");
+    consume(compiler, Token_BraceR, "Expected '}' after block");
 }
 
 static void expression_statement(Compiler *compiler)
 {
     expression(compiler);
-    consume(compiler, Token_Semicolon, "Expected ; after expression");
+    consume(compiler, Token_Semicolon, "Expected ';' after expression");
     emit_basic(compiler, Code_Pop);
 }
 
@@ -475,7 +476,7 @@ static void if_statement(Compiler *compiler)
 {
     // we don't do the () around ifs, and ifs always have to have a block
     expression(compiler);
-    consume(compiler, Token_BraceL, "Expected {");
+    consume(compiler, Token_BraceL, "Expected '{' after if");
 
     // skip over if branch if condition was false
     u32 if_jump = emit_unknown_jump(compiler, Code_GotoIfFalse);
@@ -497,7 +498,7 @@ static void if_statement(Compiler *compiler)
         }
         else
         {
-            consume(compiler, Token_BraceL, "Expected {");
+            consume(compiler, Token_BraceL, "Expected '{' after else");
             block(compiler);
         }
     }
@@ -506,7 +507,7 @@ static void if_statement(Compiler *compiler)
 
 static void loop_statement(Compiler *compiler)
 {
-    consume(compiler, Token_BraceL, "Expected {");
+    consume(compiler, Token_BraceL, "Expected '{' after loop");
 
     u32 loop_start = compiler->instructions.len;
     block(compiler);
@@ -533,9 +534,9 @@ static bool find_label(Compiler *compiler, char *wanted, u32 *location)
 
 static void goto_statement(Compiler *compiler)
 {
-    consume(compiler, Token_Ident, "Expected label");
+    consume(compiler, Token_Ident, "Expected label after goto");
     char *label = compiler->previous.data.ident;
-    consume(compiler, Token_Semicolon, "Expected ;");
+    consume(compiler, Token_Semicolon, "Expected ';' after goto label");
 
     u32 jump_position;
     if (find_label(compiler, label, &jump_position))
@@ -610,16 +611,19 @@ bool compiler_compile(Compiler *compiler, Event *event)
     vec_init(&compiler->labels, sizeof(LabelDef));
     vec_init(&compiler->unresolved_gotos, sizeof(LabelDef));
 
-    advance(compiler);
+    // when the compiler is first initialized, current and previous are
+    // uninitialized and need to be primed
+    if (!compiler->is_primed)
+    {
+        advance(compiler);
+        compiler->is_primed = true;
+    }
     consume(compiler, Token_Event, "Expected event definition");
     consume(compiler, Token_String, "Expected event name");
     event->name = compiler->previous.data.string;
-    consume(compiler, Token_BraceL, "Expected {");
+    consume(compiler, Token_BraceL, "Expected block after event name");
 
-    while (!match(compiler, Token_BraceR))
-    {
-        statement(compiler);
-    }
+    block(compiler);
 
     // resolve any unresolved gotos
     for (u32 i = 0; i < compiler->unresolved_gotos.len; i++)

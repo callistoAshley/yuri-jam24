@@ -4,3 +4,6 @@ event "test" {
   }
   print("oh no");
 }
+event "test2" {
+  print("electric boogaloo");
+}
