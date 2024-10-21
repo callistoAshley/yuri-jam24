@@ -20,8 +20,9 @@ void settings_load_from(Settings *settings, const char *path)
     settings->keybinds.right = SDLK_RIGHT;
     settings->keybinds.down = SDLK_DOWN;
 
-    settings->keybinds.jump = SDLK_Z;
+    settings->keybinds.jump = SDLK_SPACE;
     settings->keybinds.cancel = SDLK_X;
+    settings->keybinds.interact = SDLK_Z;
 
     settings->keybinds.back = SDLK_ESCAPE;
     settings->keybinds.quit = SDLK_Q;

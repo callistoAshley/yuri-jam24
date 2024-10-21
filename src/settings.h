@@ -21,7 +21,7 @@ typedef struct
     struct
     {
         SDL_Keycode left, right, up, down;
-        SDL_Keycode jump, cancel;
+        SDL_Keycode jump, cancel, interact;
         SDL_Keycode back, quit;
     } keybinds;
 } Settings;

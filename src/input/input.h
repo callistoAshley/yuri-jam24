@@ -15,9 +15,10 @@ typedef enum
     Button_Cancel = 1 << 5,
     Button_Back = 1 << 6,
     Button_Quit = 1 << 7,
+    Button_Interact = 1 << 8,
 
-    Button_Fullscreen = 1 << 8,
-    Button_Refresh = 1 << 9,
+    Button_Fullscreen = 1 << 9,
+    Button_Refresh = 1 << 10,
 
     Button_MouseLeft = 1 << 11,
     Button_MouseRight = 1 << 12,

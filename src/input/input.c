@@ -75,6 +75,10 @@ void input_process(SDL_Event *event, Input *input, Settings *settings)
         {
             TOGGLE_BUTTON_IF_DOWN(Button_Cancel)
         }
+        if (key == settings->keybinds.interact)
+        {
+            TOGGLE_BUTTON_IF_DOWN(Button_Interact)
+        }
         if (key == settings->keybinds.back)
         {
             TOGGLE_BUTTON_IF_DOWN(Button_Back)

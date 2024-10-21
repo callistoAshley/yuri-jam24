@@ -72,7 +72,7 @@ void basic_char_update(void *self, Resources *resources, MapScene *map_scene)
                            (vec2s){.x = PLAYER_W, .y = PLAYER_H});
 
     if (rect_contains_other(player_rect, state->rect) &&
-        input_is_pressed(resources->input, Button_Jump) &&
+        input_is_pressed(resources->input, Button_Interact) &&
         !map_scene->vm_is_running && *state->event_name)
     {
         for (u32 i = 0; i < resources->event_count; i++)
