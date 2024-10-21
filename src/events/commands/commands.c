@@ -1,4 +1,5 @@
 #include "commands.h"
+#include "events/commands/command.h"
 #include "events/vm.h"
 #include "scenes/map.h"
 #include "scenes/scene.h"
@@ -107,6 +108,32 @@ static bool cmd_text(VM *vm, Value *out, u32 arg_count, Resources *resources)
     return true;
 }
 
+static bool cmd_yield(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    struct YieldCtx
+    {
+        bool did_yield;
+    };
+
+    (void)vm;
+    (void)arg_count;
+    (void)resources;
+    (void)out;
+    ARG_ERROR("yield", 0);
+
+    struct YieldCtx *ctx = (struct YieldCtx *)vm->command_ctx;
+
+    if (ctx->did_yield)
+    {
+        // we just yielded, so clear the ctx and return immediately
+        CLEAR_CTX(vm);
+        return false;
+    }
+
+    ctx->did_yield = true;
+    return true;
+}
+
 static bool unimplemented(VM *vm, Value *out, u32 arg_count,
                           Resources *resources)
 {
@@ -121,4 +148,6 @@ const CommandData COMMANDS[] = {
     [CMD_Printf] = {"printf", cmd_printf},
     [CMD_Text] = {"text", cmd_text},
     [CMD_Wait] = {"wait", cmd_wait},
+    [CMD_Yield] = {"yield", cmd_yield},
+    [CMD_Unimplemented] = {"unimplemented", unimplemented},
 };
