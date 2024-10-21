@@ -10,6 +10,7 @@ void vm_init(VM *vm, Event event)
     memset(vm->slots, 0, sizeof(vm->slots));
     memset(vm->stack, 0, sizeof(vm->stack));
     vm->ip = 0;
+    vm->top = 0;
 }
 
 static void push(VM *vm, Value value)

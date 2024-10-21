@@ -3,9 +3,5 @@ event "test" {
   loop { 
     i = i + 1;
     printf(i);
-    if i > 15 {
-      goto EOL;
-    }
   }
-EOL:
 }
