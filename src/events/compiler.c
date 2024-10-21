@@ -91,6 +91,23 @@ static void emit_basic(Compiler *compiler, InstructionCode code)
     emit(compiler, instruction);
 }
 
+// will emit a jump. callee will need to fill in the position!
+static u32 emit_jump(Compiler *compiler, InstructionCode code)
+{
+    u32 current_instruction = compiler->instructions.len;
+    Instruction instruction = {.code = code, .data.instruction = UINT32_MAX};
+    emit(compiler, instruction);
+    return current_instruction;
+}
+
+static void patch_jump(Compiler *compiler, u32 offset)
+{
+    u32 jump_pos = compiler->instructions.len;
+
+    Instruction *instruction = vec_get(&compiler->instructions, offset);
+    instruction->data.instruction = jump_pos;
+}
+
 // emits an integer, assuming the previous consumed token was an int.
 // it is undefined behaviour if this is not the case.
 static void emit_int(Compiler *compiler, bool can_assign)
@@ -334,6 +351,11 @@ static void parse_precedence(Compiler *compiler, Precendence precedence)
         rule = get_rule(compiler->previous.type);
         rule->infix(compiler, can_assign);
     }
+
+    if (can_assign && match(compiler, Token_Set))
+    {
+        FATAL("Invalid assignment target");
+    }
 }
 
 static void expression(Compiler *compiler)
@@ -358,6 +380,39 @@ static void expression_statement(Compiler *compiler)
     emit_basic(compiler, Code_Pop);
 }
 
+static void if_statement(Compiler *compiler)
+{
+    // we don't do the () around ifs, and ifs always have to have a block
+    expression(compiler);
+    consume(compiler, Token_BraceL, "Expected {");
+
+    // skip over if branch if condition was false
+    u32 if_jump = emit_jump(compiler, Code_GotoIf);
+    emit_basic(compiler, Code_Pop); // pop condition on if
+    block(compiler);
+
+    u32 else_jump = emit_jump(compiler, Code_Goto);
+
+    // patch after the else jump to skip over it if the condition was true
+    patch_jump(compiler, if_jump);
+    emit_basic(compiler, Code_Pop); // pop condition on else
+
+    if (match(compiler, Token_Else))
+    {
+        // if it's an else if, compile an if
+        if (match(compiler, Token_If))
+        {
+            if_statement(compiler);
+        }
+        else
+        {
+            consume(compiler, Token_BraceL, "Expected {");
+            block(compiler);
+        }
+    }
+    patch_jump(compiler, else_jump);
+}
+
 // we could probably remove statements and make them behave like rust does...
 static void statement(Compiler *compiler)
 {
@@ -365,6 +420,10 @@ static void statement(Compiler *compiler)
     if (match(compiler, Token_BraceL))
     {
         block(compiler);
+    }
+    else if (match(compiler, Token_If))
+    {
+        if_statement(compiler);
     }
     else
     {

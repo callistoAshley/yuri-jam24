@@ -183,7 +183,7 @@ static Token read_text(Lexer *lexer)
         }
         if (!strncmp(lexer->start, "else", text_len))
         {
-            token.type = Token_If;
+            token.type = Token_Else;
             return token;
         }
         if (!strncmp(lexer->start, "loop", text_len))
