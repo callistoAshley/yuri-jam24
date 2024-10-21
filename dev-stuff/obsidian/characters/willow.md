@@ -1,0 +1,3 @@
+It's a long way between angels, and the best way to entertain yourself in the back of a moving van is to fidget with your tinny, dying laptop. The view outside isn't much to look at - the same old robotic carcasses amidst dunes and aurorae - but the warm glow of your computer screen lulls you into a trance. It's nice to be alone.
+You jolt forward as the van stutters to a sudden stop, rescuing your laptop from an untimely demise. You've arrived... already.
+As you buckle on your mask and step outside, the towering remains of an unnamed god greet you warmly.
