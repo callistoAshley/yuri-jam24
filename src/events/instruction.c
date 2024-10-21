@@ -8,8 +8,11 @@ void print_instruction(Instruction insn)
     case Code_Goto:
         printf("goto %d", insn.data.position);
         break;
-    case Code_GotoIf:
-        printf("goto (conditional) %d", insn.data.position);
+    case Code_GotoIfFalse:
+        printf("goto (if false) %d", insn.data.position);
+        break;
+    case Code_GotoIfTrue:
+        printf("goto (if true) %d", insn.data.position);
         break;
     case Code_Call:
         printf("call %s with %d args", insn.data.call.command,

@@ -254,6 +254,43 @@ static void identifier(Compiler *compiler, bool can_assign)
     emit(compiler, instruction);
 }
 
+// we don't actually have instructions for boolean logic. instead we
+// short-circuit
+//
+// (left) & (right)
+//
+// we implement & by jumping over the right
+// side if the left side was false
+static void and_operator(Compiler *compiler, bool can_assign)
+{
+    (void)can_assign;
+    u32 end_jump = emit_unknown_jump(compiler, Code_GotoIfFalse);
+
+    emit_basic(compiler, Code_Pop);
+    parse_precedence(compiler, Prec_And);
+
+    patch_jump(compiler, end_jump);
+}
+
+// we don't actually have instructions for boolean logic. instead we
+// short-circuit
+//
+// (left) | (right)
+//
+// we implement | by jumping over the right
+// side if the left side was true
+static void or_operator(Compiler *compiler, bool can_assign)
+{
+
+    (void)can_assign;
+    u32 end_jump = emit_unknown_jump(compiler, Code_GotoIfTrue);
+
+    emit_basic(compiler, Code_Pop);
+    parse_precedence(compiler, Prec_Or);
+
+    patch_jump(compiler, end_jump);
+}
+
 static void binary(Compiler *compiler, bool can_assign)
 {
     (void)can_assign;
@@ -377,8 +414,8 @@ const ParseRule rules[] = {
 
     // boolean logic
     [Token_Not] = {unary, NULL, Prec_Term},
-    [Token_And] = NULL_RULE,
-    [Token_Or] = NULL_RULE,
+    [Token_And] = {NULL, and_operator, Prec_And},
+    [Token_Or] = {NULL, or_operator, Prec_Or},
 
     [Token_Plus] = {NULL, binary, Prec_Term},
     [Token_Minus] = {unary, binary, Prec_Term},
@@ -441,7 +478,7 @@ static void if_statement(Compiler *compiler)
     consume(compiler, Token_BraceL, "Expected {");
 
     // skip over if branch if condition was false
-    u32 if_jump = emit_unknown_jump(compiler, Code_GotoIf);
+    u32 if_jump = emit_unknown_jump(compiler, Code_GotoIfFalse);
     emit_basic(compiler, Code_Pop); // pop condition on if
     block(compiler);
 

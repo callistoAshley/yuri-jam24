@@ -1,9 +1,6 @@
 event "test" {
-TEST:
-  print("Hello!");
-  goto ABCDEF;
-  goto TEST;
-
-ABCDEF:
-  print("goto go brr");
+  if true & false {
+    print("Hello!");
+  }
+  print("oh no");
 }

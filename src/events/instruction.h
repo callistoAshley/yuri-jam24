@@ -9,7 +9,9 @@ typedef struct
         // go to an instruction
         Code_Goto,
         // go to an instruction if the specified condition is false
-        Code_GotoIf,
+        Code_GotoIfFalse,
+        // go to an instruction if the specified condition is true
+        Code_GotoIfTrue,
 
         // call an in-built command
         Code_Call,
