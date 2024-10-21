@@ -36,6 +36,13 @@
 
 #define WINDOW_NAME "i am the window"
 
+static void event_free_fn(usize i, void *ptr)
+{
+    (void)i;
+    Event *event = ptr;
+    event_free(event);
+}
+
 int main(int argc, char **argv)
 {
     bool imgui_demo = false;
@@ -106,6 +113,30 @@ int main(int argc, char **argv)
     // graphics_init may have edited settings, so we need to save them again
     settings_save_to(&settings, settings_path);
 
+    char *files[] = {
+        "assets/events.txt",
+    };
+    vec events;
+    vec_init(&events, sizeof(Event));
+
+    for (u32 i = 0; i < 1; i++)
+    {
+        char *out;
+        read_entire_file(files[i], &out, NULL);
+
+        Compiler compiler;
+        compiler_init(&compiler, out);
+
+        Event event;
+        while (compiler_compile(&compiler, &event))
+        {
+            event_disassemble(&event);
+            vec_push(&events, &event);
+        }
+
+        free(out);
+    }
+
     WGPUMultisampleState multisample_state = {
         .count = 1,
         .mask = 0xFFFFFFFF,
@@ -148,6 +179,9 @@ int main(int argc, char **argv)
         .time.real = &real,
         .time.virt = &virt,
         .time.fixed = &fixed,
+
+        .events = (Event *)events.data,
+        .event_count = events.len,
     };
 
     scene.init(&scene_data, &resources, NULL);
@@ -242,6 +276,8 @@ int main(int argc, char **argv)
     }
 
     scene.free(scene_data, &resources);
+
+    vec_free_with(&events, event_free_fn);
 
     settings_save_to(&settings, settings_path);
 

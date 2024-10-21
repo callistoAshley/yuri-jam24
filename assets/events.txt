@@ -1,5 +1,31 @@
+event "do_nothing" {
+
+}
+
+event "intro" {
+  text("WILLOW: Ren!!");
+  text("WILLOW: Reeen~~~~!! Come on, sleepyhead!");
+  text("Someone's tugging at your arm.");
+  text("...Has the sun set already? \.Ugh... \.it always goes down so early this time of year.");
+  text("You pry your eyes open to a squint and acclimatize to the light.");
+  text("Willow is giving you a displeased look.");
+  text("WILLOW: You can't just sleep all night, you know. We have a job to do!");
+  text("Oh. She must mean the night squad.");
+  text("You moan and roll over.");
+  text("SERENITY: Mmm... it can wait for my beauty sleep.");
+  text("WILLOW: ...");
+  text("AH!\. You feel yourself being pulled out of bed.");
+  text("And... an arm wrapping around your body.");
+}
+
+event "sunbeam" {
+  text("Plugging in the toaster backwards makes the whole kitchen counter a live circuit.");
+  text("...You wish you weren't speaking from experience.");
+}
+
 event "test" {
-  for i = 0; i < 15; i = i + 1 {
-    printf(i);
-  }
+  text("i am fucking transgender");
+  text("this is an event that will run");
+  text("more text");
+  text("a");
 }
