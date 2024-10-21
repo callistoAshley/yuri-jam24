@@ -17,21 +17,14 @@ typedef struct
     Value slots[SLOT_MAX];
 
     u32 ip;
-    // when the yield flag is set, the vm will return from execution.
-    // the next time vm_execute() is called, it will be set to false.
-    // this flag is intended to be modified by commands.
-    //
-    // NOTE special care must be taken to avoid popping values off of the stack!
-    // when yielded, the vm will call your command again, and if your command
-    // pops values off of the stack, it will do that *twice*.
-    bool yield;
     // commands are free to modify this pointer so they can maintain state
     // if they yield.
     void *command_ctx;
 } VM;
 
 void vm_init(VM *vm, Event event);
-void vm_execute(VM *vm, Resources *resources);
+// returns true if execution has finished.
+bool vm_execute(VM *vm, Resources *resources);
 void vm_free(VM *vm);
 
 void vm_push(VM *vm, Value value);

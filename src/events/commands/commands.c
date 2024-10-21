@@ -3,13 +3,17 @@
 #include "scenes/scene.h"
 #include "utility/macros.h"
 
-static Value cmd_printf(VM *vm, u32 arg_count, Resources *resources)
+#define ARG_ERROR(name, expected)                                              \
+    if (arg_count != expected)                                                 \
+    {                                                                          \
+        FATAL("wrong arity (%d) for " #name, arg_count)                        \
+    }
+
+static bool cmd_printf(VM *vm, Value *out, u32 arg_count, Resources *resources)
 {
     (void)resources;
-    if (arg_count != 1)
-    {
-        FATAL("wrong arity (%d) for print", arg_count)
-    }
+    (void)out;
+    ARG_ERROR("printf", 1);
 
     Value val = vm_pop(vm);
     switch (val.type)
@@ -33,19 +37,59 @@ static Value cmd_printf(VM *vm, u32 arg_count, Resources *resources)
         printf("false\n");
         break;
     }
-    return NONE_VAL;
+    return false;
 }
 
-static Value unimplemented(VM *vm, u32 arg_count, Resources *resources)
+static bool cmd_wait(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    struct WaitCtx
+    {
+        u32 count;
+    };
+
+    (void)out;
+    (void)resources;
+    ARG_ERROR("wait", 1);
+
+    Value wait_val = vm_peek(vm, vm->top - 1);
+    u32 wait_count = wait_val.data._int;
+
+    // looks like this is the first run
+    struct WaitCtx *ctx = vm->command_ctx;
+    if (!vm->command_ctx)
+    {
+        ctx = malloc(sizeof(*ctx));
+        ctx->count = 0;
+        vm->command_ctx = ctx;
+    }
+
+    // we're done waiting, stop yielding
+    if (ctx->count >= wait_count)
+    {
+        free(ctx);
+        vm->command_ctx = NULL;
+
+        vm_pop(vm);
+        return false;
+    }
+
+    printf("waited %d times\n", ctx->count);
+    ctx->count++;
+    return true;
+}
+
+static bool unimplemented(VM *vm, Value *out, u32 arg_count,
+                          Resources *resources)
 {
     (void)vm;
     (void)arg_count;
     (void)resources;
-    FATAL("Unimplemented command!");
+    (void)out;
+    FATAL("Unimplemented command!\n");
 }
 
 const CommandData COMMANDS[] = {
     [CMD_Printf] = {"printf", cmd_printf},
     [CMD_Text] = {"text", unimplemented},
-    [CMD_Wait] = {"wait", unimplemented},
+    [CMD_Wait] = {"wait", cmd_wait},
 };

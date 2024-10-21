@@ -15,7 +15,8 @@ void vm_init(VM *vm, Event event)
     vm->top = 0;
 
     vm->ip = 0;
-    vm->yield = false;
+
+    vm->command_ctx = NULL;
 }
 
 static inline void push(VM *vm, Value value)
@@ -89,12 +90,12 @@ Value vm_peek(VM *vm, u32 index) { return peek(vm, index); }
     }                                                                          \
     push(vm, out);
 
-void vm_execute(VM *vm, Resources *resources)
+bool vm_execute(VM *vm, Resources *resources)
 {
-    vm->yield = false;
     while (vm->ip < vm->event.instructions_len)
     {
         Instruction insn = vm->event.instructions[vm->ip];
+        vm->ip++;
 
         switch (insn.code)
         {
@@ -119,8 +120,17 @@ void vm_execute(VM *vm, Resources *resources)
         }
         case Code_Call:
         {
+            Value value = NONE_VAL;
             command_fn command = COMMANDS[insn.data.call.command].fn;
-            Value value = command(vm, insn.data.call.arg_count, resources);
+            bool yield =
+                command(vm, &value, insn.data.call.arg_count, resources);
+            if (yield)
+            {
+                // subtract 1 from the instruction pointer so we can call this
+                // command again
+                vm->ip--;
+                return false;
+            }
             push(vm, value);
             break;
         }
@@ -248,12 +258,10 @@ void vm_execute(VM *vm, Resources *resources)
             break;
         }
         }
-
-        if (vm->yield)
-            return;
-
-        vm->ip++;
     }
+
+    // we're out of commands, so we've finished.
+    return true;
 }
 
 void vm_free(VM *vm) { (void)vm; }
