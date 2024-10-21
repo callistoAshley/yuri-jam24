@@ -1,5 +1,9 @@
 event "test" {
-  printf("Hello, world!");
-  printf("%s", "fhaavdhgaj");
-  exit(-1);
+TEST:
+  print("Hello!");
+  goto ABCDEF;
+  goto TEST;
+
+ABCDEF:
+  print("goto go brr");
 }

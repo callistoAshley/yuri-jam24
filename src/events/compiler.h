@@ -16,6 +16,9 @@ typedef struct
 
     vec instructions; // vec<Instruction>
 
+    vec unresolved_gotos; // vec<(char*, u32)> (indexes into instructions)
+    vec labels; // vec<(char*, u32)> (label name and instruction index)
+
     // list of variables. whenever the compiler finds a mention of a variable,
     // it adds it to this list. the compiler never emits variable names though-
     // only "slots" that variables are stored in.

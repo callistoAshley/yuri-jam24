@@ -41,6 +41,15 @@ static void statement(Compiler *compiler);
 static const ParseRule *get_rule(TokenType type);
 static void parse_precedence(Compiler *compiler, Precendence precedence);
 
+// used for back-patching gotos.
+typedef struct
+{
+    // either the name of the label, or the label a goto is expecting
+    char *label;
+    // the instruction the goto/label is at
+    u32 instruction;
+} LabelDef;
+
 // quite a lot of this is copied from
 // https://craftinginterpreters.com/compiling-expressions.html#a-pratt-parser
 
@@ -464,6 +473,54 @@ static void loop_statement(Compiler *compiler)
     emit_jump(compiler, Code_Goto, loop_start);
 }
 
+// tries to find a label.
+// returns false if no label could be found, or true if one was found.
+// fills out the location if a label was found.
+static bool find_label(Compiler *compiler, char *wanted, u32 *location)
+{
+    for (u32 i = 0; i < compiler->labels.len; i++)
+    {
+        LabelDef *label = vec_get(&compiler->labels, i);
+        if (!strcmp(label->label, wanted))
+        {
+            *location = i;
+            return true;
+        }
+    }
+
+    return false;
+}
+
+static void goto_statement(Compiler *compiler)
+{
+    consume(compiler, Token_Ident, "Expected label");
+    char *label = compiler->previous.data.ident;
+    consume(compiler, Token_Semicolon, "Expected ;");
+
+    u32 jump_position;
+    if (find_label(compiler, label, &jump_position))
+    {
+        // looks like the label was defined before the goto, and we can fill it
+        // in!
+        emit_jump(compiler, Code_Goto, jump_position);
+    }
+    else
+    {
+        // we'll need to find it later...
+        u32 goto_position = emit_unknown_jump(compiler, Code_Goto);
+        LabelDef to_backfill = {.label = label, .instruction = goto_position};
+        vec_push(&compiler->unresolved_gotos, &to_backfill);
+    }
+}
+
+static void label_statement(Compiler *compiler)
+{
+    u32 label_position = compiler->instructions.len;
+    char *label = compiler->previous.data.label;
+    LabelDef definition = {.label = label, .instruction = label_position};
+    vec_push(&compiler->labels, &definition);
+}
+
 // we could probably remove statements and make them behave like rust does...
 static void statement(Compiler *compiler)
 {
@@ -480,6 +537,14 @@ static void statement(Compiler *compiler)
     {
         loop_statement(compiler);
     }
+    else if (match(compiler, Token_Goto))
+    {
+        goto_statement(compiler);
+    }
+    else if (match(compiler, Token_Label))
+    {
+        label_statement(compiler);
+    }
     else
     {
         expression_statement(compiler);
@@ -494,6 +559,9 @@ bool compiler_compile(Compiler *compiler, Event *event)
     vec_init(&compiler->instructions, sizeof(Instruction));
     vec_init(&compiler->variables, sizeof(char *));
 
+    vec_init(&compiler->labels, sizeof(LabelDef));
+    vec_init(&compiler->unresolved_gotos, sizeof(LabelDef));
+
     advance(compiler);
     consume(compiler, Token_Event, "Expected event definition");
     consume(compiler, Token_String, "Expected event name");
@@ -504,6 +572,24 @@ bool compiler_compile(Compiler *compiler, Event *event)
     {
         statement(compiler);
     }
+
+    // resolve any unresolved gotos
+    for (u32 i = 0; i < compiler->unresolved_gotos.len; i++)
+    {
+        LabelDef *to_backfill = vec_get(&compiler->unresolved_gotos, i);
+
+        u32 label_position;
+        if (!find_label(compiler, to_backfill->label, &label_position))
+        {
+            FATAL("Undefined label %s", to_backfill->label);
+        }
+
+        Instruction *instruction =
+            vec_get(&compiler->instructions, to_backfill->instruction);
+        instruction->data.position = label_position;
+    }
+    vec_free(&compiler->labels);
+    vec_free(&compiler->unresolved_gotos);
 
     event->instructions_len = compiler->instructions.len;
     event->instructions = (Instruction *)compiler->instructions.data;

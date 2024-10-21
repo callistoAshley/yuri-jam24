@@ -173,7 +173,7 @@ static Token read_text(Lexer *lexer)
         }
         if (!strncmp(lexer->start, "goto", text_len))
         {
-            token.type = Token_Event;
+            token.type = Token_Goto;
             return token;
         }
         if (!strncmp(lexer->start, "if", text_len))
