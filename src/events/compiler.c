@@ -92,7 +92,7 @@ static void emit_basic(Compiler *compiler, InstructionCode code)
 }
 
 // will emit a jump. callee will need to fill in the position!
-static u32 emit_jump(Compiler *compiler, InstructionCode code)
+static u32 emit_unknown_jump(Compiler *compiler, InstructionCode code)
 {
     u32 current_instruction = compiler->instructions.len;
     Instruction instruction = {.code = code, .data.instruction = UINT32_MAX};
@@ -106,6 +106,12 @@ static void patch_jump(Compiler *compiler, u32 offset)
 
     Instruction *instruction = vec_get(&compiler->instructions, offset);
     instruction->data.instruction = jump_pos;
+}
+
+static void emit_jump(Compiler *compiler, InstructionCode code, u32 position)
+{
+    Instruction instruction = {.code = code, .data.instruction = position};
+    emit(compiler, instruction);
 }
 
 // emits an integer, assuming the previous consumed token was an int.
@@ -387,11 +393,11 @@ static void if_statement(Compiler *compiler)
     consume(compiler, Token_BraceL, "Expected {");
 
     // skip over if branch if condition was false
-    u32 if_jump = emit_jump(compiler, Code_GotoIf);
+    u32 if_jump = emit_unknown_jump(compiler, Code_GotoIf);
     emit_basic(compiler, Code_Pop); // pop condition on if
     block(compiler);
 
-    u32 else_jump = emit_jump(compiler, Code_Goto);
+    u32 else_jump = emit_unknown_jump(compiler, Code_Goto);
 
     // patch after the else jump to skip over it if the condition was true
     patch_jump(compiler, if_jump);
@@ -413,6 +419,15 @@ static void if_statement(Compiler *compiler)
     patch_jump(compiler, else_jump);
 }
 
+static void loop_statement(Compiler *compiler)
+{
+    consume(compiler, Token_BraceL, "Expected {");
+
+    u32 loop_start = compiler->instructions.len;
+    block(compiler);
+    emit_jump(compiler, Code_Goto, loop_start);
+}
+
 // we could probably remove statements and make them behave like rust does...
 static void statement(Compiler *compiler)
 {
@@ -424,6 +439,10 @@ static void statement(Compiler *compiler)
     else if (match(compiler, Token_If))
     {
         if_statement(compiler);
+    }
+    else if (match(compiler, Token_Loop))
+    {
+        loop_statement(compiler);
     }
     else
     {
