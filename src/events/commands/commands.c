@@ -1,5 +1,6 @@
 #include "commands.h"
 #include "events/vm.h"
+#include "scenes/map.h"
 #include "scenes/scene.h"
 #include "utility/macros.h"
 
@@ -78,6 +79,34 @@ static bool cmd_wait(VM *vm, Value *out, u32 arg_count, Resources *resources)
     return true;
 }
 
+static bool cmd_text(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    (void)out;
+    ARG_ERROR("text", 1);
+
+    MapScene *scene = (MapScene *)*resources->current_scene;
+    if (vm->command_ctx)
+    {
+        // we've already displayed the text, and are waiting for the textbox to
+        // finish.
+        if (scene->textbox.open)
+            return true;
+
+        // we're done waiting, stop yielding, and pop the argument off the stack
+        vm_pop(vm);
+        vm->command_ctx = 0;
+        return false;
+    }
+
+    Value text_val = vm_peek(vm, vm->top - 1);
+    char *text = text_val.data.string;
+    textbox_display_text(&scene->textbox, resources, text);
+    vm->command_ctx =
+        (void *)1; // indicate that we are waiting for the textbox to finish
+
+    return true;
+}
+
 static bool unimplemented(VM *vm, Value *out, u32 arg_count,
                           Resources *resources)
 {
@@ -90,6 +119,6 @@ static bool unimplemented(VM *vm, Value *out, u32 arg_count,
 
 const CommandData COMMANDS[] = {
     [CMD_Printf] = {"printf", cmd_printf},
-    [CMD_Text] = {"text", unimplemented},
+    [CMD_Text] = {"text", cmd_text},
     [CMD_Wait] = {"wait", cmd_wait},
 };

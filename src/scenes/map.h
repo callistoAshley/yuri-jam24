@@ -1,5 +1,6 @@
 #pragma once
 
+#include "events/vm.h"
 #include "graphics/tilemap.h"
 #include "scene.h"
 #include "player.h"
@@ -26,6 +27,9 @@ typedef struct MapScene
 
     SettingsMenu settings;
     Textbox textbox;
+
+    VM vm;
+    bool vm_is_running;
 } MapScene;
 
 // NOTE: MUST BE PASSED TO scene_change!!!!!!

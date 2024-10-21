@@ -126,11 +126,23 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
 
     vec_free(&load_characters);
     tmx_map_free(map);
+
+    map_scene->vm_is_running = false;
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)
 {
     MapScene *map_scene = (MapScene *)scene_data;
+
+    if (map_scene->vm_is_running)
+    {
+        bool did_finish = vm_execute(&map_scene->vm, resources);
+        if (did_finish)
+        {
+            vm_free(&map_scene->vm);
+            map_scene->vm_is_running = false;
+        }
+    }
 
     if (input_is_pressed(resources->input, Button_Back))
         map_scene->settings.open = true;

@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.10.2" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="6">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="6">
  <tileset firstgid="1" source="../tilesets/tileset_coolfuckingtileset.tsx"/>
  <layer id="1" name="Tile Layer 1" width="30" height="20">
   <data encoding="csv">
@@ -34,7 +34,7 @@
  <objectgroup id="3" name="characters" class="characters">
   <object id="4" name="a character" x="144" y="120" width="8" height="16">
    <properties>
-    <property name="event" value="=test"/>
+    <property name="event" value="test"/>
     <property name="sprite" value="assets/textures/chr_test.png"/>
    </properties>
   </object>

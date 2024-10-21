@@ -71,21 +71,22 @@ void basic_char_update(void *self, Resources *resources, MapScene *map_scene)
                                    .y = map_scene->player.transform.position.y},
                            (vec2s){.x = PLAYER_W, .y = PLAYER_H});
 
-    // if (rect_contains_other(player_rect, state->rect) &&
-    // input_is_pressed(resources->input, Button_Jump) &&
-    // !map_scene->interpreter.event && *state->event_name)
-    // {
-    //     for (int i = 0; i < resources->event_loader->events->len; i++)
-    //     {
-    //         Event *event = linked_list_at(resources->event_loader->events,
-    //         i); if (!strcmp(event->name, state->event_name))
-    //         {
-    //             interpreter_init(&map_scene->interpreter, event);
-    //             return;
-    //         }
-    //     }
-    //     log_warn("No such event `%s`", state->event_name);
-    // }
+    if (rect_contains_other(player_rect, state->rect) &&
+        input_is_pressed(resources->input, Button_Jump) &&
+        !map_scene->vm_is_running && *state->event_name)
+    {
+        for (u32 i = 0; i < resources->event_count; i++)
+        {
+            Event event = resources->events[i];
+            if (!strcmp(event.name, state->event_name))
+            {
+                vm_init(&map_scene->vm, event);
+                map_scene->vm_is_running = true;
+                return;
+            }
+        }
+        log_warn("No such event `%s`", state->event_name);
+    }
 }
 
 void basic_char_free(void *self, Resources *resources, MapScene *map_scene)
