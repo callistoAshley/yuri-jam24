@@ -649,31 +649,3 @@ bool compiler_compile(Compiler *compiler, Event *event)
 
     return true;
 }
-
-void event_free(Event *event)
-{
-    free(event->name);
-
-    for (u32 i = 0; i < event->slot_count; i++)
-    {
-        free(event->slots[i]);
-    }
-    free(event->slots);
-
-    for (u32 i = 0; i < event->instructions_len; i++)
-    {
-        Instruction instruction = event->instructions[i];
-        switch (instruction.code)
-        {
-        case Code_String:
-            free(instruction.data.string);
-            break;
-        case Code_Call:
-            free(instruction.data.call.command);
-            break;
-        default:
-            break;
-        }
-    }
-    free(event->instructions);
-}

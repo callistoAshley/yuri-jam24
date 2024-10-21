@@ -49,19 +49,8 @@ int main(int argc, char **argv)
 
     Event event;
     compiler_compile(&compiler, &event);
-    printf("Event name %s\n", event.name);
 
-    for (u32 i = 0; i < event.instructions_len; i++)
-    {
-        print_instruction(event.instructions[i]);
-        printf("\n");
-    }
-
-    for (u32 i = 0; i < compiler.variables.len; i++)
-    {
-        char *variable = *(char **)vec_get(&compiler.variables, i);
-        printf("variable %s is in slot %d\n", variable, i);
-    }
+    event_disassemble(&event);
 
     event_free(&event);
     free(out);
