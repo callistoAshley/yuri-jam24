@@ -2,6 +2,7 @@
 #include "fmod_studio.h"
 #include "input/input.h"
 #include "player.h"
+#include "scenes/scene.h"
 #include "ui/settings.h"
 #include "ui/textbox.h"
 #include "utility/common_defines.h"
@@ -16,6 +17,22 @@ typedef struct
     CharacterInterface interface;
     void *state;
 } MapCharacterEntry; // FIXME: give this a better name
+
+static Layer *layer_for(StandardLayers *layers, MapLayer map_layer)
+{
+    switch (map_layer)
+    {
+    case Layer_Back:
+        return &layers->background;
+        break;
+    case Layer_Middle:
+        return &layers->middle;
+        break;
+    case Layer_Front:
+        return &layers->foreground;
+        break;
+    }
+}
 
 static char *tiled_image_path_to_actual(char *path)
 {
@@ -109,6 +126,9 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     settings_menu_init(&map_scene->settings, resources);
     textbox_init(&map_scene->textbox, resources);
 
+    // vms take up ~2kb of memory, so we should only allocate space for 1
+    vec_init_with_capacity(&map_scene->vms, sizeof(VM), 1);
+
     for (usize i = 0; i < load_characters.len; i++)
     {
         MapCharacterObj *obj = vec_get(&load_characters, i);
@@ -126,21 +146,28 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
 
     vec_free(&load_characters);
     tmx_map_free(map);
+}
 
-    map_scene->vm_is_running = false;
+void map_scene_fixed_update(Scene *scene_data, Resources *resources)
+{
+    (void)scene_data;
+    (void)resources;
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)
 {
     MapScene *map_scene = (MapScene *)scene_data;
 
-    if (map_scene->vm_is_running)
+    for (u32 i = 0; i < map_scene->vms.len; i++)
     {
-        bool did_finish = vm_execute(&map_scene->vm, resources);
-        if (did_finish)
+        VM *vm = vec_get(&map_scene->vms, i);
+        // if we're done executing, remove the vm from the interpreter list
+        if (vm_execute(vm, resources))
         {
-            vm_free(&map_scene->vm);
-            map_scene->vm_is_running = false;
+            vm_free(vm);
+            vec_remove(&map_scene->vms, i, NULL);
+            if (i > 0)
+                i--;
         }
     }
 
@@ -237,38 +264,16 @@ void map_scene_free(Scene *scene_data, Resources *resources)
         case Map_Sprite:
         {
             sprite_free(renderable->data.sprite.ptr, resources->graphics);
-            Layer *layer;
-            switch (renderable->data.sprite.layer)
-            {
-            case Layer_Back:
-                layer = &resources->graphics->sprite_layers.background;
-                break;
-            case Layer_Middle:
-                layer = &resources->graphics->sprite_layers.middle;
-                break;
-            case Layer_Front:
-                layer = &resources->graphics->sprite_layers.foreground;
-                break;
-            }
+            Layer *layer = layer_for(&resources->graphics->sprite_layers,
+                                     renderable->data.sprite.layer);
             layer_remove(layer, renderable->entry);
             break;
         }
         case Map_TileLayer:
         {
             free(renderable->data.tile.ptr);
-            Layer *layer;
-            switch (renderable->data.sprite.layer)
-            {
-            case Layer_Back:
-                layer = &resources->graphics->tilemap_layers.background;
-                break;
-            case Layer_Middle:
-                layer = &resources->graphics->tilemap_layers.middle;
-                break;
-            case Layer_Front:
-                layer = &resources->graphics->tilemap_layers.foreground;
-                break;
-            }
+            Layer *layer = layer_for(&resources->graphics->tilemap_layers,
+                                     renderable->data.tile.layer);
             layer_remove(layer, renderable->entry);
             break;
         }
@@ -294,6 +299,13 @@ void map_scene_free(Scene *scene_data, Resources *resources)
     }
     vec_free(&map_scene->characters);
 
+    for (u32 i = 0; i < map_scene->vms.len; i++)
+    {
+        VM *vm = vec_get(&map_scene->vms, i);
+        vm_free(vm);
+    }
+    vec_free(&map_scene->vms);
+
     settings_menu_free(&map_scene->settings, resources);
 
     textbox_free(&map_scene->textbox, resources);
@@ -308,5 +320,6 @@ void map_scene_free(Scene *scene_data, Resources *resources)
 const SceneInterface MAP_SCENE = {
     .init = map_scene_init,
     .update = map_scene_update,
+    .fixed_update = map_scene_fixed_update,
     .free = map_scene_free,
 };

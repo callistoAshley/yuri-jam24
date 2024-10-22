@@ -18,6 +18,14 @@ event "intro" {
   text("And... an arm wrapping around your body.");
 }
 
+event "autorun" {
+  text("automatic beyond belief");
+  for i = 0; i < 144; i = i + 1 {
+    yield();
+  }
+  text("toaster");
+}
+
 event "sunbeam" {
   text("Plugging in the toaster backwards makes the whole kitchen counter a live circuit.");
   text("...You wish you weren't speaking from experience.");

@@ -4,28 +4,14 @@
 #include "input/input.h"
 #include <string.h>
 
-typedef struct
-{
-    char sprite_name[256];
-    char event_name[256];
-
-    Transform transform;
-    TransformEntry transform_entry;
-    TextureEntry *texture;
-    Sprite sprite;
-    Quad quad;
-    LayerEntry layer_entry;
-
-    Rect rect;
-} BasicCharState;
-
 void basic_char_init(void **out, Resources *resources, MapScene *map_scene,
                      Rect rect, HashMap *metadata, void *extra_args)
 {
     (void)map_scene;
     (void)extra_args;
 
-    BasicCharState *state = (*out = malloc(sizeof(BasicCharState)));
+    BasicCharState *state = malloc(sizeof(BasicCharState));
+    *out = state;
     state->rect = rect;
     memset(state->sprite_name, 0, sizeof(state->sprite_name));
     memset(state->event_name, 0, sizeof(state->event_name));
@@ -71,17 +57,19 @@ void basic_char_update(void *self, Resources *resources, MapScene *map_scene)
                                    .y = map_scene->player.transform.position.y},
                            (vec2s){.x = PLAYER_W, .y = PLAYER_H});
 
+    // FIXME: this comparison does not work if there are multiple vms running
     if (rect_contains_other(player_rect, state->rect) &&
         input_is_pressed(resources->input, Button_Interact) &&
-        !map_scene->vm_is_running && *state->event_name)
+        !map_scene->vms.len && *state->event_name)
     {
         for (u32 i = 0; i < resources->event_count; i++)
         {
             Event event = resources->events[i];
             if (!strcmp(event.name, state->event_name))
             {
-                vm_init(&map_scene->vm, event);
-                map_scene->vm_is_running = true;
+                VM vm;
+                vm_init(&vm, event);
+                vec_push(&map_scene->vms, &vm);
                 return;
             }
         }
@@ -101,9 +89,3 @@ void basic_char_free(void *self, Resources *resources, MapScene *map_scene)
     }
     free(state);
 }
-
-const CharacterInterface BASIC_CHARACTER_INTERFACE = {
-    .name = "basic",
-    .init_fn = basic_char_init,
-    .update_fn = basic_char_update,
-    .free_fn = basic_char_free};
