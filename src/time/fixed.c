@@ -39,6 +39,11 @@ void time_fixed_set_step_hz(TimeFixed *time, f64 hz)
     time_fixed_set_step_secs(time, 1.0 / hz);
 }
 
+f32 time_fixed_overstep_fraction(TimeFixed *time)
+{
+    return duration_as_secs(time->overstep) / duration_as_secs(time->timestep);
+}
+
 void time_fixed_discard_overstep(TimeFixed *time, Duration discard)
 {
     // FIXME make this saturate

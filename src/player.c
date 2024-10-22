@@ -96,71 +96,63 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
         b2CreatePolygonShape(player->body_id, &foot_def, &foot_sensor);
     player->foot_contact_count = 0;
 
-    player->jump_timeout = 0;
-    player->fall_time = 0;
-    player->jumping = false;
-
     player->facing = Facing_Left;
 
+    player->accumulated_inputs.left = false;
+    player->accumulated_inputs.right = false;
+    player->accumulated_inputs.jump = false;
+
+    b2Vec2 position = b2Body_GetPosition(player->body_id);
+    player->position.x = position.x;
+    player->position.y = position.y;
+
+    player_fixed_update(player, resources);
     player_update(player, resources, true);
 }
 
 #define WALK_SPEED_MPS 4
 #define WALK_SPEED_CAP 8
 #define WALK_SPEED_PXPS M_TO_PX(WALK_SPEED_MPS)
-void player_update(Player *player, Resources *resources, bool disable_input)
+
+void player_fixed_update(Player *player, Resources *resources)
 {
-    bool left_down =
-        input_is_down(resources->input, Button_Left) && !disable_input;
-    bool right_down =
-        input_is_down(resources->input, Button_Right) && !disable_input;
-
     f32 delta = duration_as_secs(resources->time.current.delta);
-
-    if (left_down && !right_down)
-        player->facing = Facing_Left;
-    if (right_down && !left_down)
-        player->facing = Facing_Right;
-
     f32 walk_speed = WALK_SPEED_PXPS * delta;
-    b2Vec2 current_speed = b2Body_GetLinearVelocity(player->body_id);
-    if (left_down && current_speed.x > -WALK_SPEED_CAP)
-        b2Body_ApplyLinearImpulseToCenter(player->body_id,
-                                          (b2Vec2){-walk_speed, 0}, true);
-    else if (right_down && current_speed.x < WALK_SPEED_CAP)
-        b2Body_ApplyLinearImpulseToCenter(player->body_id,
-                                          (b2Vec2){walk_speed, 0}, true);
-    else if (current_speed.x) // not moving, decelerate
-        b2Body_ApplyLinearImpulseToCenter(
-            player->body_id, (b2Vec2){-current_speed.x / 2, 0}, true);
 
-    if (player->jump_timeout > 0)
-        player->jump_timeout -= delta;
-
-    b2Vec2 body_position = b2Body_GetPosition(player->body_id);
-
-    if (player->fall_time <= 0.01 && player->foot_contact_count == 0)
+    // in air, so decrease walk speed
+    if (player->foot_contact_count == 0)
     {
-        player->falling_from = body_position;
+        walk_speed *= 0.5;
     }
 
-    if (player->fall_time > 0.10 && player->foot_contact_count > 0)
-    {
-        f32 fall_distance =
-            (player->falling_from.y - body_position.y) * PX_PER_M;
-        if (fall_distance > 40.0)
-        {
-            FMOD_STUDIO_EVENTDESCRIPTION *desc;
-            FMOD_Studio_System_GetEvent(resources->audio->system,
-                                        "event:/sfx/player_land", &desc);
+    b2Vec2 current_speed = b2Body_GetLinearVelocity(player->body_id);
+    b2Vec2 body_position = b2Body_GetPosition(player->body_id);
 
-            FMOD_STUDIO_EVENTINSTANCE *inst;
-            FMOD_Studio_EventDescription_CreateInstance(desc, &inst);
-            FMOD_Studio_EventInstance_SetParameterByName(inst, "fall_distance",
-                                                         fall_distance, false);
-            FMOD_Studio_EventInstance_Start(inst);
-            FMOD_Studio_EventInstance_Release(inst);
-        }
+    player->old_position = player->position;
+    player->position.x = body_position.x;
+    player->position.y = body_position.y;
+
+    if (player->accumulated_inputs.left && current_speed.x > -WALK_SPEED_CAP)
+    {
+        b2Body_ApplyLinearImpulseToCenter(player->body_id,
+                                          (b2Vec2){-walk_speed, 0}, true);
+    }
+    else if (player->accumulated_inputs.right &&
+             current_speed.x < WALK_SPEED_CAP)
+    {
+        b2Body_ApplyLinearImpulseToCenter(player->body_id,
+                                          (b2Vec2){walk_speed, 0}, true);
+    }
+    // not moving, decelerate
+    else if (current_speed.x)
+    {
+        b2Body_ApplyLinearImpulseToCenter(
+            player->body_id, (b2Vec2){-current_speed.x / 2, 0}, true);
+    }
+
+    if (player->jump_timeout > 0)
+    {
+        player->jump_timeout -= delta;
     }
 
     if (player->foot_contact_count == 0)
@@ -173,7 +165,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
         // we're on the ground
         player->fall_time = 0;
         player->jumping = false;
-        if (input_is_down(resources->input, Button_Jump) && !disable_input)
+        if (player->accumulated_inputs.jump)
         {
             player_jump(player);
         }
@@ -181,20 +173,86 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     else if (!player->foot_contact_count && player->jump_timeout <= 0 &&
              !player->jumping)
     {
-
-        if (player->fall_time < 0.3f &&
-            input_is_down(resources->input, Button_Jump) && !disable_input)
+        if (player->fall_time < 0.3f && player->accumulated_inputs.jump)
         {
             // coyote jump
             player_jump(player);
         }
     }
+}
+
+void player_update(Player *player, Resources *resources, bool disable_input)
+{
+    bool left_down = input_is_down(resources->input, Button_Left);
+    bool right_down = input_is_down(resources->input, Button_Right);
+
+    bool left_pressed = input_is_pressed(resources->input, Button_Left);
+    bool right_pressed = input_is_pressed(resources->input, Button_Right);
+    bool jump_pressed = input_is_pressed(resources->input, Button_Jump);
+
+    // if a button isn't being held, turn off the input
+    if (!left_down)
+        player->accumulated_inputs.left = false;
+    if (!right_down)
+        player->accumulated_inputs.right = false;
+
+    // only update what directional buttons are down if only one is pressed
+    if (left_down && !right_down)
+        player->accumulated_inputs.left = true;
+    if (right_down && !left_down)
+        player->accumulated_inputs.right = true;
+
+    // ..but if a specific button was just pressed, update the inputs instantly
+    // this is so if the player was holding left, then started holding right,
+    // the player will move right
+    if (left_pressed)
+    {
+        player->accumulated_inputs.left = true;
+        player->accumulated_inputs.right = false;
+    }
+    if (right_pressed)
+    {
+        player->accumulated_inputs.right = true;
+        player->accumulated_inputs.left = false;
+    }
+
+    // if the jump hasn't been pressed yet, update the accumulated input
+    if (!player->accumulated_inputs.jump)
+    {
+        player->accumulated_inputs.jump = jump_pressed;
+    }
+
+    // we shouldn't be accepting input, so force the accumulated inputs to be
+    // off
+    if (disable_input)
+    {
+        player->accumulated_inputs.left = false;
+        player->accumulated_inputs.right = false;
+        player->accumulated_inputs.jump = false;
+    }
+
+    if (player->accumulated_inputs.left)
+    {
+        player->facing = Facing_Left;
+    }
+    if (player->accumulated_inputs.right)
+    {
+        player->facing = Facing_Right;
+    }
+
+    f32 lerp_coefficient = time_fixed_overstep_fraction(resources->time.fixed);
+    vec2s interpolated_position = glms_vec2_lerp(
+        player->old_position, player->position, lerp_coefficient);
 
     // box2d has a different coordinate system than us
     // +y is up for box2d, down for us
     // so we need to negate the y component
-    player->transform.position.x = M_TO_PX(body_position.x) - PLAYER_HW;
-    player->transform.position.y = M_TO_PX(-body_position.y) - PLAYER_HH;
+    player->transform.position.x = M_TO_PX(interpolated_position.x) - PLAYER_HW;
+    player->transform.position.y =
+        M_TO_PX(-interpolated_position.y) - PLAYER_HH;
+
+    transform_manager_update(&resources->graphics->transform_manager,
+                             player->sprite.transform, player->transform);
 
     if (player->facing == Facing_Left)
     {
@@ -211,21 +269,6 @@ void player_update(Player *player, Resources *resources, bool disable_input)
 
     quad_manager_update(&resources->graphics->quad_manager, player->sprite.quad,
                         player->quad);
-
-    transform_manager_update(&resources->graphics->transform_manager,
-                             player->sprite.transform, player->transform);
-
-    // FMOD has the same coordinate system as box2d (+y is up, +x is right)
-    FMOD_3D_ATTRIBUTES player_attrs = {
-        .position = {body_position.x, body_position.y, 0.0},
-        .velocity = {current_speed.x, current_speed.y, 0.0},
-        .up = {0.0, 1.0, 0.0},
-        .forward = {0.0, 0.0, 1.0}};
-
-    FMOD_RESULT result;
-    result = FMOD_Studio_System_SetListenerAttributes(
-        resources->audio->system, 0, &player_attrs, &player_attrs.position);
-    FMOD_ERRCHK(result, "failed to set listener position");
 }
 
 void player_jump(Player *player)
@@ -234,6 +277,7 @@ void player_jump(Player *player)
                                       true);
     player->jump_timeout = 0.1;
     player->jumping = true;
+    player->accumulated_inputs.jump = false;
 }
 
 void player_free(Player *player, Resources *resources)

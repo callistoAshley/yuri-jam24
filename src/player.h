@@ -11,6 +11,7 @@
 
 typedef struct
 {
+    // the player's *rendered* position
     Transform transform;
     Quad quad;
 
@@ -33,16 +34,27 @@ typedef struct
     f32 fall_time;
     bool jumping;
 
-    b2Vec2 falling_from;
-
     enum
     {
         Facing_Left,
         Facing_Right
     } facing;
+
+    vec2s old_position, position;
+
+    // inputs that have been accumulated in-between fixed timesteps, to be
+    // applied at a fixed timestep
+    struct
+    {
+        bool left, right;
+        bool jump;
+    } accumulated_inputs;
 } Player;
 
 void player_init(Player *player, b2Vec2 initial_pos, Resources *resources);
+
 void player_update(Player *player, Resources *resources, bool disable_input);
+void player_fixed_update(Player *player, Resources *resources);
+
 void player_jump(Player *player);
 void player_free(Player *player, Resources *resources);

@@ -21,6 +21,8 @@ TimeFixed time_fixed_from_hz(f64 hz);
 void time_fixed_set_step_secs(TimeFixed *time, f64 secs);
 void time_fixed_set_step_hz(TimeFixed *time, f64 hz);
 
+f32 time_fixed_overstep_fraction(TimeFixed *time);
+
 void time_fixed_discard_overstep(TimeFixed *time, Duration discard);
 void time_fixed_accumulate(TimeFixed *time, Duration delta);
 bool time_fixed_expend(TimeFixed *time);

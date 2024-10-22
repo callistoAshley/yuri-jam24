@@ -165,7 +165,19 @@ void map_scene_fixed_update(Scene *scene_data, Resources *resources)
         }
     }
 
+    for (u32 i = 0; i < map_scene->characters.len; i++)
+    {
+        MapCharacterEntry *chara = vec_get(&map_scene->characters, i);
+        if (chara->interface.fixed_update_fn)
+        {
+            chara->interface.fixed_update_fn(chara->state, resources,
+                                             map_scene);
+        }
+    }
+
     textbox_fixed_update(&map_scene->textbox, resources);
+
+    player_fixed_update(&map_scene->player, resources);
 }
 
 void map_scene_update(Scene *scene_data, Resources *resources)
@@ -187,10 +199,6 @@ void map_scene_update(Scene *scene_data, Resources *resources)
     }
 
     settings_menu_update(&map_scene->settings, resources);
-
-    player_update(&map_scene->player, resources,
-                  map_scene->freecam || map_scene->settings.open ||
-                      map_scene->textbox.sprite.opacity > 0.0);
 
     f32 delta = duration_as_secs(resources->time.current.delta);
     if (map_scene->freecam)
@@ -239,6 +247,10 @@ void map_scene_update(Scene *scene_data, Resources *resources)
     }
 
     textbox_update(&map_scene->textbox, resources);
+
+    bool disable_input = map_scene->freecam || map_scene->settings.open ||
+                         map_scene->textbox.sprite.opacity > 0.0;
+    player_update(&map_scene->player, resources, disable_input);
 }
 
 void map_scene_free(Scene *scene_data, Resources *resources)
