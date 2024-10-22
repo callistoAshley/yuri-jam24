@@ -20,7 +20,7 @@ event "intro" {
 
 event "autorun" {
   text("automatic beyond belief");
-  for i = 0; i < 144; i = i + 1 {
+  for i = 0; i < 64; i = i + 1 {
     yield();
   }
   text("toaster");

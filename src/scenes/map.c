@@ -150,12 +150,6 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
 
 void map_scene_fixed_update(Scene *scene_data, Resources *resources)
 {
-    (void)scene_data;
-    (void)resources;
-}
-
-void map_scene_update(Scene *scene_data, Resources *resources)
-{
     MapScene *map_scene = (MapScene *)scene_data;
 
     for (u32 i = 0; i < map_scene->vms.len; i++)
@@ -170,6 +164,13 @@ void map_scene_update(Scene *scene_data, Resources *resources)
                 i--;
         }
     }
+
+    textbox_fixed_update(&map_scene->textbox, resources);
+}
+
+void map_scene_update(Scene *scene_data, Resources *resources)
+{
+    MapScene *map_scene = (MapScene *)scene_data;
 
     if (input_is_pressed(resources->input, Button_Back))
         map_scene->settings.open = true;

@@ -16,8 +16,10 @@ void textbox_init(Textbox *textbox, Resources *resources)
     textbox->text_type_time = 0.0f;
     textbox->typing = false;
     textbox->waiting_for_input = false;
-    textbox->needs_remove_text = false;
     textbox->open = false;
+
+    textbox->needs_remove_text = false;
+    textbox->fixed_update_occured = false;
 
     {
         TextureEntry *texture = texture_manager_load(
@@ -95,12 +97,19 @@ static void remove_text(Textbox *textbox, Resources *resources)
     memset(textbox->text, 0, sizeof(textbox->text));
 }
 
+void textbox_fixed_update(Textbox *textbox, Resources *resources)
+{
+    (void)resources;
+    textbox->fixed_update_occured = true;
+}
+
 void textbox_update(Textbox *textbox, Resources *resources)
 {
     f32 delta = duration_as_secs(resources->time.real->time.delta);
 
-    if (textbox->needs_remove_text)
+    if (textbox->needs_remove_text && textbox->fixed_update_occured)
         remove_text(textbox, resources);
+    textbox->fixed_update_occured = false;
 
     if (textbox->typing)
     {
@@ -131,8 +140,9 @@ void textbox_update(Textbox *textbox, Resources *resources)
     else if (textbox->waiting_for_input && INPUT_BUTTONS_DOWN(resources))
     {
         textbox->waiting_for_input = false;
-        textbox->needs_remove_text = true; // hold off calling remove_text until
-                                           // next frame, prevents flickering
+        // hold off calling remove_text until
+        // next fixed update, prevents flickering when showing new text
+        textbox->needs_remove_text = true;
         textbox->open = false;
     }
 }

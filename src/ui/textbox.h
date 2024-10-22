@@ -21,11 +21,14 @@ typedef struct
     char text[512];
     int text_idx;
     f32 text_type_time;
-    bool typing, waiting_for_input,
-         needs_remove_text, open;
+
+    bool open;
+    bool typing, waiting_for_input;
+    bool needs_remove_text, fixed_update_occured;
 } Textbox;
 
 void textbox_init(Textbox *textbox, Resources *resources);
 void textbox_free(Textbox *textbox, Resources *resources);
+void textbox_fixed_update(Textbox *textbox, Resources *resources);
 void textbox_update(Textbox *textbox, Resources *resources);
 void textbox_display_text(Textbox *textbox, Resources *resources, char *text);
