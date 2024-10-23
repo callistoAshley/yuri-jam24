@@ -69,7 +69,7 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     b2Polygon player_box = b2MakeBox(PX_TO_M(PLAYER_HW), PX_TO_M(PLAYER_HH));
     b2ShapeDef shape_def = b2DefaultShapeDef();
     shape_def.density = 1.0f;
-    shape_def.friction = 0.0f;
+    shape_def.friction = 0.1f;
     b2CreatePolygonShape(player->body_id, &shape_def, &player_box);
 
     b2Vec2 foot_offset = {.x = 0.0, PX_TO_M(-9.0)};

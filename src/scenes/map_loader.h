@@ -66,6 +66,7 @@ typedef struct
 {
     Rect rect;
     f32 rotation;
+    enum tmx_obj_type object_type;
     HashMap properties;
     CharacterInterface interface;
 } MapCharacterObj; // FIXME: give this a better name

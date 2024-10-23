@@ -1,5 +1,6 @@
 #pragma once
 #include "scenes/scene.h"
+#include "tmx.h"
 #include "utility/hashmap.h"
 
 struct MapScene;
@@ -21,6 +22,7 @@ typedef struct
     f32 rotation;
     HashMap *metadata;
     void *extra_args;
+    enum tmx_obj_type object_type;
 } CharacterInitArgs;
 
 typedef void *(*character_init_fn)(Resources *resources,

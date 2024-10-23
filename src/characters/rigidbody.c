@@ -2,7 +2,9 @@
 #include "box2d/box2d.h"
 #include "core_types.h"
 #include "scenes/map.h"
+#include "tmx.h"
 #include "utility/common_defines.h"
+#include "utility/log.h"
 
 void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
                           CharacterInitArgs *args)
@@ -18,16 +20,43 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
     vec2s rotated_center_pos = glms_vec2_rotate(half_size, args->rotation);
     vec2s initial_pos = glms_vec2_add(args->rect.min, rotated_center_pos);
 
-    b2BodyDef bodyDef = b2DefaultBodyDef();
-    bodyDef.type = b2_dynamicBody;
-    bodyDef.position.x = PX_TO_M(initial_pos.x);
-    bodyDef.position.y = PX_TO_M(-initial_pos.y);
-    bodyDef.rotation = b2MakeRot(args->rotation);
-    state->body_id = b2CreateBody(resources->physics->world, &bodyDef);
+    b2BodyDef body_def = b2DefaultBodyDef();
+    body_def.type = b2_dynamicBody;
+    body_def.position.x = PX_TO_M(initial_pos.x);
+    body_def.position.y = PX_TO_M(-initial_pos.y);
+    body_def.rotation = b2MakeRot(args->rotation);
+    state->body_id = b2CreateBody(resources->physics->world, &body_def);
 
-    b2Polygon box = b2MakeBox(PX_TO_M(half_size.x), PX_TO_M(half_size.y));
-    b2ShapeDef shapeDef = b2DefaultShapeDef();
-    b2CreatePolygonShape(state->body_id, &shapeDef, &box);
+    b2ShapeDef shape_def = b2DefaultShapeDef();
+
+    switch (args->object_type)
+    {
+    case OT_ELLIPSE:
+    {
+        if (half_size.x != half_size.y)
+            log_warn("Elliptical rigid bodies are unsupported");
+
+        f32 radius = PX_TO_M(half_size.x);
+        b2Circle circle = {
+            .radius = radius,
+        };
+        b2CreateCircleShape(state->body_id, &shape_def, &circle);
+        break;
+    }
+    case OT_SQUARE:
+    {
+        b2Polygon box = b2MakeBox(PX_TO_M(half_size.x), PX_TO_M(half_size.y));
+        b2CreatePolygonShape(state->body_id, &shape_def, &box);
+        break;
+    }
+    default:
+    {
+        log_warn("Unhandled object type %d", args->object_type);
+        b2Polygon box = b2MakeBox(PX_TO_M(half_size.x), PX_TO_M(half_size.y));
+        b2CreatePolygonShape(state->body_id, &shape_def, &box);
+        break;
+    }
+    }
 
     state->b2d_position = b2Body_GetTransform(state->body_id);
     state->old_b2d_position = state->b2d_position;

@@ -482,6 +482,7 @@ void handle_character_layer(tmx_layer *layer, Resources *resources,
             (vec2s){.x = current->x, .y = current->y},
             (vec2s){.x = current->width, .y = current->height});
         obj.rotation = TO_RAD(current->rotation);
+        obj.object_type = current->obj_type;
 
         obj.interface = CHARACTERS[Char_Basic];
         if (current->type)

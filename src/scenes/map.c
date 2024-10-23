@@ -135,6 +135,7 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
         CharacterInitArgs args = {
             .rect = obj->rect,
             .rotation = obj->rotation,
+            .object_type = obj->object_type,
             .metadata = &obj->properties,
             .extra_args = NULL,
         };
