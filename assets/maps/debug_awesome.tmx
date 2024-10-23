@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="15">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="18">
  <tileset firstgid="1" source="../tilesets/tileset_coolfuckingtileset.tsx"/>
  <layer id="1" name="Tile Layer 1" width="30" height="20">
   <data encoding="csv">
@@ -25,25 +25,34 @@
 2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2,2
 </data>
  </layer>
- <objectgroup id="2" name="collision" class="collision">
+ <objectgroup id="2" name="collision" class="collision" locked="1">
   <object id="3" x="16" y="24" width="7.9942" height="112"/>
   <object id="4" x="152" y="80" width="40" height="24"/>
   <object id="5" x="192" y="24" width="43.1547" height="56"/>
   <object id="6" x="24" y="128" width="48" height="8"/>
-  <object id="8" name="spawnpoint" type="spawnpoint" x="174.646" y="67.519">
+  <object id="8" name="spawnpoint" type="spawnpoint" x="76.021" y="100.644">
    <point/>
   </object>
   <object id="10" x="72" y="104" width="80" height="32"/>
  </objectgroup>
  <objectgroup id="5" name="characters" class="characters">
-  <object id="14" name="test event" type="autorun" x="44.9091" y="42">
+  <object id="15" name="a box" type="rigidbody" x="96" y="87.9375" width="16" height="16.0625">
    <properties>
-    <property name="event" value="autorun"/>
+    <property name="sprite" value="assets/textures/box.png"/>
    </properties>
-   <point/>
+  </object>
+  <object id="16" name="another box" type="rigidbody" x="123.438" y="81.3125" width="16" height="16.0625" rotation="45">
+   <properties>
+    <property name="sprite" value="assets/textures/box.png"/>
+   </properties>
+  </object>
+  <object id="17" name="a smaller box" type="rigidbody" x="108.528" y="77.4063" width="8.28405" height="8.0625">
+   <properties>
+    <property name="sprite" value="assets/textures/box.png"/>
+   </properties>
   </object>
  </objectgroup>
- <objectgroup id="4" name="lights" class="lights">
+ <objectgroup id="4" name="lights" class="lights" visible="0" locked="1">
   <object id="9" x="2.25748" y="1.43658">
    <properties>
     <property name="casts_shadows" type="bool" value="true"/>
@@ -53,7 +62,7 @@
    </properties>
    <polyline points="0,0 7.59546,22.9515"/>
   </object>
-  <object id="13" x="75" y="39.8182" width="83.2187" height="83.2187">
+  <object id="13" x="72.0625" y="36.8182" width="83.2187" height="83.2187">
    <properties>
     <property name="casts_shadows" type="bool" value="true"/>
     <property name="color" type="color" value="#ffbbc2ff"/>

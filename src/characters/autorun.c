@@ -4,18 +4,15 @@
 #include "utility/log.h"
 
 // these events do *nothing* except run an event when initialized
-void autorun_char_init(void **out, Resources *resources, MapScene *map_scene,
-                       Rect rect, HashMap *metadata, void *extra_args)
+void *autorun_char_init(Resources *resources, struct MapScene *map_scene,
+                        CharacterInitArgs *args)
 {
-    (void)out;
-    (void)rect;
-    (void)extra_args;
 
-    char *event_name = hashmap_get(metadata, "event");
+    char *event_name = hashmap_get(args->metadata, "event");
     if (!event_name)
     {
         log_warn("Autorun characters do nothing without an attached event\n");
-        return;
+        return NULL;
     }
 
     for (u32 i = 0; i < resources->event_count; i++)
@@ -26,10 +23,12 @@ void autorun_char_init(void **out, Resources *resources, MapScene *map_scene,
             VM vm;
             vm_init(&vm, event);
             vec_push(&map_scene->vms, &vm);
-            return;
+            return NULL;
         }
     }
     log_warn("No such event `%s`", event_name);
+
+    return NULL;
 }
 
 void autorun_char_update(void *self, Resources *resources, MapScene *map_scene)

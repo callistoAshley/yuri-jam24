@@ -528,7 +528,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
                 wgpuRenderPassEncoderSetScissorRect(
                     render_pass, actual_pos.x, actual_pos.y,
-                    rect_width(clipped_rect), rect_height(clipped_rect));
+                    rect_width(clipped_rect) + 1,
+                    rect_height(clipped_rect) + 1);
             }
             else
             {

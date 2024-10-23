@@ -5,9 +5,8 @@
 #include "graphics/tex_manager.h"
 #include "graphics/transform_manager.h"
 
-void autorun_char_init(void **out, Resources *resources,
-                       struct MapScene *map_scene, Rect rect, HashMap *metadata,
-                       void *extra_args);
+void *autorun_char_init(Resources *resources, struct MapScene *map_scene,
+                        CharacterInitArgs *args);
 
 void autorun_char_update(void *self, Resources *resources,
                          struct MapScene *map_scene);

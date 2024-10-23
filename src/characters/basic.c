@@ -4,31 +4,30 @@
 #include "input/input.h"
 #include <string.h>
 
-void basic_char_init(void **out, Resources *resources, MapScene *map_scene,
-                     Rect rect, HashMap *metadata, void *extra_args)
+void *basic_char_init(Resources *resources, struct MapScene *map_scene,
+                      CharacterInitArgs *args)
 {
     (void)map_scene;
-    (void)extra_args;
 
     BasicCharState *state = malloc(sizeof(BasicCharState));
-    *out = state;
-    state->rect = rect;
+    state->rect = args->rect;
     memset(state->sprite_name, 0, sizeof(state->sprite_name));
     memset(state->event_name, 0, sizeof(state->event_name));
 
-    state->transform = transform_from_xyz(rect.min.x, rect.min.y, 0);
-    state->transform_entry = transform_manager_add(
-        &resources->graphics->transform_manager, state->transform);
-
-    if (hashmap_get(metadata, "sprite"))
+    if (hashmap_get(args->metadata, "sprite"))
     {
-        strncpy(state->sprite_name, hashmap_get(metadata, "sprite"),
+        state->transform =
+            transform_from_xyz(args->rect.min.x, args->rect.min.y, 0);
+        TransformEntry transform = transform_manager_add(
+            &resources->graphics->transform_manager, state->transform);
+
+        strncpy(state->sprite_name, hashmap_get(args->metadata, "sprite"),
                 sizeof(state->sprite_name));
-        state->texture = texture_manager_load(
+        TextureEntry *texture = texture_manager_load(
             &resources->graphics->texture_manager, state->sprite_name,
             &resources->graphics->wgpu);
         WGPUTexture wgpu_tex = texture_manager_get_texture(
-            &resources->graphics->texture_manager, state->texture);
+            &resources->graphics->texture_manager, texture);
         u32 width = wgpuTextureGetWidth(wgpu_tex),
             height = wgpuTextureGetHeight(wgpu_tex);
 
@@ -37,15 +36,19 @@ void basic_char_init(void **out, Resources *resources, MapScene *map_scene,
                       RECT_UNIT_TEX_COORDS);
 
         sprite_init(
-            &state->sprite, state->texture, state->transform_entry,
+            &state->sprite, texture, transform,
             quad_manager_add(&resources->graphics->quad_manager, state->quad));
         state->layer_entry = layer_add(
             &resources->graphics->sprite_layers.middle, &state->sprite);
     }
 
-    if (hashmap_get(metadata, "event"))
-        strncpy(state->event_name, hashmap_get(metadata, "event"),
+    if (hashmap_get(args->metadata, "event"))
+    {
+        strncpy(state->event_name, hashmap_get(args->metadata, "event"),
                 sizeof(state->event_name));
+    }
+
+    return state;
 }
 
 void basic_char_update(void *self, Resources *resources, MapScene *map_scene)
@@ -81,7 +84,7 @@ void basic_char_free(void *self, Resources *resources, MapScene *map_scene)
 {
     (void)map_scene;
     BasicCharState *state = self;
-    if (state->texture)
+    if (state->sprite.texture)
     {
         sprite_free(&state->sprite, resources->graphics);
         layer_remove(&resources->graphics->sprite_layers.middle,

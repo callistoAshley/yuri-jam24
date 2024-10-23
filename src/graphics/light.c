@@ -46,7 +46,7 @@ void light_render(Light *light, WGPURenderPassEncoder pass, Camera camera)
 
         wgpuRenderPassEncoderSetScissorRect(
             pass, clipped_rect.min.x, clipped_rect.min.y,
-            rect_width(clipped_rect), rect_height(clipped_rect));
+            rect_width(clipped_rect) + 1, rect_height(clipped_rect) + 1);
 
         wgpuRenderPassEncoderSetPushConstants(
             pass, WGPUShaderStage_Fragment | WGPUShaderStage_Vertex, 0,

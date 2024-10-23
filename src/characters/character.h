@@ -8,13 +8,24 @@ typedef enum
 {
     Char_Basic = 0,
     Char_Autorun,
+    Char_RigidBody,
 
     Char_Max,
 } CharacterType;
 
-typedef void (*character_init_fn)(void **out, Resources *resources,
-                                  struct MapScene *map_scene, Rect rect,
-                                  HashMap *metadata, void *extra_args);
+// we pass arguments as a struct so adding new fields to said struct won't
+// disrupt all the existing init functions
+typedef struct
+{
+    Rect rect;
+    f32 rotation;
+    HashMap *metadata;
+    void *extra_args;
+} CharacterInitArgs;
+
+typedef void *(*character_init_fn)(Resources *resources,
+                                   struct MapScene *map_scene,
+                                   CharacterInitArgs *args);
 
 typedef void (*character_update_fn)(void *self, Resources *resources,
                                     struct MapScene *map_scene);
@@ -25,7 +36,6 @@ typedef void (*character_free_fn)(void *self, Resources *resources,
 typedef struct
 {
     const char *name;
-    CharacterType type;
     character_init_fn init_fn;
     character_update_fn update_fn, fixed_update_fn;
     character_free_fn free_fn;

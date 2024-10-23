@@ -65,6 +65,7 @@ typedef struct
 typedef struct
 {
     Rect rect;
+    f32 rotation;
     HashMap properties;
     CharacterInterface interface;
 } MapCharacterObj; // FIXME: give this a better name

@@ -132,9 +132,13 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     for (usize i = 0; i < load_characters.len; i++)
     {
         MapCharacterObj *obj = vec_get(&load_characters, i);
-        void *state;
-        obj->interface.init_fn(&state, resources, map_scene, obj->rect,
-                               &obj->properties, NULL);
+        CharacterInitArgs args = {
+            .rect = obj->rect,
+            .rotation = obj->rotation,
+            .metadata = &obj->properties,
+            .extra_args = NULL,
+        };
+        void *state = obj->interface.init_fn(resources, map_scene, &args);
 
         MapCharacterEntry *entry = malloc(sizeof(MapCharacterEntry));
         entry->interface = obj->interface;

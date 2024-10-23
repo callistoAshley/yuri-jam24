@@ -9,18 +9,15 @@ typedef struct
     char event_name[256];
 
     Transform transform;
-    TransformEntry transform_entry;
-    TextureEntry *texture;
-    Sprite sprite;
     Quad quad;
+    Sprite sprite;
     LayerEntry layer_entry;
 
     Rect rect;
 } BasicCharState;
 
-void basic_char_init(void **out, Resources *resources,
-                     struct MapScene *map_scene, Rect rect, HashMap *metadata,
-                     void *extra_args);
+void *basic_char_init(Resources *resources, struct MapScene *map_scene,
+                      CharacterInitArgs *args);
 
 void basic_char_update(void *self, Resources *resources,
                        struct MapScene *map_scene);
