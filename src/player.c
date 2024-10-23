@@ -60,27 +60,21 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->shadow_caster_entry =
         layer_add(&resources->graphics->shadowcasters, &player->shadow_caster);
 
-    b2BodyDef bodyDef = b2DefaultBodyDef();
-    bodyDef.type = b2_dynamicBody;
-    bodyDef.position = initial_pos;
-    bodyDef.fixedRotation = true;
-    player->body_id = b2CreateBody(resources->physics->world, &bodyDef);
+    b2BodyDef body_def = b2DefaultBodyDef();
+    body_def.type = b2_dynamicBody;
+    body_def.position = initial_pos;
+    body_def.fixedRotation = true;
+    player->body_id = b2CreateBody(resources->physics->world, &body_def);
 
-    f32 radius = PX_TO_M(PLAYER_HW);
-    b2Capsule capsule = {
-        .center1 = (b2Vec2){0, radius},
-        // no idea why we need radius * 3.0. it just works
-        .center2 = (b2Vec2){0, (radius * 3.0) - PX_TO_M((f32)PLAYER_H)},
-        .radius = radius};
-    b2ShapeDef shapeDef = b2DefaultShapeDef();
-    shapeDef.density = 1.0f;
-    shapeDef.friction = 0.0f;
-    player->shape_id =
-        b2CreateCapsuleShape(player->body_id, &shapeDef, &capsule);
+    b2Polygon player_box = b2MakeBox(PX_TO_M(PLAYER_HW), PX_TO_M(PLAYER_HH));
+    b2ShapeDef shape_def = b2DefaultShapeDef();
+    shape_def.density = 1.0f;
+    shape_def.friction = 0.0f;
+    b2CreatePolygonShape(player->body_id, &shape_def, &player_box);
 
-    b2Vec2 foot_offset = {.x = 0.0, PX_TO_M(-8.0)};
+    b2Vec2 foot_offset = {.x = 0.0, PX_TO_M(-9.0)};
     b2Polygon foot_sensor =
-        b2MakeOffsetBox(PX_TO_M(3.0), PX_TO_M(0.5), foot_offset, 0.0);
+        b2MakeOffsetBox(PX_TO_M(4.5), PX_TO_M(0.5), foot_offset, 0.0);
 
     b2ShapeDef foot_def = b2DefaultShapeDef();
     foot_def.isSensor = true;

@@ -25,7 +25,6 @@ typedef struct
     LayerEntry shadow_caster_entry;
 
     b2BodyId body_id;
-    b2ShapeId shape_id;
     b2ShapeId foot_id;
 
     u32 foot_contact_count;
