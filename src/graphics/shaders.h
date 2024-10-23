@@ -59,6 +59,7 @@ typedef struct
     // work for some reason?
     alignas(16) vec2s camera_position;
     vec2s position;
+    vec2s rotation;
     f32 internal_scale;
     u32 solid;
 } B2DDrawPolygonPushConstants;

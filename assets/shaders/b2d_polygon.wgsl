@@ -11,6 +11,7 @@ struct PushConstants {
     color: vec3f,
     camera_position: vec2f,
     position: vec2f,
+    rotation: vec2f,
     scale: f32,
     solid: u32,
 }
@@ -21,6 +22,13 @@ var<push_constant> push_constants: PushConstants;
 fn vs_main(in: VertexInput) -> VertexOutput {
     var out: VertexOutput;
 
+    let s = push_constants.rotation.x;
+    let c = push_constants.rotation.y;
+    let rotated_position = vec2(
+        in.position.x * c - in.position.y * s,
+        -(in.position.x * s + in.position.y * c)
+    );
+
   // in box2d, 1m = 8 pixels
   // HOWEVER the game world is rendered to the screen at push_constants.scale
   // the camera coordinates are also at this lower scale, so we need to scale up that too
@@ -28,7 +36,7 @@ fn vs_main(in: VertexInput) -> VertexOutput {
   // so all in all, we need to: offset the vertex position by the object's position, offset by the camera position, and scale it up by 8 * push_constants.scale
   // HOWEVER we also need to output normalized device coordinates, so we need to divide by the screen size too (which is 160x90 * push_constants.scale)
     let screen_size = vec2f(160.0, 90.0) * push_constants.scale;
-    let scaled_to_camera_position = (vec2(in.position.x, -in.position.y) + push_constants.position) * 8.0;
+    let scaled_to_camera_position = (rotated_position + push_constants.position) * 8.0;
     let internal_px_position = scaled_to_camera_position - push_constants.camera_position;
     let screen_position = internal_px_position * push_constants.scale;
     let normalized_position = screen_position / screen_size;

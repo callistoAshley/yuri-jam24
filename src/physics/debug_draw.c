@@ -110,6 +110,7 @@ void draw_maybe_solid_polygon(b2Transform transform, const b2Vec2 *vertices,
         .color = vec3_from_hex(color),
         .camera_position = {.x = ctx->raw_camera.x, .y = ctx->raw_camera.y},
         .position = {.x = transform.p.x, .y = -transform.p.y},
+        .rotation = {.x = transform.q.s, .y = transform.q.c},
         .internal_scale = scale,
         .solid = solid,
     };
