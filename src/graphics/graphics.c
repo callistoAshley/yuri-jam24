@@ -522,20 +522,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
                 if (rect_width(clipped_rect) == 0 ||
                     rect_height(clipped_rect) == 0)
                     continue;
-
-                vec2s actual_pos =
-                    glms_vec2_add(clipped_rect.min, tex_position);
-
-                wgpuRenderPassEncoderSetScissorRect(
-                    render_pass, actual_pos.x, actual_pos.y,
-                    rect_width(clipped_rect) + 1,
-                    rect_height(clipped_rect) + 1);
-            }
-            else
-            {
-                wgpuRenderPassEncoderSetScissorRect(
-                    render_pass, tex_position.x, tex_position.y,
-                    INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT);
             }
 
             layer_draw(&graphics->shadowcasters, &context, render_pass);

@@ -38,15 +38,11 @@ void light_render(Light *light, WGPURenderPassEncoder pass, Camera camera)
         Rect light_rect = rect_from_center_radius(
             glms_vec2_sub(push_constants.position,
                           push_constants.camera_position),
-            VEC2_SPLAT(push_constants.radius));
+            VEC2_SPLAT(push_constants.radius + 1));
 
         Rect clipped_rect = rect_clip(screen_rect, light_rect);
         if (rect_width(clipped_rect) == 0 || rect_height(clipped_rect) == 0)
             return;
-
-        wgpuRenderPassEncoderSetScissorRect(
-            pass, clipped_rect.min.x, clipped_rect.min.y,
-            rect_width(clipped_rect) + 1, rect_height(clipped_rect) + 1);
 
         wgpuRenderPassEncoderSetPushConstants(
             pass, WGPUShaderStage_Fragment | WGPUShaderStage_Vertex, 0,
