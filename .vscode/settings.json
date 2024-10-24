@@ -3,13 +3,13 @@
   "editor.detectIndentation": false,
   "rust-analyzer.cargo.buildScripts.enable": false,
   "rust-analyzer.files.excludeDirs": [
-    "wgpu-native"
+    "vendor/wgpu-native"
   ],
   "files.exclude": {
-    "wgpu-native/src": true,
-    "wgpu-native/**/*.rs": true,
-    "wgpu-native/**/*.toml": true,
-    "wgpu-native/Cargo.lock": true,
+    "vendor/wgpu-native/src": true,
+    "vendor/wgpu-native/**/*.rs": true,
+    "vendor/wgpu-native/**/*.toml": true,
+    "vendor/wgpu-native/Cargo.lock": true,
   },
   "mesonbuild.selectRootDir": false
 }
