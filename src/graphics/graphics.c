@@ -109,6 +109,7 @@ void shadowcaster_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 
     ShadowmapPushConstants constants = {
         .transform_index = caster->transform,
+        .offset = caster->offset,
         .camera = caster_context->camera,
         .light_position = caster_context->light_position,
 

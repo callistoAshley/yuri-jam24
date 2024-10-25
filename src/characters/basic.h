@@ -5,13 +5,16 @@
 
 typedef struct
 {
-    char sprite_name[256];
     char event_name[256];
 
     Transform transform;
     Quad quad;
+
     Sprite sprite;
     LayerEntry layer_entry;
+
+    ShadowCaster caster;
+    LayerEntry caster_entry;
 
     Rect rect;
 } BasicCharState;

@@ -1,16 +1,20 @@
 #pragma once
 #include "character.h"
+#include "graphics/caster_manager.h"
 #include "graphics/graphics.h"
+#include "graphics/layer.h"
 #include "graphics/sprite.h"
 
 typedef struct
 {
-    char sprite_name[256];
-
     Transform transform;
-    Sprite sprite;
     Quad quad;
+
+    Sprite sprite;
     LayerEntry layer_entry;
+
+    ShadowCaster caster;
+    LayerEntry caster_entry;
 
     Rect rect;
     b2BodyId body_id;

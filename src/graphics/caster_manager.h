@@ -33,6 +33,7 @@ typedef struct
 typedef struct
 {
     TransformEntry transform;
+    vec2s offset;
     CasterEntry *caster;
     f32 radius;
     u32 cell;

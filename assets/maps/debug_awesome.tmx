@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="20">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="6" nextobjectid="21">
  <tileset firstgid="1" source="../tilesets/tileset_coolfuckingtileset.tsx"/>
  <layer id="1" name="Tile Layer 1" width="30" height="20">
   <data encoding="csv">
@@ -36,23 +36,35 @@
   <object id="10" x="72" y="104" width="80" height="32"/>
  </objectgroup>
  <objectgroup id="5" name="characters" class="characters">
-  <object id="15" name="a box" type="rigidbody" x="96" y="87.9375" width="16" height="16.0625">
+  <object id="15" name="a box" type="rigidbody" x="96" y="87.9375" width="16" height="16">
    <properties>
     <property name="sprite" value="assets/textures/box.png"/>
    </properties>
   </object>
-  <object id="16" name="another box" type="rigidbody" x="123.438" y="81.3125" width="16" height="16.0625" rotation="45">
+  <object id="16" name="another box" type="rigidbody" x="123.438" y="81.3125" width="16" height="16" rotation="45">
+   <properties>
+    <property name="shadow" value="assets/shadowcasters/box.shdw"/>
+    <property name="shadow_radius" value="25"/>
+    <property name="sprite" value="assets/textures/box.png"/>
+   </properties>
+  </object>
+  <object id="17" name="a smaller box" type="rigidbody" x="108.528" y="77.4063" width="8" height="8">
    <properties>
     <property name="sprite" value="assets/textures/box.png"/>
    </properties>
   </object>
-  <object id="17" name="a smaller box" type="rigidbody" x="108.528" y="77.4063" width="8.28405" height="8.0625">
+  <object id="18" name="a circle" type="rigidbody" x="159.313" y="50.125" width="24.1875" height="24.1875">
    <properties>
+    <property name="shadow" value="assets/shadowcasters/box.shdw"/>
+    <property name="shadow_radius" value="32"/>
     <property name="sprite" value="assets/textures/box.png"/>
    </properties>
+   <ellipse/>
   </object>
-  <object id="18" name="a circle" type="rigidbody" x="83.6875" y="87.125" width="7.9375" height="7.8125">
+  <object id="20" name="a circle" type="rigidbody" x="83.3125" y="75.5" width="8" height="8">
    <properties>
+    <property name="shadow" value="assets/shadowcasters/box.shdw"/>
+    <property name="shadow_radius" value="12.5"/>
     <property name="sprite" value="assets/textures/box.png"/>
    </properties>
    <ellipse/>

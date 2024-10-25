@@ -114,6 +114,8 @@ typedef struct
 {
     mat4s camera;
     alignas(8) vec2s light_position;
+    vec2s offset;
+
     u32 transform_index;
 
     alignas(8) vec2s viewport_offset;

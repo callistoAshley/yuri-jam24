@@ -5,17 +5,18 @@
 #include "tmx.h"
 #include "utility/common_defines.h"
 #include "utility/log.h"
+#include "webgpu.h"
 
 void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
                           CharacterInitArgs *args)
 {
     (void)map_scene;
 
-    RigidBodyCharState *state = malloc(sizeof(RigidBodyCharState));
+    RigidBodyCharState *state = calloc(1, sizeof(RigidBodyCharState));
     state->rect = args->rect;
-    memset(state->sprite_name, 0, sizeof(state->sprite_name));
 
-    vec2s half_size = glms_vec2_mul(rect_size(args->rect), VEC2_SPLAT(0.5));
+    vec2s size = rect_size(args->rect);
+    vec2s half_size = glms_vec2_mul(size, VEC2_SPLAT(0.5));
 
     vec2s rotated_center_pos = glms_vec2_rotate(half_size, args->rotation);
     vec2s initial_pos = glms_vec2_add(args->rect.min, rotated_center_pos);
@@ -63,25 +64,64 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
 
     if (hashmap_get(args->metadata, "sprite"))
     {
-        state->transform =
-            transform_from_xyz(args->rect.min.x, args->rect.min.y, 0);
+
+        char sprite_name[256] = {0};
+        strncpy(sprite_name, hashmap_get(args->metadata, "sprite"),
+                sizeof(sprite_name));
+        TextureEntry *texture_entry =
+            texture_manager_load(&resources->graphics->texture_manager,
+                                 sprite_name, &resources->graphics->wgpu);
+
+        WGPUTexture texture = texture_manager_get_texture(
+            &resources->graphics->texture_manager, texture_entry);
+        u32 w = wgpuTextureGetWidth(texture);
+        u32 h = wgpuTextureGetHeight(texture);
+
+        state->transform = transform_from_position_scale(
+            (vec3s){.x = args->rect.min.x, .y = args->rect.min.y},
+            (vec3s){.x = size.x / w, .y = size.y / h});
         TransformEntry transform = transform_manager_add(
             &resources->graphics->transform_manager, state->transform);
 
-        strncpy(state->sprite_name, hashmap_get(args->metadata, "sprite"),
-                sizeof(state->sprite_name));
-        TextureEntry *texture = texture_manager_load(
-            &resources->graphics->texture_manager, state->sprite_name,
-            &resources->graphics->wgpu);
-
-        Rect quad_rect = rect_from_center_radius(GLMS_VEC2_ZERO, half_size);
+        Rect quad_rect = rect_from_center_radius(
+            GLMS_VEC2_ZERO, (vec2s){.x = w / 2.0, .y = h / 2.0});
         state->quad = quad_init(quad_rect, RECT_UNIT_TEX_COORDS);
 
         sprite_init(
-            &state->sprite, texture, transform,
+            &state->sprite, texture_entry, transform,
             quad_manager_add(&resources->graphics->quad_manager, state->quad));
         state->layer_entry = layer_add(
             &resources->graphics->sprite_layers.middle, &state->sprite);
+    }
+
+    if (hashmap_get(args->metadata, "shadow"))
+    {
+        char caster_name[256] = {0};
+        strncpy(caster_name, hashmap_get(args->metadata, "shadow"),
+                sizeof(caster_name));
+
+        f32 radius = -1;
+
+        char *radius_text = hashmap_get(args->metadata, "shadow_radius");
+        if (radius_text)
+        {
+            radius = atof(radius_text);
+        }
+
+        vec2s scale = {.x = state->transform.scale.x,
+                       .y = state->transform.scale.y};
+
+        CasterEntry *caster_entry = caster_manager_load(
+            &resources->graphics->caster_manager, caster_name);
+        state->caster = (ShadowCaster){
+            .caster = caster_entry,
+            .offset = glms_vec2_div(half_size, scale),
+            .cell = 0,
+            .radius = radius,
+            .transform = state->sprite.transform,
+        };
+        state->caster_entry =
+            layer_add(&resources->graphics->shadowcasters, &state->caster);
     }
 
     return state;
@@ -141,5 +181,11 @@ void rigidbody_char_free(void *self, Resources *resources, MapScene *map_scene)
         layer_remove(&resources->graphics->sprite_layers.middle,
                      state->layer_entry);
     }
+
+    if (state->caster.caster)
+    {
+        layer_remove(&resources->graphics->shadowcasters, state->caster_entry);
+    }
+
     free(state);
 }
