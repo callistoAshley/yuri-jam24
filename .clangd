@@ -1,5 +1,0 @@
-Diagnostics:
-  UnusedIncludes: None
-  Suppress:
-    newline-eof
-    empty-translation-unit

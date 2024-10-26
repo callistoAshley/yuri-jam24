@@ -11,5 +11,5 @@
     "vendor/wgpu-native/**/*.toml": true,
     "vendor/wgpu-native/Cargo.lock": true,
   },
-  "mesonbuild.selectRootDir": false
+  "mesonbuild.selectRootDir": false,
 }

@@ -134,6 +134,19 @@ static bool cmd_yield(VM *vm, Value *out, u32 arg_count, Resources *resources)
     return true;
 }
 
+static bool cmd_rand(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    (void)vm;
+    (void)arg_count;
+    (void)resources;
+
+    ARG_ERROR("rand", 0);
+
+    *out = INT_VAL(rand());
+
+    return false;
+}
+
 static bool unimplemented(VM *vm, Value *out, u32 arg_count,
                           Resources *resources)
 {
@@ -149,5 +162,6 @@ const CommandData COMMANDS[] = {
     [CMD_Text] = {"text", cmd_text},
     [CMD_Wait] = {"wait", cmd_wait},
     [CMD_Yield] = {"yield", cmd_yield},
+    [CMD_Rand] = {"rand", cmd_rand},
     [CMD_Unimplemented] = {"unimplemented", unimplemented},
 };

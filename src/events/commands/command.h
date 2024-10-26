@@ -7,6 +7,7 @@ typedef enum
     CMD_Text,
     CMD_Wait,
     CMD_Yield,
+    CMD_Rand,
     CMD_Unimplemented,
 
     Command_Max_Val,
