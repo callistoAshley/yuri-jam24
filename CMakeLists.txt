@@ -69,6 +69,7 @@ add_executable(${EXECUTABLE_NAME}
     vendor/cimgui/imgui/backends/imgui_impl_wgpu.cpp
     vendor/cimgui/imgui/backends/imgui_impl_sdl3.cpp
 )
+set_property(TARGET ${EXECUTABLE_NAME} PROPERTY C_STANDARD 23)
 
 target_compile_options(${EXECUTABLE_NAME} PRIVATE -Wall -Wextra -Wpedantic -fpermissive -Wno-error)
 

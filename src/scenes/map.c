@@ -11,6 +11,7 @@
 #include "characters/character.h"
 
 #include <tmx.h>
+#include <stddef.h>
 
 typedef struct
 {
@@ -32,6 +33,7 @@ static Layer *layer_for(StandardLayers *layers, MapLayer map_layer)
         return &layers->foreground;
         break;
     }
+    unreachable();
 }
 
 static char *tiled_image_path_to_actual(char *path)
