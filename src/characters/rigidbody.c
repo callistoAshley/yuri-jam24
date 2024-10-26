@@ -127,22 +127,22 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
     return state;
 }
 
-void rigidbody_char_fixed_update(void *self, Resources *resources,
+void rigidbody_char_fixed_update(void **self, Resources *resources,
                                  MapScene *map_scene)
 {
     (void)map_scene;
     (void)resources;
-    RigidBodyCharState *state = self;
+    RigidBodyCharState *state = *self;
 
     state->old_b2d_position = state->b2d_position;
     state->b2d_position = b2Body_GetTransform(state->body_id);
 }
 
-void rigidbody_char_update(void *self, Resources *resources,
+void rigidbody_char_update(void **self, Resources *resources,
                            MapScene *map_scene)
 {
     (void)map_scene;
-    RigidBodyCharState *state = self;
+    RigidBodyCharState *state = *self;
 
     vec2s old_position;
     old_position.x = state->old_b2d_position.p.x;

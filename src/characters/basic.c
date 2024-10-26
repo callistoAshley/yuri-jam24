@@ -76,32 +76,50 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
     return state;
 }
 
-void basic_char_update(void *self, Resources *resources, MapScene *map_scene)
+void basic_char_update(void **self, Resources *resources, MapScene *map_scene)
 {
-    BasicCharState *state = self;
+    BasicCharState *state = *self;
 
     Rect player_rect =
         rect_from_min_size((vec2s){.x = map_scene->player.transform.position.x,
                                    .y = map_scene->player.transform.position.y},
                            (vec2s){.x = PLAYER_W, .y = PLAYER_H});
 
-    // FIXME: this comparison does not work if there are multiple vms running
-    if (rect_contains_other(player_rect, state->rect) &&
-        input_is_pressed(resources->input, Button_Interact) &&
-        !map_scene->vms.len && *state->event_name)
+    bool player_inside = rect_contains_other(player_rect, state->rect);
+    bool interact_pressed = input_is_pressed(resources->input, Button_Interact);
+    bool has_event = (*state->event_name) != '\0';
+
+    if (player_inside && interact_pressed && !state->vm && has_event)
     {
         for (u32 i = 0; i < resources->event_count; i++)
         {
             Event event = resources->events[i];
             if (!strcmp(event.name, state->event_name))
             {
-                VM vm;
-                vm_init(&vm, event);
-                vec_push(&map_scene->vms, &vm);
+                state->vm = malloc(sizeof(VM));
+                vm_init(state->vm, event);
                 return;
             }
         }
         log_warn("No such event `%s`", state->event_name);
+    }
+}
+
+void basic_char_fixed_update(void **self, Resources *resources,
+                             MapScene *map_scene)
+{
+    (void)map_scene;
+
+    BasicCharState *state = *self;
+    if (state->vm)
+    {
+        bool finished = vm_execute(state->vm, resources);
+        if (finished)
+        {
+            vm_free(state->vm);
+            free(state->vm);
+            state->vm = NULL;
+        }
     }
 }
 
@@ -119,6 +137,12 @@ void basic_char_free(void *self, Resources *resources, MapScene *map_scene)
     if (state->caster.caster)
     {
         layer_remove(&resources->graphics->shadowcasters, state->caster_entry);
+    }
+
+    if (state->vm)
+    {
+        vm_free(state->vm);
+        free(state->vm);
     }
 
     free(state);

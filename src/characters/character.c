@@ -9,13 +9,14 @@ const CharacterInterface CHARACTERS[Char_Max] = {
             .name = "basic",
             .init_fn = basic_char_init,
             .update_fn = basic_char_update,
+            .fixed_update_fn = basic_char_fixed_update,
             .free_fn = basic_char_free,
         },
     [Char_Autorun] =
         {
             .name = "autorun",
             .init_fn = autorun_char_init,
-            .update_fn = autorun_char_update,
+            .fixed_update_fn = autorun_char_fixed_update,
             .free_fn = autorun_char_free,
         },
     [Char_RigidBody] =

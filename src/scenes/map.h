@@ -27,8 +27,6 @@ typedef struct MapScene
 
     SettingsMenu settings;
     Textbox textbox;
-
-    vec vms; // vec<VM>
 } MapScene;
 
 // NOTE: MUST BE PASSED TO scene_change!!!!!!

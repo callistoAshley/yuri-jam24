@@ -128,9 +128,6 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     settings_menu_init(&map_scene->settings, resources);
     textbox_init(&map_scene->textbox, resources);
 
-    // vms take up ~2kb of memory, so we should only allocate space for 1
-    vec_init_with_capacity(&map_scene->vms, sizeof(VM), 1);
-
     for (usize i = 0; i < load_characters.len; i++)
     {
         MapCharacterObj *obj = vec_get(&load_characters, i);
@@ -159,25 +156,12 @@ void map_scene_fixed_update(Scene *scene_data, Resources *resources)
 {
     MapScene *map_scene = (MapScene *)scene_data;
 
-    for (u32 i = 0; i < map_scene->vms.len; i++)
-    {
-        VM *vm = vec_get(&map_scene->vms, i);
-        // if we're done executing, remove the vm from the interpreter list
-        if (vm_execute(vm, resources))
-        {
-            vm_free(vm);
-            vec_remove(&map_scene->vms, i, NULL);
-            if (i > 0)
-                i--;
-        }
-    }
-
     for (u32 i = 0; i < map_scene->characters.len; i++)
     {
         MapCharacterEntry *chara = vec_get(&map_scene->characters, i);
         if (chara->interface.fixed_update_fn)
         {
-            chara->interface.fixed_update_fn(chara->state, resources,
+            chara->interface.fixed_update_fn(&chara->state, resources,
                                              map_scene);
         }
     }
@@ -250,7 +234,10 @@ void map_scene_update(Scene *scene_data, Resources *resources)
     for (u32 i = 0; i < map_scene->characters.len; i++)
     {
         MapCharacterEntry *chara = vec_get(&map_scene->characters, i);
-        chara->interface.update_fn(chara->state, resources, map_scene);
+        if (chara->interface.update_fn)
+        {
+            chara->interface.update_fn(&chara->state, resources, map_scene);
+        }
     }
 
     textbox_update(&map_scene->textbox, resources);
@@ -318,13 +305,6 @@ void map_scene_free(Scene *scene_data, Resources *resources)
         chara->interface.free_fn(chara->state, resources, map_scene);
     }
     vec_free(&map_scene->characters);
-
-    for (u32 i = 0; i < map_scene->vms.len; i++)
-    {
-        VM *vm = vec_get(&map_scene->vms, i);
-        vm_free(vm);
-    }
-    vec_free(&map_scene->vms);
 
     settings_menu_free(&map_scene->settings, resources);
 

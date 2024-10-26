@@ -29,7 +29,9 @@ typedef void *(*character_init_fn)(Resources *resources,
                                    struct MapScene *map_scene,
                                    CharacterInitArgs *args);
 
-typedef void (*character_update_fn)(void *self, Resources *resources,
+// characters can update the self pointer if they so choose
+// (this is used by the autorun character to use less resources)
+typedef void (*character_update_fn)(void **self, Resources *resources,
                                     struct MapScene *map_scene);
 
 typedef void (*character_free_fn)(void *self, Resources *resources,

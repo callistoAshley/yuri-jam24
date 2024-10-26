@@ -8,8 +8,8 @@
 void *autorun_char_init(Resources *resources, struct MapScene *map_scene,
                         CharacterInitArgs *args);
 
-void autorun_char_update(void *self, Resources *resources,
-                         struct MapScene *map_scene);
+void autorun_char_fixed_update(void **self, Resources *resources,
+                               struct MapScene *map_scene);
 
 void autorun_char_free(void *self, Resources *resources,
                        struct MapScene *map_scene);
