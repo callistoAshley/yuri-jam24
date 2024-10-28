@@ -1,4 +1,6 @@
 #include "definition.h"
+#include "utility/macros.h"
+#include <string.h>
 
 // while this is a gnu C extension clang will compile it just fine
 // (MSVC won't but MSVC doesn't even do C99. also fuck microsoft)
@@ -15,7 +17,7 @@ static const AnimationDef TEST = {
 
     .looping = true,
 
-    .cell_count = 5,
+    .frame_count = 5,
     .frames =
         {
             {0.25, 0},
@@ -30,21 +32,32 @@ const AnimationDef *ANIMATIONS[Anim_Max] = {
     [Anim_Test] = &TEST,
 };
 
-Rect tex_coords_for(AnimationType type, u32 frame, u32 texture_width,
+AnimationType anim_type_for(const char *name)
+{
+    for (AnimationType type = 0; type < Anim_Max; type++)
+    {
+        const AnimationDef *def = ANIMATIONS[type];
+        if (!strcmp(def->name, name))
+        {
+            return type;
+        }
+    }
+    FATAL("Unrecognized animation type %s\n", name);
+}
+
+Rect tex_coords_for(const AnimationDef *def, u32 frame, u32 texture_width,
                     u32 texture_height)
 {
-    const AnimationDef *animation = ANIMATIONS[type];
+    AnimCell cell = def->frames[frame].cell;
 
-    Cell cell = animation->frames[frame].cell;
-
-    u32 unwrapped_cell_x = cell * animation->cell_width;
+    u32 unwrapped_cell_x = cell * def->cell_width;
     // we want the cell to wrap around to the start of the texture and go down a
     // row for every wrap
     u32 cell_x = unwrapped_cell_x % texture_width;
-    u32 cell_y = (unwrapped_cell_x / texture_width) * animation->cell_height;
+    u32 cell_y = (unwrapped_cell_x / texture_width) * def->cell_height;
 
     vec2s tex_size = {.x = texture_width, .y = texture_height};
-    vec2s cell_size = {.x = animation->cell_width, .y = animation->cell_height};
+    vec2s cell_size = {.x = def->cell_width, .y = def->cell_height};
 
     vec2s min = {.x = cell_x, .y = cell_y};
     vec2s max = glms_vec2_add(min, cell_size);

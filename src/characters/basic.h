@@ -1,7 +1,7 @@
 #pragma once
+#include "animation/animation.h"
 #include "character.h"
 #include "events/vm.h"
-#include "graphics/graphics.h"
 #include "graphics/sprite.h"
 
 typedef struct
@@ -19,6 +19,8 @@ typedef struct
 
     ShadowCaster caster;
     LayerEntry caster_entry;
+
+    Animation animation;
 
     Rect rect;
 } BasicCharState;

@@ -10,11 +10,11 @@ typedef enum
     Anim_Max,
 } AnimationType;
 
-typedef u32 Cell;
+typedef u32 AnimCell;
 typedef struct
 {
     f32 frame_time;
-    Cell cell;
+    AnimCell cell;
 } Frame;
 
 typedef struct
@@ -26,11 +26,13 @@ typedef struct
 
     u32 cell_width, cell_height;
 
-    u32 cell_count;
+    u32 frame_count;
     Frame frames[];
 } AnimationDef;
 
 extern const AnimationDef *ANIMATIONS[Anim_Max];
 
-Rect tex_coords_for(AnimationType type, u32 frame, u32 texture_width,
+AnimationType anim_type_for(const char *name);
+
+Rect tex_coords_for(const AnimationDef *def, u32 frame, u32 texture_width,
                     u32 texture_height);

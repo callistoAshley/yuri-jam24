@@ -1,4 +1,6 @@
 #include "basic.h"
+#include "animation/animation.h"
+#include "animation/definition.h"
 #include "scenes/map.h"
 #include "utility/log.h"
 #include "input/input.h"
@@ -11,6 +13,13 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
 
     BasicCharState *state = calloc(1, sizeof(BasicCharState));
     state->rect = args->rect;
+
+    if (hashmap_get(args->metadata, "animation"))
+    {
+        const char *animation_name = hashmap_get(args->metadata, "animation");
+        AnimationType type = anim_type_for(animation_name);
+        animation_init(&state->animation, type);
+    }
 
     if (hashmap_get(args->metadata, "sprite"))
     {
@@ -29,6 +38,12 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
             &resources->graphics->texture_manager, texture);
         u32 width = wgpuTextureGetWidth(wgpu_tex),
             height = wgpuTextureGetHeight(wgpu_tex);
+
+        if (state->animation.def)
+        {
+            width = state->animation.def->cell_width;
+            height = state->animation.def->cell_height;
+        }
 
         state->quad =
             quad_init(rect_from_size((vec2s){.x = width, .y = height}),
@@ -73,12 +88,25 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
                 sizeof(state->event_name));
     }
 
+    if (state->animation.def)
+    {
+        animation_apply(&state->animation, resources->graphics, &state->quad,
+                        &state->sprite);
+    }
+
     return state;
 }
 
 void basic_char_update(void **self, Resources *resources, MapScene *map_scene)
 {
     BasicCharState *state = *self;
+
+    if (state->animation.def)
+    {
+        animation_update(&state->animation, resources->time.current);
+        animation_apply(&state->animation, resources->graphics, &state->quad,
+                        &state->sprite);
+    }
 
     Rect player_rect =
         rect_from_min_size((vec2s){.x = map_scene->player.transform.position.x,
@@ -143,6 +171,11 @@ void basic_char_free(void *self, Resources *resources, MapScene *map_scene)
     {
         vm_free(state->vm);
         free(state->vm);
+    }
+
+    if (state->animation.def)
+    {
+        animation_free(&state->animation);
     }
 
     free(state);
