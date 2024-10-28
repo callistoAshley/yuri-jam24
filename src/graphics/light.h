@@ -1,5 +1,6 @@
 #pragma once
 
+#include "cglm/types-struct.h"
 #include "graphics/graphics.h"
 #include "sensible_nums.h"
 #include <cglm/struct.h>
@@ -9,7 +10,7 @@ typedef struct
     enum
     {
         Light_Point,
-        Light_Direct
+        Light_Direct,
     } type;
 
     // TODO add spotlights
@@ -19,7 +20,11 @@ typedef struct
         {
             vec2s position;
             f32 radius;
+
+            vec2s direction;
+            f32 angular_cutoff;
         } point;
+
     } data;
 
     vec3s color;

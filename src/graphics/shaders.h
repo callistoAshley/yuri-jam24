@@ -2,8 +2,6 @@
 
 #include <wgpu.h>
 #include "cglm/types-struct.h"
-#include "cglm/types.h"
-#include "utility/list.h"
 #include "webgpu.h"
 #include "wgpu_resources.h"
 #include "bind_group_layouts.h"
@@ -93,6 +91,9 @@ typedef struct
 
     alignas(16) vec2s position;
     vec2s camera_position;
+
+    vec2s direction;
+    f32 angular_cutoff;
 
     f32 intensity;
     f32 radius;

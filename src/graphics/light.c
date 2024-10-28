@@ -1,7 +1,6 @@
 #include "light.h"
 #include "core_types.h"
 #include "graphics/graphics.h"
-#include "graphics/quad_manager.h"
 #include "graphics/shaders.h"
 #include "graphics/shadowmap.h"
 #include "utility/common_defines.h"
@@ -17,6 +16,9 @@ void light_render(Light *light, WGPURenderPassEncoder pass, Camera camera)
 
             .position = light->data.point.position,
             .camera_position = (vec2s){.x = camera.x, .y = camera.y},
+
+            .angular_cutoff = light->data.point.angular_cutoff,
+            .direction = light->data.point.direction,
 
             .radius = light->data.point.radius,
             .intensity = light->intensity,

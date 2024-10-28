@@ -1,11 +1,9 @@
 #include "map_loader.h"
 #include "cglm/types-struct.h"
-#include "characters/autorun.h"
 #include "characters/character.h"
 #include "graphics/graphics.h"
 #include "scenes/scene.h"
 #include "utility/log.h"
-#include "characters/basic.h"
 
 #define COLLISION_CLASS "collision"
 #define LIGHTS_CLASS "lights"
@@ -139,7 +137,7 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
     {
         MapRenderable renderable;
         renderable.type = Map_Light;
-        renderable.data.light = malloc(sizeof(Light));
+        renderable.data.light = calloc(1, sizeof(Light));
 
         // color is encoded as ARGB
         tmx_property *color_prop =
@@ -168,6 +166,39 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
         {
         case OT_POLYGON:
         {
+            renderable.data.light->type = Light_Point;
+
+            vec2s position = (vec2s){.x = current->x, .y = current->y};
+            renderable.data.light->data.point.position = position;
+
+            vec2s p1 = {
+                .x = current->content.shape->points[1][0],
+                .y = current->content.shape->points[1][1],
+            };
+            vec2s p2 = {
+                .x = current->content.shape->points[2][0],
+                .y = current->content.shape->points[2][1],
+            };
+
+            vec2s max_p = glms_vec2_maxv(p1, p2);
+            f32 radius = glms_vec2_distance(position, max_p);
+            renderable.data.light->data.point.radius = radius;
+
+            vec2s midpoint = {
+                .x = (p1.x + p2.x) / 2.0,
+                .y = (p1.y + p2.y) / 2.0,
+            };
+
+            f32 hypot = glms_vec2_distance(position, midpoint);
+            f32 adjacent = glms_vec2_distance(position, p1);
+            f32 angular_cutoff = acos(adjacent / hypot) * 2.0;
+            renderable.data.light->data.point.angular_cutoff = angular_cutoff;
+
+            if (renderable.data.light->casts_shadows)
+            {
+                renderable.data.light->shadowmap_entry = shadowmap_add(
+                    &resources->graphics->shadowmap, position, radius);
+            }
 
             break;
         }
@@ -182,6 +213,8 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
 
             renderable.data.light->data.point.position = position;
             renderable.data.light->data.point.radius = radius;
+
+            renderable.data.light->data.point.angular_cutoff = -1;
 
             if (renderable.data.light->casts_shadows)
             {
