@@ -2,6 +2,7 @@
 
 #include "core_types.h"
 #include "sensible_nums.h"
+#include "utility/macros.h"
 
 typedef enum
 {
@@ -15,6 +16,8 @@ typedef struct
 {
     f32 frame_time;
     AnimCell cell;
+
+    NULLABLE const char *sound;
 } Frame;
 
 typedef struct

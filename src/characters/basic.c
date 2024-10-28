@@ -103,7 +103,7 @@ void basic_char_update(void **self, Resources *resources, MapScene *map_scene)
 
     if (state->animation.def)
     {
-        animation_update(&state->animation, resources->time.current);
+        animation_update(&state->animation, resources);
         animation_apply(&state->animation, resources->graphics, &state->quad,
                         &state->sprite);
     }

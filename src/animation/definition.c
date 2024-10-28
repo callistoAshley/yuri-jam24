@@ -20,11 +20,11 @@ static const AnimationDef TEST = {
     .frame_count = 5,
     .frames =
         {
-            {0.25, 0},
-            {0.25, 1},
-            {0.25, 2},
-            {0.25, 3},
-            {0.25, 4},
+            {1.0, 0, "event:/sfx/clang"},
+            {0.25, 1, NULL},
+            {0.25, 2, NULL},
+            {0.25, 3, NULL},
+            {0.25, 4, NULL},
         },
 };
 

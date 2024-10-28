@@ -1,8 +1,10 @@
 #include "animation.h"
 #include "animation/definition.h"
 #include "core_types.h"
+#include "fmod_studio.h"
 #include "graphics/tex_manager.h"
 #include "time/time.h"
+#include "utility/macros.h"
 #include "webgpu.h"
 
 void animation_init(Animation *animation, AnimationType type)
@@ -20,7 +22,7 @@ void animation_reset(Animation *animation)
     animation->finished = false;
 }
 
-void animation_update(Animation *animation, Time time)
+void animation_update(Animation *animation, Resources *resources)
 {
     if (animation->finished)
     {
@@ -29,7 +31,7 @@ void animation_update(Animation *animation, Time time)
 
     animation->needs_apply = false;
 
-    f32 delta = time_delta_seconds(time);
+    f32 delta = time_delta_seconds(resources->time.real->time);
     animation->wait_time -= delta;
 
     if (animation->wait_time <= 0.0)
@@ -46,6 +48,19 @@ void animation_update(Animation *animation, Time time)
         Frame frame = animation->def->frames[animation->current_frame];
         animation->wait_time = frame.frame_time;
         animation->needs_apply = true;
+
+        if (frame.sound)
+        {
+            FMOD_STUDIO_EVENTDESCRIPTION *desc;
+            FMOD_RESULT res = FMOD_Studio_System_GetEvent(
+                resources->audio->system, frame.sound, &desc);
+            FMOD_ERRCHK(res, "Failed to fetch animation sound");
+
+            FMOD_STUDIO_EVENTINSTANCE *inst;
+            FMOD_Studio_EventDescription_CreateInstance(desc, &inst);
+            FMOD_Studio_EventInstance_Start(inst);
+            FMOD_Studio_EventInstance_Release(inst);
+        }
     }
 }
 
