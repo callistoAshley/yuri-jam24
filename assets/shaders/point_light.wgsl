@@ -8,9 +8,6 @@ struct PushConstants {
   position: vec2f,
   camera_position: vec2f,
 
-  direction: vec2f,
-  angular_cutoff: f32,
-
   intensity: f32,
   radius: f32,
   volumetric_intensity: f32,
@@ -66,20 +63,15 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
     let dist = distance(push_constants.position, frag_world_coord);
     let dist_norm = dist / push_constants.radius;
+    let dir = normalize(push_constants.position - frag_world_coord);
 
-    var angular_falloff = 1.0;
-    if push_constants.angular_cutoff != -1.0 {
-        let dir = normalize(push_constants.position - frag_world_coord);
-
-        let theta = dot(dir, normalize(-push_constants.direction));
-        let intensity = (theta - push_constants.angular_cutoff) / 0.09;
-        angular_falloff = clamp(intensity, 0.0, 1.0);
-    }
+    // convert angle from -PI..PI to 0..2*PI
+    let angle = atan2(dir.y, dir.x);
 
     // we don't render a perfect circle (it's a square), so we need to clamp the factor
     let radial_falloff = pow(clamp(1.0 - dist_norm, 0.0, 1.0), 2.0);
 
-    let final_intensity = push_constants.intensity * radial_falloff * angular_falloff;
+    let final_intensity = push_constants.intensity * radial_falloff;
     var light_color = push_constants.color * final_intensity;
 
     // z = 1.0 indicates that the mask texture is enabled

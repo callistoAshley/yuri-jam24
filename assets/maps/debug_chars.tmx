@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="12">
+<map version="1.10" tiledversion="1.11.0" orientation="orthogonal" renderorder="right-down" width="30" height="20" tilewidth="8" tileheight="8" infinite="0" nextlayerid="5" nextobjectid="8">
  <tileset firstgid="1" source="../tilesets/tileset_coolfuckingtileset.tsx"/>
  <layer id="1" name="Tile Layer 1" width="30" height="20">
   <data encoding="csv">
@@ -60,15 +60,6 @@
     <property name="volumetric_intensity" type="float" value="0"/>
    </properties>
    <polyline points="0,0 7.59546,22.9515"/>
-  </object>
-  <object id="11" x="25.7633" y="103.962">
-   <properties>
-    <property name="casts_shadows" type="bool" value="false"/>
-    <property name="color" type="color" value="#ffffffff"/>
-    <property name="intensity" type="float" value="1"/>
-    <property name="volumetric_intensity" type="float" value="0"/>
-   </properties>
-   <polygon points="0,0 16.3083,47.6105 48.2622,15.6566"/>
   </object>
  </objectgroup>
 </map>

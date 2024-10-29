@@ -10,10 +10,13 @@
 #include "graphics/tilemap.h"
 #include "graphics/ui_sprite.h"
 #include "imgui_wgpu.h"
+#include "input/input.h"
 #include "physics/debug_draw.h"
 #include "utility/common_defines.h"
+#include "utility/log.h"
 #include "utility/macros.h"
 #include "webgpu.h"
+#include "fonts/font.h"
 
 // TODO remove all global variables
 QuadEntry screen_quad_index;
@@ -78,7 +81,7 @@ void ui_sprite_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 void point_light_draw(void *thing, void *context, WGPURenderPassEncoder pass)
 {
     Light *light = thing;
-    if (light->type == Light_Direct)
+    if (light->type != Light_Point)
         return;
     light_render(light, pass, *(Camera *)context);
 }
