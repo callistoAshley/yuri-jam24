@@ -297,19 +297,38 @@ bool lexer_next(Lexer *lexer, Token *token)
 
     // math ops
     case '-':
-        *token = basic_token(Token_Minus);
+        if (match(lexer, '-'))
+            *token = basic_token(Token_Dec);
+        else if (match(lexer, '='))
+            *token = basic_token(Token_SetSub);
+        else
+            *token = basic_token(Token_Minus);
         return true;
     case '+':
-        *token = basic_token(Token_Plus);
+        if (match(lexer, '+'))
+            *token = basic_token(Token_Inc);
+        else if (match(lexer, '='))
+            *token = basic_token(Token_SetAdd);
+        else
+            *token = basic_token(Token_Plus);
         return true;
     case '*':
-        *token = basic_token(Token_Mult);
+        if (match(lexer, '='))
+            *token = basic_token(Token_SetMult);
+        else
+            *token = basic_token(Token_Mult);
         return true;
     case '/':
-        *token = basic_token(Token_Div);
+        if (match(lexer, '='))
+            *token = basic_token(Token_SetDiv);
+        else
+            *token = basic_token(Token_Div);
         return true;
     case '%':
-        *token = basic_token(Token_Mod);
+        if (match(lexer, '='))
+            *token = basic_token(Token_SetMod);
+        else
+            *token = basic_token(Token_Mod);
         return true;
 
     // 2-char ops
@@ -419,6 +438,27 @@ void token_debug_printf(Token token)
         break;
     case Token_Set:
         printf("=");
+        break;
+    case Token_SetAdd:
+        printf("+=");
+        break;
+    case Token_SetSub:
+        printf("-=");
+        break;
+    case Token_SetMult:
+        printf("*=");
+        break;
+    case Token_SetDiv:
+        printf("/=");
+        break;
+    case Token_SetMod:
+        printf("%%=");
+        break;
+    case Token_Inc:
+        printf("++");
+        break;
+    case Token_Dec:
+        printf("--");
         break;
     case Token_Eq:
         printf("==");

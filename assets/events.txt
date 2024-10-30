@@ -20,7 +20,7 @@ event "intro" {
 
 event "autorun" {
   text("automatic beyond belief");
-  for i = 0; i < 64; i = i + 1 {
+  for i = 0; i < 64; i++ {
     yield();
   }
   text("toaster");
@@ -33,7 +33,7 @@ event "sunbeam" {
 
 event "test" {
   text("bye lol");
-  for i = 0; i < 64; i = i + 1 {
+  for i = 0; i < 64; i += 1 {
     move(1);
     yield();
   }

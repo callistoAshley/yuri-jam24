@@ -37,7 +37,16 @@ typedef struct
         Token_Int,
         Token_Float,
 
+        // assignment ops
         Token_Set,
+        Token_SetAdd,
+        Token_SetSub,
+        Token_SetMult,
+        Token_SetDiv,
+        Token_SetMod,
+        // increment/decrement ops
+        Token_Inc,
+        Token_Dec,
 
         Token_Eq,
         Token_NotEq,

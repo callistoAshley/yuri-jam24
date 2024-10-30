@@ -246,25 +246,98 @@ static u32 get_or_insert_variable(Compiler *compiler, char *name)
 
 static void identifier(Compiler *compiler, bool can_assign)
 {
-    // turns out this was a command call. handle that and return immediately
     char *ident = compiler->previous.data.ident;
     if (match(compiler, Token_ParenL))
     {
+        // turns out this was a command call. handle that and return immediately
         call(compiler, ident);
         return;
     }
 
     u32 slot = get_or_insert_variable(compiler, ident);
     Instruction instruction = {.data.slot = slot};
-    if (can_assign && match(compiler, Token_Set))
+    instruction.code = Code_Fetch;
+    // if we can't assign, then this has to be a fetch op.
+    if (!can_assign)
+    {
+        emit(compiler, instruction);
+        return;
+    }
+
+    // otherwise, check if it's a set op
+    if (match(compiler, Token_Set))
     {
         instruction.code = Code_Set;
         expression(compiler);
+        emit(compiler, instruction);
+        return;
+    }
+
+    // all of these start with fetching a value, so we emit that here.
+    // if none of these cases apply, then we're just fetching the variable, so
+    // this works anyway.
+    emit(compiler, instruction);
+    if (match(compiler, Token_Inc))
+    {
+        // emit number
+        instruction.code = Code_Int;
+        instruction.data._int = 1, emit(compiler, instruction);
+        // emit add
+        instruction.code = Code_Add;
+    }
+    else if (match(compiler, Token_Dec))
+    {
+        // emit number
+        instruction.code = Code_Int;
+        instruction.data._int = 1, emit(compiler, instruction);
+        // emit sub
+        instruction.code = Code_Sub;
+    }
+    else if (match(compiler, Token_SetAdd))
+    {
+        // handle left side
+        expression(compiler);
+        // emit add
+        instruction.code = Code_Add;
+    }
+    else if (match(compiler, Token_SetSub))
+    {
+        // handle left side
+        expression(compiler);
+        // emit sub
+        instruction.code = Code_Sub;
+    }
+    else if (match(compiler, Token_SetMult))
+    {
+        // handle left side
+        expression(compiler);
+        // emit mul
+        instruction.code = Code_Mul;
+    }
+    else if (match(compiler, Token_SetDiv))
+    {
+        // handle left side
+        expression(compiler);
+        // emit div
+        instruction.code = Code_Div;
+    }
+    else if (match(compiler, Token_SetMod))
+    {
+        // handle left side
+        expression(compiler);
+        // emit mod
+        instruction.code = Code_Mod;
     }
     else
     {
-        instruction.code = Code_Fetch;
+        // not an assign, we're just fetching a value, so return
+        return;
     }
+    // emit the math op
+    emit(compiler, instruction);
+    // ..and emit set
+    instruction.code = Code_Set;
+    instruction.data.slot = slot;
     emit(compiler, instruction);
 }
 
