@@ -13,10 +13,10 @@ void vm_init(VM *vm, Event event)
 
     memset(vm->stack, 0, sizeof(vm->stack));
     vm->top = 0;
-
     vm->ip = 0;
 
     memset(vm->command_ctx, 0, sizeof(vm->command_ctx));
+    vm->vm_ctx = NULL;
 }
 
 static inline void push(VM *vm, Value value)

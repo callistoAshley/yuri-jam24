@@ -15,7 +15,10 @@ typedef struct
     Value stack[STACK_MAX];
     Value slots[SLOT_MAX];
 
+    // command specific context
     char command_ctx[COMMAND_CTX_MAX];
+    // vm specific context
+    void *vm_ctx;
 
     u32 top;
     u32 ip;

@@ -8,6 +8,9 @@ typedef enum
     CMD_Wait,
     CMD_Yield,
     CMD_Rand,
+    CMD_MoveL,
+    CMD_MoveR,
+    CMD_Move,
     CMD_Unimplemented,
 
     Command_Max_Val,

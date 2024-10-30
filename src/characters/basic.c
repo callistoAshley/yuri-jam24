@@ -126,6 +126,7 @@ void basic_char_update(void **self, Resources *resources, MapScene *map_scene)
             {
                 state->vm = malloc(sizeof(VM));
                 vm_init(state->vm, event);
+                state->vm->vm_ctx = state;
                 return;
             }
         }

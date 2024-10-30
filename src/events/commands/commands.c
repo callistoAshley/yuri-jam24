@@ -1,5 +1,7 @@
 #include "commands.h"
+#include "characters/basic.h"
 #include "events/commands/command.h"
+#include "events/value.h"
 #include "events/vm.h"
 #include "scenes/map.h"
 #include "scenes/scene.h"
@@ -48,7 +50,7 @@ static bool cmd_wait(VM *vm, Value *out, u32 arg_count, Resources *resources)
 {
     struct WaitCtx
     {
-        u32 count;
+        f32 waited;
     };
 
     (void)out;
@@ -56,20 +58,19 @@ static bool cmd_wait(VM *vm, Value *out, u32 arg_count, Resources *resources)
     ARG_ERROR("wait", 1);
 
     Value wait_val = vm_peek(vm, vm->top - 1);
-    u32 wait_count = wait_val.data._int;
+    f32 wait_time = wait_val.data._float;
 
     struct WaitCtx *ctx = (struct WaitCtx *)vm->command_ctx;
 
     // we're done waiting, stop yielding
-    if (ctx->count >= wait_count)
+    if (ctx->waited >= wait_time)
     {
         CLEAR_CTX(vm);
         vm_pop(vm);
         return false;
     }
 
-    printf("waited %d times\n", ctx->count);
-    ctx->count++;
+    ctx->waited += time_delta_seconds(resources->time.current);
     return true;
 }
 
@@ -147,6 +148,59 @@ static bool cmd_rand(VM *vm, Value *out, u32 arg_count, Resources *resources)
     return false;
 }
 
+static bool cmd_move_l(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    (void)out;
+
+    ARG_ERROR("move_l", 0);
+
+    BasicCharState *state = vm->vm_ctx;
+    state->transform.position.x -= 8.0;
+    transform_manager_update(&resources->graphics->transform_manager,
+                             state->sprite.transform, state->transform);
+
+    return false;
+}
+
+static bool cmd_move_r(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    (void)out;
+
+    ARG_ERROR("move_r", 0);
+
+    BasicCharState *state = vm->vm_ctx;
+    state->transform.position.x += 8.0;
+    transform_manager_update(&resources->graphics->transform_manager,
+                             state->sprite.transform, state->transform);
+
+    return false;
+}
+
+static bool cmd_move(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    (void)out;
+
+    ARG_ERROR("move", 1);
+
+    BasicCharState *state = vm->vm_ctx;
+    Value amount = vm_pop(vm);
+    switch (amount.type)
+    {
+    case Val_Int:
+        state->transform.position.x += amount.data._int;
+        break;
+    case Val_Float:
+        state->transform.position.x += amount.data._float;
+        break;
+    default:
+        FATAL("Wrong type to cmd_move (expected number, got %d)\n", amount.type)
+    }
+    transform_manager_update(&resources->graphics->transform_manager,
+                             state->sprite.transform, state->transform);
+
+    return false;
+}
+
 static bool unimplemented(VM *vm, Value *out, u32 arg_count,
                           Resources *resources)
 {
@@ -163,5 +217,10 @@ const CommandData COMMANDS[] = {
     [CMD_Wait] = {"wait", cmd_wait},
     [CMD_Yield] = {"yield", cmd_yield},
     [CMD_Rand] = {"rand", cmd_rand},
+
+    [CMD_MoveL] = {"move_l", cmd_move_l},
+    [CMD_MoveR] = {"move_r", cmd_move_r},
+    [CMD_Move] = {"move", cmd_move},
+
     [CMD_Unimplemented] = {"unimplemented", unimplemented},
 };

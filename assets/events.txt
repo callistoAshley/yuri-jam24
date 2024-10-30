@@ -32,8 +32,9 @@ event "sunbeam" {
 }
 
 event "test" {
-  text("i am fucking transgender");
-  text("this is an event that will run");
-  text("more text");
-  text("a");
+  text("bye lol");
+  for i = 0; i < 64; i = i + 1 {
+    move(1);
+    yield();
+  }
 }
