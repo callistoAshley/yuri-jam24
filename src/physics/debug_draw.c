@@ -26,7 +26,7 @@ void draw_maybe_solid_circle(b2Vec2 center, float radius, b2HexColor color,
                                      ctx->graphics->shaders.box2d_debug.circle);
 
     float scale =
-        (float)ctx->graphics->wgpu.surface_config.width / INTERNAL_SCREEN_WIDTH;
+        (float)ctx->graphics->wgpu.surface_config.width / GAME_VIEW_WIDTH;
 
     B2DCirclePushConstants push_constants = {
         .color = vec3_from_hex(color),
@@ -66,7 +66,7 @@ void draw_point(b2Vec2 center, float size, b2HexColor color, void *context)
 {
     Box2DDebugCtx *ctx = context;
     float scale =
-        (float)ctx->graphics->wgpu.surface_config.width / INTERNAL_SCREEN_WIDTH;
+        (float)ctx->graphics->wgpu.surface_config.width / GAME_VIEW_WIDTH;
     draw_maybe_solid_circle(center, size / PX_PER_M / scale, color, context, 1);
 }
 
@@ -103,7 +103,7 @@ void draw_maybe_solid_polygon(b2Transform transform, const b2Vec2 *vertices,
         ctx->pass, ctx->graphics->shaders.box2d_debug.polygon);
 
     float scale =
-        (float)ctx->graphics->wgpu.surface_config.width / INTERNAL_SCREEN_WIDTH;
+        (float)ctx->graphics->wgpu.surface_config.width / GAME_VIEW_WIDTH;
 
     // FIXME handle rotation
     B2DDrawPolygonPushConstants push_constants = {

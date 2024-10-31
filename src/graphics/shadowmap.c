@@ -5,8 +5,8 @@ void shadowmap_init(ShadowMap *shadowmap, WGPUResources *wgpu)
 {
 
     WGPUExtent3D extents = {
-        .width = INTERNAL_SCREEN_WIDTH * SHADOWMAP_WIDTH,
-        .height = INTERNAL_SCREEN_HEIGHT * SHADOWMAP_HEIGHT,
+        .width = GAME_VIEW_WIDTH * SHADOWMAP_WIDTH,
+        .height = GAME_VIEW_HEIGHT * SHADOWMAP_HEIGHT,
         .depthOrArrayLayers = 1,
     };
     WGPUTextureDescriptor desc = {

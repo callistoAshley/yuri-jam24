@@ -221,8 +221,8 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window,
     wgpuSurfaceGetCapabilities(resources->surface, resources->adapter,
                                &surface_caps);
 
-    int window_width, window_height;
-    SDL_GetWindowSize(window, &window_width, &window_height);
+    int UI_VIEW_WIDTH, UI_VIEW_HEIGHT;
+    SDL_GetWindowSize(window, &UI_VIEW_WIDTH, &UI_VIEW_HEIGHT);
 
     WGPUPresentMode selected_present_mode = surface_caps.presentModes[0];
     // FifoRelaxed > Fifo > Mailbox > Immediate
@@ -290,8 +290,8 @@ void wgpu_resources_init(WGPUResources *resources, SDL_Window *window,
         .format = surface_caps.formats[0],
         .presentMode = selected_present_mode,
         .alphaMode = surface_caps.alphaModes[0],
-        .width = window_width,
-        .height = window_height,
+        .width = UI_VIEW_WIDTH,
+        .height = UI_VIEW_HEIGHT,
     };
     wgpuSurfaceConfigure(resources->surface, &resources->surface_config);
 

@@ -33,7 +33,7 @@ void light_render(Light *light, WGPURenderPassEncoder pass, Camera camera)
         }
 
         Rect screen_rect = rect_from_size(
-            (vec2s){.x = INTERNAL_SCREEN_WIDTH, .y = INTERNAL_SCREEN_HEIGHT});
+            (vec2s){.x = GAME_VIEW_WIDTH, .y = GAME_VIEW_HEIGHT});
 
         Rect light_rect = rect_from_center_radius(
             glms_vec2_sub(push_constants.position,

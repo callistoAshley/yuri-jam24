@@ -163,8 +163,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings)
 
     {
         WGPUExtent3D extents = {
-            .width = INTERNAL_SCREEN_WIDTH,
-            .height = INTERNAL_SCREEN_HEIGHT,
+            .width = GAME_VIEW_WIDTH,
+            .height = GAME_VIEW_HEIGHT,
             .depthOrArrayLayers = 1,
         };
         WGPUTextureDescriptor desc = {
@@ -183,8 +183,8 @@ void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings)
 
     {
         WGPUExtent3D extents = {
-            .width = INTERNAL_SCREEN_WIDTH,
-            .height = INTERNAL_SCREEN_HEIGHT,
+            .width = GAME_VIEW_WIDTH,
+            .height = GAME_VIEW_HEIGHT,
             .depthOrArrayLayers = 1,
         };
         WGPUTextureDescriptor desc = {
@@ -372,8 +372,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     WGPUCommandEncoder command_encoder =
         wgpuDeviceCreateCommandEncoder(graphics->wgpu.device, NULL);
 
-    mat4s camera_projection = glms_ortho(
-        0.0, INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0.0, -1.0f, 1.0f);
+    mat4s camera_projection =
+        glms_ortho(0.0, GAME_VIEW_WIDTH, GAME_VIEW_HEIGHT, 0.0, -1.0f, 1.0f);
     mat4s camera_transform = glms_look(
         (vec3s){.x = raw_camera.x, .y = raw_camera.y, .z = raw_camera.z},
         (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
@@ -495,9 +495,9 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         {
             vec2s tex_position =
                 SHADOWMAP_ENTRY_POS_OFFSET(iter.current_entry - 1);
-            wgpuRenderPassEncoderSetViewport(
-                render_pass, tex_position.x, tex_position.y,
-                INTERNAL_SCREEN_WIDTH, INTERNAL_SCREEN_HEIGHT, 0, 1);
+            wgpuRenderPassEncoderSetViewport(render_pass, tex_position.x,
+                                             tex_position.y, GAME_VIEW_WIDTH,
+                                             GAME_VIEW_HEIGHT, 0, 1);
 
             struct ShadowCasterContext context = {
                 .camera = camera,
@@ -507,8 +507,8 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
             if (radius != -1)
             {
-                Rect screen_rect = rect_from_size((vec2s){
-                    .x = INTERNAL_SCREEN_WIDTH, .y = INTERNAL_SCREEN_HEIGHT});
+                Rect screen_rect = rect_from_size(
+                    (vec2s){.x = GAME_VIEW_WIDTH, .y = GAME_VIEW_HEIGHT});
 
                 Rect light_rect = rect_from_center_radius(
                     glms_vec2_sub(position, context.camera_position),
@@ -601,7 +601,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
             physics_debug_draw(&debug_ctx, physics, render_pass);
 
         mat4s camera_projection =
-            glms_ortho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, -1.0f, 1.0f);
+            glms_ortho(0.0, UI_VIEW_WIDTH, UI_VIEW_HEIGHT, 0.0, -1.0f, 1.0f);
         mat4s camera_transform =
             glms_look(GLMS_VEC3_ZERO, (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
                       (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});

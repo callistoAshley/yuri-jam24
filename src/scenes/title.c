@@ -32,14 +32,14 @@ void title_scene_init(Scene **scene_data, Resources *resources,
 
     {
         Quad quad = {
-            .rect = rect_from_size((vec2s){.x = INTERNAL_SCREEN_WIDTH,
-                                           .y = INTERNAL_SCREEN_HEIGHT}),
+            .rect = rect_from_size(
+                (vec2s){.x = GAME_VIEW_WIDTH, .y = GAME_VIEW_HEIGHT}),
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
         QuadEntry quad_entry =
             quad_manager_add(&resources->graphics->quad_manager, quad);
 
-        Transform transform = transform_from_scale(VEC3_SPLAT(WINDOW_SCALE));
+        Transform transform = transform_from_scale(VEC3_SPLAT(UI_SCALE));
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
 
@@ -61,7 +61,7 @@ void title_scene_init(Scene **scene_data, Resources *resources,
     };
     SDL_Color color = {255, 255, 255, 255};
 
-    f32 start_y = 70 * WINDOW_SCALE;
+    f32 start_y = 70 * UI_SCALE;
     for (u32 i = 0; i < 3; i++)
     {
         WGPUTexture texture =
@@ -75,7 +75,7 @@ void title_scene_init(Scene **scene_data, Resources *resources,
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
 
-        f32 x = (INTERNAL_SCREEN_WIDTH * WINDOW_SCALE - width) / 2.0;
+        f32 x = (GAME_VIEW_WIDTH * UI_SCALE - width) / 2.0;
         Transform transform = transform_from_xyz(x, start_y, 0);
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
@@ -120,7 +120,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
     f32 mouse_y =
         resources->input->mouse_y * resources->input->mouse_scale_factor;
 
-    f32 start_y = 70 * WINDOW_SCALE;
+    f32 start_y = 70 * UI_SCALE;
 
     f32 delta = duration_as_secs(resources->time.current.delta);
 
@@ -167,7 +167,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         u32 width = wgpuTextureGetWidth(texture);
         u32 height = wgpuTextureGetHeight(texture);
 
-        f32 sprite_x = (INTERNAL_SCREEN_WIDTH * WINDOW_SCALE - width) / 2.0;
+        f32 sprite_x = (GAME_VIEW_WIDTH * UI_SCALE - width) / 2.0;
         f32 sprite_y = start_y;
         start_y += height + 5;
 

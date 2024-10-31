@@ -93,7 +93,8 @@ int main(int argc, char **argv)
     if (settings.video.fullscreen)
         flags = SDL_WINDOW_FULLSCREEN;
 
-    window = SDL_CreateWindow(WINDOW_NAME, WINDOW_WIDTH, WINDOW_HEIGHT, flags);
+    window = SDL_CreateWindow(WINDOW_NAME, BASE_WINDOW_WIDTH,
+                              BASE_WINDOW_HEIGHT, flags);
     SDL_PTR_ERRCHK(window, "window creation failure");
 
     Input input;

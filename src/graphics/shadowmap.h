@@ -5,7 +5,7 @@
 #include "sensible_nums.h"
 #include "utility/common_defines.h"
 
-// 16 x INTERNAL_SCREEN_WIDTH/INTERNAL_SCREEN_HEIGHT
+// 16 x GAME_VIEW_WIDTH/GAME_VIEW_HEIGHT
 #define SHADOWMAP_WIDTH 16
 #define SHADOWMAP_HEIGHT 16
 #define MAX_SHADOW_COUNT SHADOWMAP_WIDTH *SHADOWMAP_HEIGHT
@@ -44,8 +44,8 @@ typedef struct
 } ShadowMapIter;
 
 #define SHADOWMAP_ENTRY_POS_OFFSET(entry)                                      \
-    ((vec2s){.x = (u32)((entry) % SHADOWMAP_WIDTH) * INTERNAL_SCREEN_WIDTH,    \
-             .y = (u32)((entry) / SHADOWMAP_WIDTH) * INTERNAL_SCREEN_HEIGHT})
+    ((vec2s){.x = (u32)((entry) % SHADOWMAP_WIDTH) * GAME_VIEW_WIDTH,          \
+             .y = (u32)((entry) / SHADOWMAP_WIDTH) * GAME_VIEW_HEIGHT})
 
 void shadowmap_init(ShadowMap *shadowmap, WGPUResources *wgpu);
 void shadowmap_free(ShadowMap *shadowmap);

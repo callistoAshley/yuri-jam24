@@ -15,7 +15,7 @@ void input_init(Input *input, SDL_Window *window)
 
     i32 w = 0;
     SDL_GetWindowSizeInPixels(window, &w, NULL);
-    input->mouse_scale_factor = (f32)WINDOW_WIDTH / w;
+    input->mouse_scale_factor = (f32)UI_VIEW_WIDTH / w;
 }
 
 void input_start_frame(Input *input) { input->prev = input->curr; }
@@ -32,7 +32,7 @@ void input_process(SDL_Event *event, Input *input, Settings *settings)
     switch (event->type)
     {
     case SDL_EVENT_WINDOW_RESIZED:
-        input->mouse_scale_factor = (f32)WINDOW_WIDTH / event->window.data1;
+        input->mouse_scale_factor = (f32)UI_VIEW_WIDTH / event->window.data1;
         break;
     case SDL_EVENT_QUIT:
         input->curr |= Button_Quit;

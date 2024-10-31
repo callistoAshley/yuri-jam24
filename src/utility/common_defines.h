@@ -2,12 +2,15 @@
 
 #define TILE_SIZE 8
 
-#define TILES_PER_SCREEN_WIDTH INTERNAL_SCREEN_WIDTH / TILE_SIZE
-#define TILES_PER_SCREEN_HEIGHT INTERNAL_SCREEN_HEIGHT / TILE_SIZE
+#define TILES_PER_SCREEN_WIDTH GAME_VIEW_WIDTH / TILE_SIZE
+#define TILES_PER_SCREEN_HEIGHT GAME_VIEW_HEIGHT / TILE_SIZE
 
-#define WINDOW_SCALE 8
-#define WINDOW_WIDTH (INTERNAL_SCREEN_WIDTH * WINDOW_SCALE)
-#define WINDOW_HEIGHT (INTERNAL_SCREEN_HEIGHT * WINDOW_SCALE)
+#define UI_SCALE 8
+#define UI_VIEW_WIDTH (GAME_VIEW_WIDTH * UI_SCALE)
+#define UI_VIEW_HEIGHT (GAME_VIEW_HEIGHT * UI_SCALE)
+
+#define BASE_WINDOW_WIDTH UI_VIEW_WIDTH
+#define BASE_WINDOW_HEIGHT UI_VIEW_HEIGHT
 
 // pixels per meter
 // one tile (8px) is one meter
@@ -17,8 +20,8 @@
 // convert between meters and pixels
 #define M_TO_PX(x) ((x) * PX_PER_M)
 
-#define INTERNAL_SCREEN_WIDTH 160
-#define INTERNAL_SCREEN_HEIGHT 90
+#define GAME_VIEW_WIDTH 160
+#define GAME_VIEW_HEIGHT 90
 
 #define VEC3_SPLAT(val)                                                        \
     (vec3s) { .x = val, .y = val, .z = val }

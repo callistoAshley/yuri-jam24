@@ -38,7 +38,7 @@ void textbox_init(Textbox *textbox, Resources *resources)
             quad_manager_add(&resources->graphics->quad_manager, quad);
 
         Transform transform =
-            transform_from_scale(VEC3_SPLAT((f32)WINDOW_SCALE / 2));
+            transform_from_scale(VEC3_SPLAT((f32)UI_SCALE / 2));
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
 

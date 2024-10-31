@@ -211,16 +211,14 @@ void map_scene_update(Scene *scene_data, Resources *resources)
     }
     else
     {
-        resources->raw_camera->x = map_scene->player.transform.position.x -
-                                   INTERNAL_SCREEN_WIDTH / 2.0;
-        resources->raw_camera->y = map_scene->player.transform.position.y -
-                                   INTERNAL_SCREEN_HEIGHT / 2.0;
+        resources->raw_camera->x =
+            map_scene->player.transform.position.x - GAME_VIEW_WIDTH / 2.0;
+        resources->raw_camera->y =
+            map_scene->player.transform.position.y - GAME_VIEW_HEIGHT / 2.0;
 
         // clamp the camera within the bounds of the map
-        float right_edge =
-            (map_scene->tilemap.map_w * 8) - INTERNAL_SCREEN_WIDTH;
-        float bottom_edge =
-            (map_scene->tilemap.map_h * 8) - INTERNAL_SCREEN_HEIGHT;
+        float right_edge = (map_scene->tilemap.map_w * 8) - GAME_VIEW_WIDTH;
+        float bottom_edge = (map_scene->tilemap.map_h * 8) - GAME_VIEW_HEIGHT;
         if (resources->raw_camera->x < 0)
             resources->raw_camera->x = 0;
         else if (resources->raw_camera->x > right_edge)
