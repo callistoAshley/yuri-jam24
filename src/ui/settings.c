@@ -180,13 +180,13 @@ static char *text_of_vsync_mode(WGPUPresentMode mode)
     {
 
     case WGPUPresentMode_Fifo:
-        return "Fifo";
+        return "ON";
     case WGPUPresentMode_FifoRelaxed:
-        return "Relaxed";
+        return "Adaptive";
     case WGPUPresentMode_Immediate:
-        return "Immediate";
+        return "OFF";
     case WGPUPresentMode_Mailbox:
-        return "Mailbox";
+        return "Fast";
     // this should NEVER happen
     default:
         return "oops";
@@ -454,7 +454,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     {
 
         // vsync
-        draw_text_at(menu->category_surf, category_font, 0, 0, "VSYNC Mode");
+        draw_text_at(menu->category_surf, category_font, 0, 0, "Vsync");
 
         draw_text_at(menu->category_surf, category_font, 0,
                      character_height + 5, "Fullscreen");
