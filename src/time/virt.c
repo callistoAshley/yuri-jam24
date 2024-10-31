@@ -25,7 +25,7 @@ void time_virt_advance_with(TimeVirt *time, Duration raw_delta)
     Duration max_delta = time->max_delta;
 
     Duration clamped_delta = raw_delta;
-    if (raw_delta.nanos > max_delta.nanos)
+    if (duration_is_gt(raw_delta, max_delta))
         clamped_delta = max_delta;
 
     f64 effective_speed = time->relative_speed;
@@ -34,7 +34,10 @@ void time_virt_advance_with(TimeVirt *time, Duration raw_delta)
 
     Duration delta = clamped_delta;
     if (effective_speed != 1.0)
-        delta.nanos = clamped_delta.nanos * effective_speed;
+    {
+        f64 secs = duration_as_secs_f64(clamped_delta) * effective_speed;
+        delta = duration_from_secs_f64(secs);
+    }
 
     time->effective_speed = effective_speed;
     time_advance_by(&time->time, delta);

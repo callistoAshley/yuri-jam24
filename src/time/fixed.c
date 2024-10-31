@@ -55,7 +55,7 @@ void time_fixed_accumulate(TimeFixed *time, Duration delta)
 }
 bool time_fixed_expend(TimeFixed *time)
 {
-    if (time->overstep.nanos > time->timestep.nanos)
+    if (duration_is_gt(time->overstep, time->timestep))
     {
         time->overstep = duration_sub(time->overstep, time->timestep);
         time_advance_by(&time->time, time->timestep);
