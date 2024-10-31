@@ -5,10 +5,11 @@ static int new_map_input_callback(ImGuiInputTextCallbackData *data)
 {
     char pattern[512];
     int glob_count;
-    char **files; 
+    char **files;
 
     snprintf(pattern, sizeof(pattern), "%s*.tmx", data->Buf);
-    files = SDL_GlobDirectory("assets/maps/", pattern, 0, &glob_count);;
+    files = SDL_GlobDirectory("assets/maps/", pattern, 0, &glob_count);
+    ;
 
     if (glob_count > 1)
     {
@@ -26,13 +27,15 @@ static int new_map_input_callback(ImGuiInputTextCallbackData *data)
                 }
             }
         }
-        ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);               
-        ImGuiInputTextCallbackData_InsertChars(data, 0, files[0], files[0] + len);
+        ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
+        ImGuiInputTextCallbackData_InsertChars(data, 0, files[0],
+                                               files[0] + len);
     }
     else if (glob_count)
     {
         ImGuiInputTextCallbackData_DeleteChars(data, 0, data->BufTextLen);
-        ImGuiInputTextCallbackData_InsertChars(data, 0, files[0], strstr(files[0], ".tmx"));
+        ImGuiInputTextCallbackData_InsertChars(data, 0, files[0],
+                                               strstr(files[0], ".tmx"));
     }
 
     SDL_free(files);
@@ -52,8 +55,9 @@ void debug_wnd_show(DebugWindowState *state)
             igCheckbox("Freecam", &map->freecam);
         }
         igSeparator();
-        igInputText("New Map", state->new_map, sizeof(state->new_map), ImGuiInputTextFlags_CallbackCompletion, new_map_input_callback,
-                    NULL);
+        igInputText("New Map", state->new_map, sizeof(state->new_map),
+                    ImGuiInputTextFlags_CallbackCompletion,
+                    new_map_input_callback, NULL);
         if (igSmallButton("Change Map"))
         {
             char path[512];
@@ -75,6 +79,9 @@ void debug_wnd_show(DebugWindowState *state)
                 state->resources->time.virt->relative_speed = 1.0;
             }
         }
+
+        f32 delta = time_delta_seconds(state->resources->time.real->time);
+        igLabelText("FPS", "%f", 1.0 / delta);
     }
     igEnd();
 }

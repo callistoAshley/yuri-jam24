@@ -17,7 +17,7 @@ Duration duration_from_micros(u64 micros)
 
 Duration duration_from_secs_f64(f64 secs)
 {
-    return (Duration){SDL_SECONDS_TO_NS(secs)};
+    return (Duration){secs * SDL_NS_PER_SECOND};
 }
 
 f32 duration_as_secs(Duration duration)

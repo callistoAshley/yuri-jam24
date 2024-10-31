@@ -1,6 +1,7 @@
 #include "real.h"
 #include "time/time.h"
 #include "utility/time.h"
+#include <stdio.h>
 
 TimeReal time_real_new(void) { return time_real_new_with(instant_now()); }
 TimeReal time_real_new_with(Instant startup)
