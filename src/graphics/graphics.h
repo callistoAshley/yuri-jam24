@@ -54,8 +54,6 @@ typedef struct Graphics
 
     Layer lights;
     Layer shadowcasters;
-
-    bool was_resized;
 } Graphics;
 
 typedef struct

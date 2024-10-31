@@ -10,13 +10,10 @@
 #include "graphics/tilemap.h"
 #include "graphics/ui_sprite.h"
 #include "imgui_wgpu.h"
-#include "input/input.h"
 #include "physics/debug_draw.h"
 #include "utility/common_defines.h"
-#include "utility/log.h"
 #include "utility/macros.h"
 #include "webgpu.h"
-#include "fonts/font.h"
 
 // TODO remove all global variables
 QuadEntry screen_quad_index;
@@ -227,8 +224,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings)
         };
         screen_quad_index = quad_manager_add(&graphics->quad_manager, quad);
     }
-
-    graphics->was_resized = false;
 }
 
 void build_sprite_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
@@ -606,8 +601,7 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
             physics_debug_draw(&debug_ctx, physics, render_pass);
 
         mat4s camera_projection =
-            glms_ortho(0.0, graphics->wgpu.surface_config.width,
-                       graphics->wgpu.surface_config.height, 0.0, -1.0f, 1.0f);
+            glms_ortho(0.0, WINDOW_WIDTH, WINDOW_HEIGHT, 0.0, -1.0f, 1.0f);
         mat4s camera_transform =
             glms_look(GLMS_VEC3_ZERO, (vec3s){.x = 0.0, .y = 0.0, .z = -1.0},
                       (vec3s){.x = 0.0, .y = 1.0, .z = 0.0});
@@ -655,8 +649,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     wgpuCommandEncoderRelease(command_encoder);
     wgpuTextureViewRelease(frame);
     wgpuTextureRelease(surface_texture.texture);
-
-    graphics->was_resized = false;
 }
 
 void graphics_free(Graphics *graphics)
@@ -703,6 +695,4 @@ void graphics_resize(Graphics *graphics, int width, int height)
     graphics->wgpu.surface_config.height = height;
     wgpuSurfaceConfigure(graphics->wgpu.surface,
                          &graphics->wgpu.surface_config);
-
-    graphics->was_resized = true;
 }

@@ -14,9 +14,6 @@
 
 void settings_menu_init(SettingsMenu *menu, Resources *resources)
 {
-    f32 scale = (f32)resources->graphics->wgpu.surface_config.width /
-                INTERNAL_SCREEN_WIDTH;
-
     {
         Quad quad = {
             .rect = rect_from_size((vec2s){.x = INTERNAL_SCREEN_WIDTH,
@@ -26,7 +23,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
         QuadEntry quad_entry =
             quad_manager_add(&resources->graphics->quad_manager, quad);
 
-        Transform transform = transform_from_scale(VEC3_SPLAT(scale));
+        Transform transform = transform_from_scale(VEC3_SPLAT(WINDOW_SCALE));
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
 
@@ -52,7 +49,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
         "Controls",
         "Back",
     };
-    f32 start_y = 60 * scale;
+    f32 start_y = 60 * WINDOW_SCALE;
     SDL_Color color = {255, 255, 255, 255};
 
     u32 max_width = 0;
@@ -104,7 +101,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
                                      texture, "settings_menu_category");
 
         Transform transform =
-            transform_from_xyz(15 + max_width + 15, 60 * scale, 0);
+            transform_from_xyz(15 + max_width + 15, 60 * WINDOW_SCALE, 0);
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
 
@@ -244,23 +241,16 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         }
     }
 
-    f32 scale = (f32)resources->graphics->wgpu.surface_config.width /
-                INTERNAL_SCREEN_WIDTH;
     u32 max_width = 0;
-
-    if (resources->graphics->was_resized)
-    {
-        Transform transform = transform_from_scale(VEC3_SPLAT(scale));
-        transform_manager_update(&resources->graphics->transform_manager,
-                                 menu->background.transform, transform);
-    }
 
     bool did_hover_option = false;
     bool hovered_new_option = false;
 
-    f32 mouse_x = resources->input->mouse_x;
-    f32 mouse_y = resources->input->mouse_y;
-    f32 start_y = 60 * scale;
+    f32 mouse_x =
+        resources->input->mouse_x * resources->input->mouse_scale_factor;
+    f32 mouse_y =
+        resources->input->mouse_y * resources->input->mouse_scale_factor;
+    f32 start_y = 60 * WINDOW_SCALE;
 
     for (SettingsCategory i = 0; i < 4; i++)
     {
@@ -273,14 +263,6 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
         f32 sprite_y = start_y;
         start_y += height + 5;
-
-        // uh oh, looks like we've resized. we need to reposition the options
-        if (resources->graphics->was_resized)
-        {
-            Transform transform = transform_from_xyz(15, sprite_y, 0);
-            transform_manager_update(&resources->graphics->transform_manager,
-                                     category->transform, transform);
-        }
 
         if (width > max_width)
             max_width = width;
@@ -306,14 +288,6 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         {
             category->opacity = 1.0f;
         }
-    }
-
-    if (resources->graphics->was_resized)
-    {
-        Transform transform =
-            transform_from_xyz(15 + max_width + 15, 60 * scale, 0);
-        transform_manager_update(&resources->graphics->transform_manager,
-                                 menu->category.transform, transform);
     }
 
     if (!did_hover_option)
@@ -359,7 +333,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     font_texture_size(category_font, " ", &character_width, &character_height);
 
     i32 relative_mouse_x = mouse_x - (15 + max_width + 15);
-    i32 relative_mouse_y = mouse_y - (60 * scale);
+    i32 relative_mouse_y = mouse_y - (60 * WINDOW_SCALE);
 
     bool mouse_down = input_is_down(resources->input, Button_MouseLeft);
 
@@ -631,6 +605,9 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         }
 
         break;
+    }
+    case Cat_Controls:
+    {
     }
     default:
         break;

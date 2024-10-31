@@ -30,9 +30,6 @@ void title_scene_init(Scene **scene_data, Resources *resources,
                                                 &resources->audio->current_bgm);
     FMOD_Studio_EventInstance_Start(resources->audio->current_bgm);
 
-    f32 scale = (f32)resources->graphics->wgpu.surface_config.width /
-                INTERNAL_SCREEN_WIDTH;
-
     {
         Quad quad = {
             .rect = rect_from_size((vec2s){.x = INTERNAL_SCREEN_WIDTH,
@@ -42,7 +39,7 @@ void title_scene_init(Scene **scene_data, Resources *resources,
         QuadEntry quad_entry =
             quad_manager_add(&resources->graphics->quad_manager, quad);
 
-        Transform transform = transform_from_scale(VEC3_SPLAT(scale));
+        Transform transform = transform_from_scale(VEC3_SPLAT(WINDOW_SCALE));
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
 
@@ -64,7 +61,7 @@ void title_scene_init(Scene **scene_data, Resources *resources,
     };
     SDL_Color color = {255, 255, 255, 255};
 
-    f32 start_y = 70 * scale;
+    f32 start_y = 70 * WINDOW_SCALE;
     for (u32 i = 0; i < 3; i++)
     {
         WGPUTexture texture =
@@ -78,7 +75,7 @@ void title_scene_init(Scene **scene_data, Resources *resources,
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
 
-        f32 x = (INTERNAL_SCREEN_WIDTH * scale - width) / 2;
+        f32 x = (INTERNAL_SCREEN_WIDTH * WINDOW_SCALE - width) / 2.0;
         Transform transform = transform_from_xyz(x, start_y, 0);
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
@@ -118,12 +115,12 @@ void title_scene_update(Scene *scene_data, Resources *resources)
 
     settings_menu_update(&title_scene->settings_menu, resources);
 
-    f32 mouse_x = resources->input->mouse_x;
-    f32 mouse_y = resources->input->mouse_y;
+    f32 mouse_x =
+        resources->input->mouse_x * resources->input->mouse_scale_factor;
+    f32 mouse_y =
+        resources->input->mouse_y * resources->input->mouse_scale_factor;
 
-    f32 scale = (f32)resources->graphics->wgpu.surface_config.width /
-                INTERNAL_SCREEN_WIDTH;
-    f32 start_y = 70 * scale;
+    f32 start_y = 70 * WINDOW_SCALE;
 
     f32 delta = duration_as_secs(resources->time.current.delta);
 
@@ -158,13 +155,6 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         }
     }
 
-    if (resources->graphics->was_resized)
-    {
-        Transform transform = transform_from_scale(VEC3_SPLAT(scale));
-        transform_manager_update(&resources->graphics->transform_manager,
-                                 title_scene->background.transform, transform);
-    }
-
     bool hovered_option = false;
     bool hovered_new_option = false;
 
@@ -177,17 +167,9 @@ void title_scene_update(Scene *scene_data, Resources *resources)
         u32 width = wgpuTextureGetWidth(texture);
         u32 height = wgpuTextureGetHeight(texture);
 
-        f32 sprite_x = (INTERNAL_SCREEN_WIDTH * scale - width) / 2;
+        f32 sprite_x = (INTERNAL_SCREEN_WIDTH * WINDOW_SCALE - width) / 2.0;
         f32 sprite_y = start_y;
         start_y += height + 5;
-
-        // uh oh, looks like we've resized. we need to reposition the options
-        if (resources->graphics->was_resized)
-        {
-            Transform transform = transform_from_xyz(sprite_x, sprite_y, 0);
-            transform_manager_update(&resources->graphics->transform_manager,
-                                     option->transform, transform);
-        }
 
         if (input_disabled)
         {

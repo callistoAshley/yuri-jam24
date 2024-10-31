@@ -1,7 +1,4 @@
 #include "events/compiler.h"
-#include "events/instruction.h"
-#include "events/vm.h"
-#include "scenes/title.h"
 #include "settings.h"
 #include "time/fixed.h"
 #include "time/real.h"
@@ -24,13 +21,10 @@
 #include "audio/audio.h"
 #include "graphics/graphics.h"
 #include "input/input.h"
-#include "utility/log.h"
 #include "utility/macros.h"
 #include "utility/common_defines.h"
-#include "player.h"
 #include "physics/physics.h"
 #include "scenes/fmod_logo.h"
-#include "scenes/map.h"
 #include "scenes/scene.h"
 #include "debug/debug_window.h"
 
@@ -59,9 +53,6 @@ int main(int argc, char **argv)
 
     // Graphics stuff
     Graphics graphics;
-
-    Input input;
-    input_init(&input);
 
     Physics physics;
     physics_init(&physics);
@@ -104,6 +95,9 @@ int main(int argc, char **argv)
 
     window = SDL_CreateWindow(WINDOW_NAME, WINDOW_WIDTH, WINDOW_HEIGHT, flags);
     SDL_PTR_ERRCHK(window, "window creation failure");
+
+    Input input;
+    input_init(&input, window);
 
     if (settings.video.fullscreen)
         SDL_SyncWindow(window);

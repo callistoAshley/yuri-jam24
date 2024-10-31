@@ -31,9 +31,10 @@ typedef struct
     bool requested_quit, requested_fullscreen;
 
     i32 mouse_x, mouse_y;
+    f32 mouse_scale_factor;
 } Input;
 
-void input_init(Input *input);
+void input_init(Input *input, SDL_Window *window);
 
 void input_start_frame(Input *input);
 void input_process(SDL_Event *event, Input *input, Settings *settings);
