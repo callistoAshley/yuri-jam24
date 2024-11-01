@@ -8,7 +8,7 @@ set(SOURCES
     ${DIR}/hashmap.c
     ${DIR}/hashset.c
     ${DIR}/files.c
-    ${DIR}/time.c
+    ${DIR}/time.cpp
     ${SOURCES}
     PARENT_SCOPE
 )

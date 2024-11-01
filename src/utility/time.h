@@ -2,17 +2,13 @@
 
 #include "sensible_nums.h"
 
-// Somewhat inspired by Rust's std_time_Duration, this represents a span of
-// time.
-// Durations are represented as milliseconds with a nanosecond component.
 typedef struct
 {
-    u64 millis;
-    u32 nanos;
+    i64 inner;
 } Duration;
 
-Duration duration_new(u64 millis, u32 nanos);
-Duration duration_from_secs(u32 secs);
+Duration duration_new(u64 nanos);
+Duration duration_from_secs(u64 secs);
 Duration duration_from_millis(u64 millis);
 Duration duration_from_micros(u64 micros);
 
@@ -27,12 +23,9 @@ Duration duration_add(Duration duration, Duration other);
 bool duration_is_lt(Duration duration, Duration other);
 bool duration_is_gt(Duration duration, Duration other);
 
-// Instants are inspired by Rust's std_time_Instant, representing a fixed
-// point in time. Barring platform bugs the should be nondecreasing.
 typedef struct
 {
-    // this field is not intended to be used directly!
-    Duration dur;
+    i64 inner;
 } Instant;
 
 Instant instant_now(void);
