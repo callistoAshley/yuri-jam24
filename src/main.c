@@ -1,3 +1,4 @@
+#include "SDL3/SDL_timer.h"
 #include "events/compiler.h"
 #include "settings.h"
 #include "time/fixed.h"
@@ -255,7 +256,7 @@ int main(int argc, char **argv)
 
         Instant after_logic = instant_now();
         Duration logic_time = instant_duration_since(after_logic, before_logic);
-        f32 logic_delta = duration_as_secs(logic_time);
+        f64 logic_delta = duration_as_secs_f64(logic_time);
 
         // if the frame cap is enabled, and we've got a non-vsync present mode,
         // block until the next frame
@@ -265,12 +266,12 @@ int main(int argc, char **argv)
              settings.video.present_mode == WGPUPresentMode_Mailbox);
         if (framecap_enabled)
         {
-            f32 frame_time = 1.0 / settings.video.max_framerate;
+            f64 frame_time = 1.0 / settings.video.max_framerate;
 
-            f32 sleep_time = frame_time - logic_delta;
+            f64 sleep_time = frame_time - logic_delta;
             if (sleep_time > 0.0)
             {
-                SDL_Delay(sleep_time * 1000);
+                SDL_DelayNS(sleep_time * SDL_NS_PER_SECOND);
             }
         }
     }
