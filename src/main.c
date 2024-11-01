@@ -4,6 +4,7 @@
 #include "time/real.h"
 #include "time/virt.h"
 #include "utility/files.h"
+#include "utility/time.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -196,6 +197,8 @@ int main(int argc, char **argv)
         time_virt_advance_with(&virt, real.time.delta);
         time_fixed_accumulate(&fixed, virt.time.delta);
 
+        Instant before_logic = instant_now();
+
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
@@ -250,6 +253,10 @@ int main(int argc, char **argv)
             first_frame = false;
         }
 
+        Instant after_logic = instant_now();
+        Duration logic_time = instant_duration_since(after_logic, before_logic);
+        f32 logic_delta = duration_as_secs(logic_time);
+
         // if the frame cap is enabled, and we've got a non-vsync present mode,
         // block until the next frame
         bool framecap_enabled =
@@ -260,9 +267,7 @@ int main(int argc, char **argv)
         {
             f32 frame_time = 1.0 / settings.video.max_framerate;
 
-            f32 delta_seconds = time_delta_seconds(real.time);
-
-            f32 sleep_time = frame_time - delta_seconds;
+            f32 sleep_time = frame_time - logic_delta;
             if (sleep_time > 0.0)
             {
                 SDL_Delay(sleep_time * 1000);
