@@ -26,14 +26,14 @@ extern "C"
     Duration duration_from_millis(u64 millis)
     {
         std::chrono::milliseconds milliseconds(millis);
-        duration_inner inner(millis);
+        duration_inner inner(milliseconds);
         return {inner.count()};
     }
 
     Duration duration_from_micros(u64 micros)
     {
         std::chrono::microseconds microseconds(micros);
-        duration_inner inner(micros);
+        duration_inner inner(microseconds);
         return {inner.count()};
     }
 
