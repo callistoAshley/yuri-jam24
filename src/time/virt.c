@@ -35,8 +35,7 @@ void time_virt_advance_with(TimeVirt *time, Duration raw_delta)
     Duration delta = clamped_delta;
     if (effective_speed != 1.0)
     {
-        f64 secs = duration_as_secs_f64(clamped_delta) * effective_speed;
-        delta = duration_from_secs_f64(secs);
+        delta = duration_mul_f64(clamped_delta, effective_speed);
     }
 
     time->effective_speed = effective_speed;

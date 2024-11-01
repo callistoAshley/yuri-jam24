@@ -75,6 +75,22 @@ extern "C"
         return {result.count()};
     }
 
+    Duration duration_mul_f32(Duration duration, f32 by)
+    {
+        duration_inner inner(duration.inner);
+        duration_inner result =
+            std::chrono::duration_cast<duration_inner>(inner * by);
+        return {result.count()};
+    }
+
+    Duration duration_mul_f64(Duration duration, f64 by)
+    {
+        duration_inner inner(duration.inner);
+        duration_inner result =
+            std::chrono::duration_cast<duration_inner>(inner * by);
+        return {result.count()};
+    }
+
     bool duration_is_lt(Duration duration, Duration other)
     {
         duration_inner inner(duration.inner);

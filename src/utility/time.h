@@ -20,6 +20,9 @@ f64 duration_as_secs_f64(Duration duration);
 Duration duration_sub(Duration duration, Duration other);
 Duration duration_add(Duration duration, Duration other);
 
+Duration duration_mul_f32(Duration duration, f32 by);
+Duration duration_mul_f64(Duration duration, f64 by);
+
 bool duration_is_lt(Duration duration, Duration other);
 bool duration_is_gt(Duration duration, Duration other);
 
