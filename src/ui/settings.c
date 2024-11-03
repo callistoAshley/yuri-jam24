@@ -362,25 +362,15 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     {
     case Cat_Audio:
     {
-        // bgm volume
-        draw_text_at(menu->category_surf, category_font, 0, 0, "BGM Volume");
-        // sfx volume
-        draw_text_at(menu->category_surf, category_font, 0,
-                     character_height + 5, "SFX Volume");
-        // bgm volume number
-        draw_number_selector_to(menu->category_surf, category_font, 180, 2,
-                                settings->audio.bgm_volume);
-        // sfx volume number
-        draw_number_selector_to(menu->category_surf, category_font, 180,
-                                2 + character_height + 5,
-                                settings->audio.sfx_volume);
-
         i32 button_x = 180;
         i32 button_y = 2;
+        // bgm volume
+        draw_text_at(menu->category_surf, category_font, 0, 0, "BGM Volume");
+        // bgm volume number
+        draw_number_selector_to(menu->category_surf, category_font, button_x,
+                                button_y, settings->audio.bgm_volume);
 
         bool did_change_bgm_volume = false;
-        bool did_change_sfx_volume = false;
-
         if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
         {
 
@@ -405,6 +395,14 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
         button_x = 180;
         button_y = character_height + 5 + 2;
+        // sfx volume
+        draw_text_at(menu->category_surf, category_font, 0,
+                     character_height + 5, "SFX Volume");
+        // sfx volume number
+        draw_number_selector_to(menu->category_surf, category_font, button_x,
+                                button_y, settings->audio.sfx_volume);
+
+        bool did_change_sfx_volume = false;
         if (MOUSE_INSIDE_BUTTON(button_x, button_y))
         {
             if (repeat_clicked)
@@ -444,25 +442,21 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                                       settings->audio.sfx_volume / 100.0);
         }
 
-        WGPUTexture texture = texture_manager_get_texture(
-            &resources->graphics->texture_manager, menu->category.texture);
-        write_surface_to_texture(menu->category_surf, texture,
-                                 &resources->graphics->wgpu);
         break;
     }
     case Cat_Video:
     {
+        SDL_DisplayID display_id = SDL_GetDisplayForWindow(resources->window);
+        const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display_id);
+        SDL_PTR_ERRCHK(mode, "failed to get monitor display mode");
+        u32 max_framerate = mode->refresh_rate;
 
         // vsync
         draw_text_at(menu->category_surf, category_font, 0, 0, "Vsync");
 
-        draw_text_at(menu->category_surf, category_font, 0,
-                     character_height + 5, "Fullscreen");
-
+        i32 button_x = 180;
+        i32 button_y = 2;
         WGPUPresentMode current_mode = settings->video.present_mode;
-        draw_text_at(menu->category_surf, category_font, 0,
-                     (character_height + 5) * 2, "Max Framerate");
-
         u32 vsync_count =
             resources->graphics->wgpu.surface_caps.presentModeCount;
         const WGPUPresentMode *modes =
@@ -476,45 +470,8 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         }
         char *vsync_text = text_of_vsync_mode(current_mode);
         u32 vsync_len = strlen(vsync_text);
-        draw_text_selector_to(menu->category_surf, category_font, 180, 2,
-                              vsync_text);
-
-        char *fullscreen_text;
-        if (settings->video.fullscreen)
-            fullscreen_text = "ON";
-        else
-            fullscreen_text = "OFF";
-        u32 fullscreen_len = strlen(fullscreen_text);
-        draw_text_selector_to(menu->category_surf, category_font, 180,
-                              2 + character_height + 5, fullscreen_text);
-
-        SDL_DisplayID display_id = SDL_GetDisplayForWindow(resources->window);
-        const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display_id);
-        SDL_PTR_ERRCHK(mode, "failed to get monitor display mode");
-        u32 max_framerate = mode->refresh_rate;
-
-        i32 y = 2 + (character_height + 5) * 2;
-        if (settings->video.frame_cap)
-        {
-            draw_number_selector_to(menu->category_surf, category_font, 220, y,
-                                    settings->video.max_framerate);
-        }
-        else
-        {
-            draw_text_selector_to(menu->category_surf, category_font, 220, y,
-                                  "Unlimited");
-        }
-
-        i32 button_x = 180;
-        i32 button_y = 2;
-        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
-        {
-            if (current_index == 0)
-                current_index = vsync_count - 1;
-            else
-                current_index--;
-            settings->video.present_mode = modes[current_index];
-        }
+        draw_text_selector_to(menu->category_surf, category_font, button_x,
+                              button_y, vsync_text);
 
         // < + " " + vsync_len + " "
         button_x = button_x + character_width * (vsync_len + 3);
@@ -545,22 +502,58 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             fire_and_forget(menu->hover_desc);
         }
 
+        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
+        {
+            if (current_index == 0)
+                current_index = vsync_count - 1;
+            else
+                current_index--;
+            settings->video.present_mode = modes[current_index];
+        }
+
+        draw_text_at(menu->category_surf, category_font, 0,
+                     character_height + 5, "Fullscreen");
+
+        char *fullscreen_text;
+        if (settings->video.fullscreen)
+            fullscreen_text = "ON";
+        else
+            fullscreen_text = "OFF";
+        u32 fullscreen_len = strlen(fullscreen_text);
+        draw_text_selector_to(menu->category_surf, category_font, 180,
+                              2 + character_height + 5, fullscreen_text);
+
         button_x = 180;
         button_y = 2 + character_height + 5;
         bool fullscreen = settings->video.fullscreen;
 
-        bool inside_left =
+        bool inside_fullscreen =
             MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked;
         // < + " " + fullscreen_len + " "
         button_x = 180 + character_width * (fullscreen_len + 3);
-        bool inside_right =
+        inside_fullscreen |=
             MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked;
 
-        if (inside_left || inside_right)
+        if (inside_fullscreen)
         {
             settings->video.fullscreen = !fullscreen;
             SDL_SetWindowFullscreen(resources->window, !fullscreen);
             fire_and_forget(menu->hover_desc);
+        }
+
+        draw_text_at(menu->category_surf, category_font, 0,
+                     (character_height + 5) * 2, "Max Framerate");
+
+        i32 y = 2 + (character_height + 5) * 2;
+        if (settings->video.frame_cap)
+        {
+            draw_number_selector_to(menu->category_surf, category_font, 220, y,
+                                    settings->video.max_framerate);
+        }
+        else
+        {
+            draw_text_selector_to(menu->category_surf, category_font, 220, y,
+                                  "Unlimited");
         }
 
         button_x = 220;
@@ -598,6 +591,45 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     }
     case Cat_Controls:
     {
+        draw_text_at(menu->category_surf, category_font, 0, 0, "Directional");
+
+        bool clicked_dir_button = MOUSE_INSIDE_BUTTON(190, 2) && mouse_clicked;
+        if (settings->keybinds.left == SDLK_LEFT)
+        {
+            draw_text_selector_to(menu->category_surf, category_font, 190, 2,
+                                  "Arrow Keys");
+
+            i32 button_x = 190 + character_width * (strlen("Arrow Keys") + 3);
+            clicked_dir_button |=
+                MOUSE_INSIDE_BUTTON(button_x, 2) && mouse_clicked;
+
+            if (clicked_dir_button)
+            {
+                settings->keybinds.left = SDLK_A;
+                settings->keybinds.right = SDLK_D;
+                settings->keybinds.up = SDLK_W;
+                settings->keybinds.down = SDLK_D;
+            }
+        }
+        else
+        {
+            draw_text_selector_to(menu->category_surf, category_font, 190, 2,
+                                  "WASD");
+
+            i32 button_x = 190 + character_width * (strlen("WASD") + 3);
+            clicked_dir_button |=
+                MOUSE_INSIDE_BUTTON(button_x, 2) && mouse_clicked;
+
+            if (clicked_dir_button)
+            {
+                settings->keybinds.left = SDLK_LEFT;
+                settings->keybinds.right = SDLK_RIGHT;
+                settings->keybinds.up = SDLK_UP;
+                settings->keybinds.down = SDLK_DOWN;
+            }
+        }
+
+        break;
     }
     default:
         break;
