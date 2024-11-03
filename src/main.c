@@ -1,4 +1,5 @@
 #include "SDL3/SDL_timer.h"
+#include "SDL3/SDL_video.h"
 #include "events/compiler.h"
 #include "settings.h"
 #include "time/fixed.h"
@@ -84,20 +85,19 @@ int main(int argc, char **argv)
 
     printf("settings path: %s\n", settings_path);
 
+    window = SDL_CreateWindow(WINDOW_NAME, BASE_WINDOW_WIDTH,
+                              BASE_WINDOW_HEIGHT, SDL_WINDOW_HIDDEN);
+    SDL_PTR_ERRCHK(window, "window creation failure");
+
+    SDL_DisplayID display = SDL_GetDisplayForWindow(window);
+    const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
+
     Settings settings;
-    settings_load_from(&settings, settings_path);
+    settings_load_from(&settings, mode->refresh_rate, settings_path);
 
     // audio things
     Audio audio;
     audio_init(&audio, debug, &settings);
-
-    SDL_WindowFlags flags = SDL_WINDOW_HIDDEN;
-    if (settings.video.fullscreen)
-        flags = SDL_WINDOW_FULLSCREEN;
-
-    window = SDL_CreateWindow(WINDOW_NAME, BASE_WINDOW_WIDTH,
-                              BASE_WINDOW_HEIGHT, flags);
-    SDL_PTR_ERRCHK(window, "window creation failure");
 
     Input input;
     input_init(&input, window);
@@ -250,7 +250,12 @@ int main(int argc, char **argv)
 
         if (first_frame)
         {
+            if (settings.video.fullscreen)
+            {
+                SDL_SetWindowFullscreen(window, true);
+            }
             SDL_ShowWindow(window);
+            SDL_SyncWindow(window);
             first_frame = false;
         }
 

@@ -1,4 +1,5 @@
 #pragma once
+#include "SDL3/SDL_keycode.h"
 #include "sensible_nums.h"
 #include "settings.h"
 #include <SDL3/SDL_events.h>
@@ -29,6 +30,9 @@ typedef struct
     Button prev;
     Button curr;
     bool requested_quit, requested_fullscreen;
+
+    SDL_Keycode last_pressed_key;
+    bool key_has_pressed;
 
     i32 mouse_x, mouse_y;
     f32 mouse_scale_factor;

@@ -92,7 +92,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
     }
 
     {
-        WGPUTexture texture = blank_texture(500, 200,
+        WGPUTexture texture = blank_texture(600, 200,
                                             WGPUTextureUsage_CopyDst |
                                                 WGPUTextureUsage_TextureBinding,
                                             &resources->graphics->wgpu);
@@ -106,7 +106,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
             &resources->graphics->transform_manager, transform);
 
         Quad quad = {
-            .rect = rect_from_size((vec2s){.x = 500, .y = 200}),
+            .rect = rect_from_size((vec2s){.x = 600, .y = 200}),
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
         QuadEntry quad_entry =
@@ -117,10 +117,12 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
         menu->category_entry = layer_add(
             &resources->graphics->ui_layers.foreground, &menu->category);
     }
-    menu->category_surf = SDL_CreateSurface(500, 200, SDL_PIXELFORMAT_RGBA32);
+    menu->category_surf = SDL_CreateSurface(600, 200, SDL_PIXELFORMAT_RGBA32);
 
     menu->hovered_category = Cat_None;
     menu->selected_category = Cat_None;
+
+    menu->waiting_on_keybind = -1;
 
     menu->open = false;
     menu->is_closing = false;
@@ -153,9 +155,24 @@ static void draw_number_selector_to(SDL_Surface *surface, Font *font, i32 x,
 static void draw_text_selector_to(SDL_Surface *surface, Font *font, i32 x,
                                   i32 y, const char *value)
 {
+    char text[40];
+    snprintf(text, sizeof(text), "< %s >", value);
 
-    char text[20];
-    snprintf(text, 20, "< %s >", value);
+    SDL_Color color = {255, 255, 255, 255};
+    SDL_Surface *src = font_render_surface(font, text, color);
+    SDL_Rect dst_rect = {.x = x, .y = y, .w = src->w, .h = src->h};
+    SDL_BlitSurface(src, NULL, surface, &dst_rect);
+    SDL_DestroySurface(src);
+}
+
+static void draw_checked_text_to(SDL_Surface *surface, Font *font, i32 x, i32 y,
+                                 const char *value, bool checked)
+{
+    char text[40];
+    if (checked)
+        snprintf(text, sizeof(text), "<%s>", value);
+    else
+        snprintf(text, sizeof(text), "-%s-", value);
 
     SDL_Color color = {255, 255, 255, 255};
     SDL_Surface *src = font_render_surface(font, text, color);
@@ -212,7 +229,11 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             menu->categories[i].opacity = menu->background.opacity / 2.0;
         }
 
+        menu->waiting_on_keybind = -1;
+
         resources->time.virt->paused = true;
+
+        return;
     }
 
     if (menu->is_closing)
@@ -300,7 +321,9 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     if (hovered_new_option)
         fire_and_forget(menu->hover_desc);
 
-    if (input_is_pressed(resources->input, Button_Back) && !is_opening)
+    bool is_waiting_on_key = menu->waiting_on_keybind != -1;
+    if (input_is_pressed(resources->input, Button_Back) && !is_opening &&
+        !is_waiting_on_key)
     {
         menu->is_closing = true;
     }
@@ -310,7 +333,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     bool did_select_option =
         menu->hovered_category != Cat_None &&
         menu->selected_category != menu->hovered_category && mouse_clicked;
-    if (did_select_option)
+    if (did_select_option && !is_waiting_on_key)
     {
         menu->selected_category = menu->hovered_category;
 
@@ -473,6 +496,15 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         draw_text_selector_to(menu->category_surf, category_font, button_x,
                               button_y, vsync_text);
 
+        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
+        {
+            if (current_index == 0)
+                current_index = vsync_count - 1;
+            else
+                current_index--;
+            settings->video.present_mode = modes[current_index];
+        }
+
         // < + " " + vsync_len + " "
         button_x = button_x + character_width * (vsync_len + 3);
         if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
@@ -491,24 +523,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             resources->graphics->wgpu.surface_config.presentMode = new_mode;
             wgpuSurfaceConfigure(resources->graphics->wgpu.surface,
                                  &resources->graphics->wgpu.surface_config);
-
-            bool frameratecap_enabled = new_mode == WGPUPresentMode_Immediate ||
-                                        new_mode == WGPUPresentMode_Mailbox;
-            if (frameratecap_enabled)
-            {
-                settings->video.frame_cap = true;
-                settings->video.max_framerate = max_framerate;
-            }
             fire_and_forget(menu->hover_desc);
-        }
-
-        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && mouse_clicked)
-        {
-            if (current_index == 0)
-                current_index = vsync_count - 1;
-            else
-                current_index--;
-            settings->video.present_mode = modes[current_index];
         }
 
         draw_text_at(menu->category_surf, category_font, 0,
@@ -628,6 +643,54 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                 settings->keybinds.down = SDLK_DOWN;
             }
         }
+
+#define KEY_SELECTOR(text, index, name_x, name_y, selector_x, selector_y,      \
+                     setting)                                                  \
+    {                                                                          \
+        draw_text_at(menu->category_surf, category_font, name_x, name_y,       \
+                     text);                                                    \
+                                                                               \
+        const char *key_text = SDL_GetKeyName(setting);                        \
+        i32 button_width = (strlen(key_text) + 2) * character_width;           \
+        i32 button_height = character_height;                                  \
+        draw_checked_text_to(menu->category_surf, category_font, selector_x,   \
+                             selector_y, key_text,                             \
+                             menu->waiting_on_keybind == index);               \
+                                                                               \
+        Rect button_rect =                                                     \
+            rect_from_min_size((vec2s){.x = selector_x, selector_y},           \
+                               (vec2s){.x = button_width, button_height});     \
+        vec2s relative_mouse_pos = {.x = relative_mouse_x,                     \
+                                    .y = relative_mouse_y};                    \
+                                                                               \
+        if (menu->waiting_on_keybind == index &&                               \
+            resources->input->key_has_pressed)                                 \
+        {                                                                      \
+            setting = resources->input->last_pressed_key;                      \
+            menu->waiting_on_keybind = -1;                                     \
+        }                                                                      \
+                                                                               \
+        bool did_click_button =                                                \
+            rect_contains(button_rect, relative_mouse_pos) && mouse_clicked && \
+            !is_waiting_on_key;                                                \
+        if (did_click_button)                                                  \
+        {                                                                      \
+            menu->waiting_on_keybind = index;                                  \
+        }                                                                      \
+    }
+
+        i32 start_y = character_height + 5;
+        KEY_SELECTOR("Jump", 0, 0, start_y, 140, start_y,
+                     settings->keybinds.jump);
+        i32 separator_width = character_width * 2;
+        KEY_SELECTOR("| Cancel", 1, 280, start_y, 420 + separator_width,
+                     start_y, settings->keybinds.cancel);
+
+        start_y += character_height + 5;
+        KEY_SELECTOR("Interact", 2, 0, start_y, 140, start_y,
+                     settings->keybinds.interact);
+        KEY_SELECTOR("| Back", 3, 280, start_y, 420 + separator_width, start_y,
+                     settings->keybinds.back);
 
         break;
     }

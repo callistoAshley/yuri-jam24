@@ -4,14 +4,15 @@
 #include <stdio.h>
 #include <sys/stat.h>
 
-void settings_load_from(Settings *settings, const char *path)
+void settings_load_from(Settings *settings, u32 default_framerate,
+                        const char *path)
 {
     // set defaults
     settings->audio.bgm_volume = 100;
     settings->audio.sfx_volume = 100;
 
-    settings->video.frame_cap = false;
-    settings->video.max_framerate = 0;
+    settings->video.frame_cap = true;
+    settings->video.max_framerate = default_framerate;
     settings->video.present_mode = WGPUPresentMode_FifoRelaxed;
     settings->video.fullscreen = false;
 
