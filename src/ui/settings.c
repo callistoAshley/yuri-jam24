@@ -49,7 +49,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
         "Controls",
         "Back",
     };
-    f32 start_y = 60 * UI_SCALE;
+    f32 start_y = 120 * UI_SCALE;
     SDL_Color color = {255, 255, 255, 255};
 
     u32 max_width = 0;
@@ -101,7 +101,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
                                      texture, "settings_menu_category");
 
         Transform transform =
-            transform_from_xyz(15 + max_width + 15, 60 * UI_SCALE, 0);
+            transform_from_xyz(15 + max_width + 15, 120 * UI_SCALE, 0);
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
 
@@ -271,7 +271,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         resources->input->mouse_x * resources->input->mouse_scale_factor;
     f32 mouse_y =
         resources->input->mouse_y * resources->input->mouse_scale_factor;
-    f32 start_y = 60 * UI_SCALE;
+    f32 start_y = 120 * UI_SCALE;
 
     for (SettingsCategory i = 0; i < 4; i++)
     {
@@ -356,7 +356,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     font_texture_size(category_font, " ", &character_width, &character_height);
 
     i32 relative_mouse_x = mouse_x - (15 + max_width + 15);
-    i32 relative_mouse_y = mouse_y - (60 * UI_SCALE);
+    i32 relative_mouse_y = mouse_y - (120 * UI_SCALE);
 
     bool mouse_down = input_is_down(resources->input, Button_MouseLeft);
 

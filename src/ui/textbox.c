@@ -1,8 +1,6 @@
 #include "textbox.h"
 #include "graphics/tex_manager.h"
 #include "utility/common_defines.h"
-#include "utility/graphics.h"
-#include "utility/macros.h"
 #include "webgpu.h"
 
 #define INPUT_BUTTONS_DOWN(resources)                                          \
@@ -37,8 +35,7 @@ void textbox_init(Textbox *textbox, Resources *resources)
         QuadEntry quad_entry =
             quad_manager_add(&resources->graphics->quad_manager, quad);
 
-        Transform transform =
-            transform_from_scale(VEC3_SPLAT((f32)UI_SCALE / 2));
+        Transform transform = transform_from_scale(VEC3_SPLAT(UI_SCALE));
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics->transform_manager, transform);
 
