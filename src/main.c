@@ -258,13 +258,9 @@ int main(int argc, char **argv)
         Duration logic_time = instant_duration_since(after_logic, before_logic);
         f64 logic_delta = duration_as_secs_f64(logic_time);
 
-        // if the frame cap is enabled, and we've got a non-vsync present mode,
+        // if the frame cap is enabled,
         // block until the next frame
-        bool framecap_enabled =
-            settings.video.frame_cap &&
-            (settings.video.present_mode == WGPUPresentMode_Immediate ||
-             settings.video.present_mode == WGPUPresentMode_Mailbox);
-        if (framecap_enabled)
+        if (settings.video.frame_cap)
         {
             f64 frame_time = 1.0 / settings.video.max_framerate;
 

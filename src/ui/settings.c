@@ -460,13 +460,8 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                      character_height + 5, "Fullscreen");
 
         WGPUPresentMode current_mode = settings->video.present_mode;
-        bool frameratecap_enabled = current_mode == WGPUPresentMode_Immediate ||
-                                    current_mode == WGPUPresentMode_Mailbox;
-        if (frameratecap_enabled)
-        {
-            draw_text_at(menu->category_surf, category_font, 0,
-                         (character_height + 5) * 2, "Max Framerate");
-        }
+        draw_text_at(menu->category_surf, category_font, 0,
+                     (character_height + 5) * 2, "Max Framerate");
 
         u32 vsync_count =
             resources->graphics->wgpu.surface_caps.presentModeCount;
@@ -497,19 +492,17 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display_id);
         SDL_PTR_ERRCHK(mode, "failed to get monitor display mode");
         u32 max_framerate = mode->refresh_rate;
-        if (frameratecap_enabled)
+
+        i32 y = 2 + (character_height + 5) * 2;
+        if (settings->video.frame_cap)
         {
-            i32 y = 2 + (character_height + 5) * 2;
-            if (settings->video.frame_cap)
-            {
-                draw_number_selector_to(menu->category_surf, category_font, 220,
-                                        y, settings->video.max_framerate);
-            }
-            else
-            {
-                draw_text_selector_to(menu->category_surf, category_font, 220,
-                                      y, "Unlimited");
-            }
+            draw_number_selector_to(menu->category_surf, category_font, 220, y,
+                                    settings->video.max_framerate);
+        }
+        else
+        {
+            draw_text_selector_to(menu->category_surf, category_font, 220, y,
+                                  "Unlimited");
         }
 
         i32 button_x = 180;
@@ -570,37 +563,34 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             fire_and_forget(menu->hover_desc);
         }
 
-        if (frameratecap_enabled)
+        button_x = 220;
+        button_y = 2 + (character_height + 5) * 2;
+
+        if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
         {
-            button_x = 220;
-            button_y = 2 + (character_height + 5) * 2;
+            if (settings->video.max_framerate > 30)
+            {
+                if (settings->video.frame_cap)
+                    settings->video.max_framerate--;
+                else
+                    settings->video.max_framerate = max_framerate;
+                settings->video.frame_cap = true;
+                fire_and_forget(menu->hover_desc);
+            }
+        }
+
+        if (settings->video.frame_cap)
+        {
+            // < + " " + 3 + " "
+            button_x = 220 + character_width * 6;
 
             if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
             {
-                if (settings->video.max_framerate > 30)
-                {
-                    if (settings->video.frame_cap)
-                        settings->video.max_framerate--;
-                    else
-                        settings->video.max_framerate = max_framerate;
-                    settings->video.frame_cap = true;
-                    fire_and_forget(menu->hover_desc);
-                }
-            }
-
-            if (settings->video.frame_cap)
-            {
-                // < + " " + 3 + " "
-                button_x = 220 + character_width * 6;
-
-                if (MOUSE_INSIDE_BUTTON(button_x, button_y) && repeat_clicked)
-                {
-                    if (settings->video.max_framerate >= max_framerate)
-                        settings->video.frame_cap = false;
-                    else
-                        settings->video.max_framerate++;
-                    fire_and_forget(menu->hover_desc);
-                }
+                if (settings->video.max_framerate >= max_framerate)
+                    settings->video.frame_cap = false;
+                else
+                    settings->video.max_framerate++;
+                fire_and_forget(menu->hover_desc);
             }
         }
 
