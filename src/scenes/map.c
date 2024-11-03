@@ -58,6 +58,7 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     else
         map_scene->current_map = args->map_path;
     map_scene->should_free_current_map = args->copy_map_path;
+    map_scene->change_map = false;
 
     vec_init(&map_scene->colliders, sizeof(b2BodyId));
     vec_init(&map_scene->renderables, sizeof(MapRenderable));
@@ -164,6 +165,15 @@ void map_scene_fixed_update(Scene *scene_data, Resources *resources)
             chara->interface.fixed_update_fn(&chara->state, resources,
                                              map_scene);
         }
+    }
+
+    // if an event signaled to us that we need to change maps, change maps
+    if (map_scene->change_map)
+    {
+        // copy args out because the scene will be free'd
+        MapInitArgs args = map_scene->change_map_args;
+        scene_change(MAP_SCENE, resources, &args);
+        return; // return IMMEDIATELY. the current scene is no longer valid!!!
     }
 
     textbox_fixed_update(&map_scene->textbox, resources);

@@ -7,6 +7,18 @@
 #include "ui/settings.h"
 #include "ui/textbox.h"
 
+// NOTE: MUST BE PASSED TO scene_change!!!!!!
+typedef struct
+{
+    char *map_path;
+    // NOTE: must be set to true if the path is a statically
+    // allocated string
+    bool copy_map_path;
+
+    vec2s initial_position;
+    bool has_initial_position;
+} MapInitArgs;
+
 typedef struct MapScene
 {
     // because this struct starts with SceneType (and so does Scene) we can cast
@@ -27,14 +39,10 @@ typedef struct MapScene
 
     SettingsMenu settings;
     Textbox textbox;
-} MapScene;
 
-// NOTE: MUST BE PASSED TO scene_change!!!!!!
-typedef struct
-{
-    char *map_path;
-    bool copy_map_path;
-} MapInitArgs;
+    MapInitArgs change_map_args;
+    bool change_map;
+} MapScene;
 
 void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args);
 void map_scene_update(Scene *scene_data, Resources *resources);

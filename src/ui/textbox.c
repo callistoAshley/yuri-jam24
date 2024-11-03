@@ -51,6 +51,13 @@ void textbox_init(Textbox *textbox, Resources *resources)
 
 void textbox_free(Textbox *textbox, Resources *resources)
 {
+    if (*textbox->text)
+    {
+        ui_sprite_free(&textbox->text_sprite, resources->graphics);
+        layer_remove(&resources->graphics->ui_layers.foreground,
+                     textbox->text_sprite_entry);
+    }
+
     ui_sprite_free(&textbox->sprite, resources->graphics);
     layer_remove(&resources->graphics->ui_layers.middle, textbox->sprite_entry);
 }
