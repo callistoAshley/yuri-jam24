@@ -30,7 +30,6 @@ typedef struct SceneInterface SceneInterface;
 // FIXME: move to a more appropriate location?
 typedef struct Resources
 {
-    bool debug_mode;
 
     Graphics *graphics;
     Physics *physics;

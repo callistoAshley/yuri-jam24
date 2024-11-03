@@ -24,8 +24,11 @@ typedef struct
         SDL_Keycode jump, cancel, interact;
         SDL_Keycode back, quit;
     } keybinds;
+
+    bool debug;
 } Settings;
 
 // loads settings, or uses defaults if possible
-void settings_load_from(Settings *settings, const char *path);
+void settings_load_from(Settings *settings, u32 default_framerate,
+                        const char *path);
 void settings_save_to(Settings *settings, const char *path);

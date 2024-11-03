@@ -3,12 +3,10 @@
 #include "box2d/collision.h"
 #include "cglm/struct/vec2.h"
 #include "core_types.h"
-#include "fmod_studio.h"
 #include "graphics/caster_manager.h"
 #include "physics/physics.h"
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
-#include "utility/log.h"
 
 // TODO account for coyote time
 void foot_begin_contact_fn(b2SensorBeginTouchEvent *event, void *userdata)
@@ -56,6 +54,7 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->shadow_caster.cell = 0;
     player->shadow_caster.transform = transform_entry;
     player->shadow_caster.radius = 45.0;
+    player->shadow_caster.offset = (vec2s){.x = 0.0, .y = 0.0};
 
     player->shadow_caster_entry =
         layer_add(&resources->graphics->shadowcasters, &player->shadow_caster);
@@ -100,12 +99,16 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->position.x = position.x;
     player->position.y = position.y;
 
+    player->jump_timeout = 0;
+    player->fall_time = 0.0;
+    player->jumping = false;
+
     player_fixed_update(player, resources);
     player_update(player, resources, true);
 }
 
-#define WALK_SPEED_MPS 4
-#define WALK_SPEED_CAP 8
+#define WALK_SPEED_MPS 2
+#define WALK_SPEED_CAP 4
 #define WALK_SPEED_PXPS M_TO_PX(WALK_SPEED_MPS)
 
 void player_fixed_update(Player *player, Resources *resources)
@@ -267,7 +270,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
 
 void player_jump(Player *player)
 {
-    b2Body_ApplyLinearImpulseToCenter(player->body_id, (b2Vec2){0.0, 22.5},
+    b2Body_ApplyLinearImpulseToCenter(player->body_id, (b2Vec2){0.0, 4.0},
                                       true);
     player->jump_timeout = 0.1;
     player->jumping = true;

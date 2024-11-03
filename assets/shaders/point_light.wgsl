@@ -33,6 +33,9 @@ const POSITIONS: array<vec2f, 6> = array<vec2f, 6>(
     vec2f(1.0, -1.0),
 );
 
+const SCREEN_SIZE: vec2f = vec2f(320.0, 180.0);
+const PI: f32 = radians(180.0);
+
 @vertex
 fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     var out: VertexOutput;
@@ -41,7 +44,7 @@ fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     let position = positions[vertex_index] * push_constants.radius;
 
     let translated_position = position + push_constants.position - push_constants.camera_position;
-    let scaled_position = translated_position / vec2f(160.0, 90.0);
+    let scaled_position = translated_position / SCREEN_SIZE;
     let normalized_position = scaled_position * 2.0 - 1.0;
 
     out.position = vec4f(normalized_position.x, -normalized_position.y, 0.0, 1.0);
@@ -49,15 +52,12 @@ fn vs_main(@builtin(vertex_index) vertex_index: u32) -> VertexOutput {
     return out;
 }
 
-const SCREEN_SIZE: vec2f = vec2f(160.0, 90.0);
-const PI: f32 = radians(180.0);
-
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let frag_world_coord = in.position.xy + push_constants.camera_position;
 
     let tex_coords = in.position.xy / SCREEN_SIZE;
-    let mask_size = SCREEN_SIZE * 16.0;
+    let mask_size = SCREEN_SIZE * 8.0;
 
     let color = textureSample(color, tex_sampler, tex_coords);
 

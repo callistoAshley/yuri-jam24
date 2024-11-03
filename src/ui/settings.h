@@ -34,6 +34,8 @@ typedef struct
 
     f32 repeat_input_timer;
 
+    i32 waiting_on_keybind;
+
     bool open;
     bool is_closing;
 } SettingsMenu;

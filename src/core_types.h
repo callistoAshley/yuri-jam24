@@ -1,6 +1,5 @@
 #pragma once
 
-#include "cglm/struct/vec2.h"
 #include <cglm/struct.h>
 #include <stdbool.h>
 

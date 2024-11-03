@@ -11,6 +11,8 @@ typedef enum
     CMD_MoveL,
     CMD_MoveR,
     CMD_Move,
+    CMD_ChangeMap,
+    CMD_Exit,
     CMD_Unimplemented,
 
     Command_Max_Val,

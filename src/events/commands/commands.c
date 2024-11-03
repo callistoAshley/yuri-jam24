@@ -10,10 +10,12 @@
 #define ARG_ERROR(name, expected)                                              \
     if (arg_count != expected)                                                 \
     {                                                                          \
-        FATAL("wrong arity (%d) for " #name, arg_count)                        \
+        FATAL("wrong arity (%d) for " #name "\n", arg_count)                   \
     }
 
 #define CLEAR_CTX(vm) memset(vm->command_ctx, 0, sizeof(vm->command_ctx));
+
+// FIXME: argument type validation
 
 static bool cmd_printf(VM *vm, Value *out, u32 arg_count, Resources *resources)
 {
@@ -201,6 +203,46 @@ static bool cmd_move(VM *vm, Value *out, u32 arg_count, Resources *resources)
     return false;
 }
 
+static bool cmd_change_map(VM *vm, Value *out, u32 arg_count,
+                           Resources *resources)
+{
+    (void)out;
+
+    MapScene *scene = (MapScene *)*resources->current_scene;
+    scene->change_map_args.copy_map_path = true;
+    scene->change_map = true;
+    if (arg_count == 3)
+    {
+        scene->change_map_args.initial_position.y = vm_pop(vm).data._float;
+        scene->change_map_args.initial_position.x = vm_pop(vm).data._float;
+    }
+    else if (arg_count != 1)
+    {
+        FATAL("wrong arity (%d) for change_map \n", arg_count)
+    }
+    scene->change_map_args.map_path = vm_pop(vm).data.string;
+
+    // set the instruction pointer to the
+    // end of the event to exit execution
+    vm->ip = vm->event.instructions_len;
+
+    return false;
+}
+
+static bool cmd_exit(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    (void)out;
+    (void)resources;
+
+    ARG_ERROR("exit", 0);
+
+    // set the instruction pointer to the
+    // end of the event to exit execution
+    vm->ip = vm->event.instructions_len;
+
+    return false;
+}
+
 static bool unimplemented(VM *vm, Value *out, u32 arg_count,
                           Resources *resources)
 {
@@ -221,6 +263,9 @@ const CommandData COMMANDS[] = {
     [CMD_MoveL] = {"move_l", cmd_move_l},
     [CMD_MoveR] = {"move_r", cmd_move_r},
     [CMD_Move] = {"move", cmd_move},
+
+    [CMD_ChangeMap] = {"change_map", cmd_change_map},
+    [CMD_Exit] = {"exit", cmd_exit},
 
     [CMD_Unimplemented] = {"unimplemented", unimplemented},
 };

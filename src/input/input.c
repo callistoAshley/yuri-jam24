@@ -13,14 +13,21 @@ void input_init(Input *input, SDL_Window *window)
     input->mouse_x = 0;
     input->mouse_y = 0;
 
+    input->key_has_pressed = false;
+    input->last_pressed_key = 0;
+
     i32 w = 0;
     SDL_GetWindowSizeInPixels(window, &w, NULL);
     input->mouse_scale_factor = (f32)UI_VIEW_WIDTH / w;
 }
 
-void input_start_frame(Input *input) { input->prev = input->curr; }
+void input_start_frame(Input *input)
+{
+    input->prev = input->curr;
+    input->key_has_pressed = false;
+}
 
-void input_process(SDL_Event *event, Input *input, Settings *settings)
+void input_process(Input *input, SDL_Event *event, Settings *settings)
 {
     bool button_is_down = event->type == SDL_EVENT_KEY_DOWN ||
                           event->type == SDL_EVENT_MOUSE_BUTTON_DOWN;
@@ -59,6 +66,8 @@ void input_process(SDL_Event *event, Input *input, Settings *settings)
     case SDL_EVENT_KEY_DOWN:
     {
         u32 key = event->key.key;
+        input->last_pressed_key = key;
+        input->key_has_pressed = true;
         if (key == settings->keybinds.up)
         {
             TOGGLE_BUTTON_IF_DOWN(Button_Up)

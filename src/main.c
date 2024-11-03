@@ -1,4 +1,5 @@
 #include "SDL3/SDL_timer.h"
+#include "SDL3/SDL_video.h"
 #include "events/compiler.h"
 #include "settings.h"
 #include "time/fixed.h"
@@ -84,20 +85,20 @@ int main(int argc, char **argv)
 
     printf("settings path: %s\n", settings_path);
 
+    window = SDL_CreateWindow(WINDOW_NAME, BASE_WINDOW_WIDTH,
+                              BASE_WINDOW_HEIGHT, SDL_WINDOW_HIDDEN);
+    SDL_PTR_ERRCHK(window, "window creation failure");
+
+    SDL_DisplayID display = SDL_GetDisplayForWindow(window);
+    const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
+
     Settings settings;
-    settings_load_from(&settings, settings_path);
+    settings_load_from(&settings, mode->refresh_rate, settings_path);
+    settings.debug = true;
 
     // audio things
     Audio audio;
     audio_init(&audio, debug, &settings);
-
-    SDL_WindowFlags flags = SDL_WINDOW_HIDDEN;
-    if (settings.video.fullscreen)
-        flags = SDL_WINDOW_FULLSCREEN;
-
-    window = SDL_CreateWindow(WINDOW_NAME, BASE_WINDOW_WIDTH,
-                              BASE_WINDOW_HEIGHT, flags);
-    SDL_PTR_ERRCHK(window, "window creation failure");
 
     Input input;
     input_init(&input, window);
@@ -161,7 +162,6 @@ int main(int argc, char **argv)
     TimeFixed fixed = time_fixed_new();
 
     Resources resources = {
-        .debug_mode = debug,
         .graphics = &graphics,
         .physics = &physics,
         .audio = &audio,
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
-            input_process(&event, &input, &settings);
+            input_process(&input, &event, &settings);
 
             if (event.type == SDL_EVENT_WINDOW_RESIZED)
             {
@@ -250,7 +250,12 @@ int main(int argc, char **argv)
 
         if (first_frame)
         {
+            if (settings.video.fullscreen)
+            {
+                SDL_SetWindowFullscreen(window, true);
+            }
             SDL_ShowWindow(window);
+            SDL_SyncWindow(window);
             first_frame = false;
         }
 
@@ -258,13 +263,9 @@ int main(int argc, char **argv)
         Duration logic_time = instant_duration_since(after_logic, before_logic);
         f64 logic_delta = duration_as_secs_f64(logic_time);
 
-        // if the frame cap is enabled, and we've got a non-vsync present mode,
+        // if the frame cap is enabled,
         // block until the next frame
-        bool framecap_enabled =
-            settings.video.frame_cap &&
-            (settings.video.present_mode == WGPUPresentMode_Immediate ||
-             settings.video.present_mode == WGPUPresentMode_Mailbox);
-        if (framecap_enabled)
+        if (settings.video.frame_cap)
         {
             f64 frame_time = 1.0 / settings.video.max_framerate;
 

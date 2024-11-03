@@ -67,7 +67,7 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
 
         char sprite_name[256] = {0};
         strncpy(sprite_name, hashmap_get(args->metadata, "sprite"),
-                sizeof(sprite_name));
+                sizeof(sprite_name) - 1);
         TextureEntry *texture_entry =
             texture_manager_load(&resources->graphics->texture_manager,
                                  sprite_name, &resources->graphics->wgpu);
@@ -98,7 +98,7 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
     {
         char caster_name[256] = {0};
         strncpy(caster_name, hashmap_get(args->metadata, "shadow"),
-                sizeof(caster_name));
+                sizeof(caster_name) - 1);
 
         f32 radius = -1;
 

@@ -61,7 +61,7 @@ void title_scene_init(Scene **scene_data, Resources *resources,
     };
     SDL_Color color = {255, 255, 255, 255};
 
-    f32 start_y = 70 * UI_SCALE;
+    f32 start_y = 140 * UI_SCALE;
     for (u32 i = 0; i < 3; i++)
     {
         WGPUTexture texture =
@@ -120,7 +120,7 @@ void title_scene_update(Scene *scene_data, Resources *resources)
     f32 mouse_y =
         resources->input->mouse_y * resources->input->mouse_scale_factor;
 
-    f32 start_y = 70 * UI_SCALE;
+    f32 start_y = 140 * UI_SCALE;
 
     f32 delta = duration_as_secs(resources->time.current.delta);
 
