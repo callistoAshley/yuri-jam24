@@ -16,6 +16,19 @@ event "intro" {
   text("WILLOW: ...");
   text("AH!\. You feel yourself being pulled out of bed.");
   text("And... an arm wrapping around your body.");
+  text("WILLOW: You promised, remember?");
+  text("WILLOW: I want you to be happy. And lounging around like this all the time... it's not making you happy!");
+  text("WILLOW: Sooo you're coming with me whether you like it or not!");
+  text("She lets out a little snortle.");
+  text("WILLOW: Sorry. That was too mean. I-I didn't mean it like that.");
+  text("SERENITY: No, it's ok.");
+  text("SERENITY: I'll come.");
+  text("You pick yourself up and straighten your bandanna.");
+  text("SERENITY: So Artemis is... broken?");
+  text("WILLOW: Not really. It's just a check-up.");
+  text("WILLOW: There's an 'errant signal' coming from the cerebral cortex, Lou says.");
+  text("WILLOW: So we'll pay it a visit and do some basic maintenance along the way.");
+  text("WILLOW: And don't worry, your ~~magnificent~~ and ~~intelligent~~ girlfriend has you covered as far as the technical stuff goes.");
 }
 
 event "autorun" {
