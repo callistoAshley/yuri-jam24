@@ -41,7 +41,7 @@ typedef struct
 void input_init(Input *input, SDL_Window *window);
 
 void input_start_frame(Input *input);
-void input_process(SDL_Event *event, Input *input, Settings *settings);
+void input_process(Input *input, SDL_Event *event, Settings *settings);
 
 bool input_is_down(Input *input, Button button);
 bool input_is_pressed(Input *input, Button button);

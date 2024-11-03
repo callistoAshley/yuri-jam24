@@ -94,6 +94,7 @@ int main(int argc, char **argv)
 
     Settings settings;
     settings_load_from(&settings, mode->refresh_rate, settings_path);
+    settings.debug = true;
 
     // audio things
     Audio audio;
@@ -161,7 +162,6 @@ int main(int argc, char **argv)
     TimeFixed fixed = time_fixed_new();
 
     Resources resources = {
-        .debug_mode = debug,
         .graphics = &graphics,
         .physics = &physics,
         .audio = &audio,
@@ -203,7 +203,7 @@ int main(int argc, char **argv)
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
-            input_process(&event, &input, &settings);
+            input_process(&input, &event, &settings);
 
             if (event.type == SDL_EVENT_WINDOW_RESIZED)
             {

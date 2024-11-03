@@ -37,8 +37,8 @@ void fmod_logo_scene_init(Scene **scene_data, Resources *resources,
 
     TransformEntry transform = transform_manager_add(
         &resources->graphics->transform_manager,
-        transform_from_xyz((UI_VIEW_WIDTH / 2) - (width / 2),
-                           (UI_VIEW_HEIGHT / 2) - (height / 2), 0));
+        transform_from_xyz((UI_VIEW_WIDTH / 2.0) - (width / 2.0),
+                           (UI_VIEW_HEIGHT / 2.0) - (height / 2.0), 0));
 
     ui_sprite_init(
         &scene->logo_sprite, scene->logo_texture, transform,
@@ -46,7 +46,7 @@ void fmod_logo_scene_init(Scene **scene_data, Resources *resources,
     scene->logo_layer = layer_add(&resources->graphics->ui_layers.background,
                                   &scene->logo_sprite);
 
-    if (resources->debug_mode)
+    if (resources->settings->debug)
         scene_change(TITLE_SCENE, resources, NULL);
 }
 

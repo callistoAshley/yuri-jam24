@@ -24,6 +24,8 @@ typedef struct
         SDL_Keycode jump, cancel, interact;
         SDL_Keycode back, quit;
     } keybinds;
+
+    bool debug;
 } Settings;
 
 // loads settings, or uses defaults if possible

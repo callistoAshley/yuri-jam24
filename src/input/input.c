@@ -27,7 +27,7 @@ void input_start_frame(Input *input)
     input->key_has_pressed = false;
 }
 
-void input_process(SDL_Event *event, Input *input, Settings *settings)
+void input_process(Input *input, SDL_Event *event, Settings *settings)
 {
     bool button_is_down = event->type == SDL_EVENT_KEY_DOWN ||
                           event->type == SDL_EVENT_MOUSE_BUTTON_DOWN;
