@@ -57,7 +57,7 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let frag_world_coord = in.position.xy + push_constants.camera_position;
 
     let tex_coords = in.position.xy / SCREEN_SIZE;
-    let mask_size = SCREEN_SIZE * 16.0;
+    let mask_size = SCREEN_SIZE * 8.0;
 
     let color = textureSample(color, tex_sampler, tex_coords);
 

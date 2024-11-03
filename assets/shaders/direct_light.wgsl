@@ -43,7 +43,7 @@ const SCREEN_SIZE: vec2f = vec2f(320.0, 180.0);
 
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
-    let mask_size = SCREEN_SIZE * 16.0;
+    let mask_size = SCREEN_SIZE * 8.0;
     let tex_coords = in.position.xy / SCREEN_SIZE;
 
     let base_color = textureSample(color, tex_sampler, tex_coords);
