@@ -160,7 +160,7 @@ void textbox_display_text(Textbox *textbox, Resources *resources, char *text)
     {
         remove_text(textbox, resources);
     }
-    strncpy(textbox->text, text, sizeof(textbox->text));
+    strncpy(textbox->text, text, sizeof(textbox->text) - 1);
     textbox->text_idx = 0;
     textbox->typing = true;
     textbox->waiting_for_input = false;

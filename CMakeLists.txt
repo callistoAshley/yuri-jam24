@@ -4,7 +4,6 @@ project(game)
 set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "we get an annoying warning in freetype about cmake <3.5 being deprecated" FORCE)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON) # for clangd
-set(CMAKE_BUILD_TYPE Debug) # force debug build for now
 
 # hack to tell cmake to prefer static libraries over shared ones
 if(WIN32)
