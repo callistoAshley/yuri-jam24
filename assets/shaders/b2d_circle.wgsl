@@ -29,9 +29,9 @@ fn vs_main(in: VertexInput) -> VertexOutput {
 @fragment
 fn fs_main(in: VertexOutput) -> @location(0) vec4f {
     let frag_position = in.position.xy + push_constants.camera_position * push_constants.scale;
-    let circle_position = push_constants.position * 8 * push_constants.scale;
+    let circle_position = push_constants.position * 16 * push_constants.scale;
     let distance = distance(frag_position, circle_position);
-    let scaled_radius = push_constants.radius * push_constants.scale * 8;
+    let scaled_radius = push_constants.radius * push_constants.scale * 16;
 
     if scaled_radius < distance {
       discard;

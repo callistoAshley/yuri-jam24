@@ -13,8 +13,8 @@
 #define BASE_WINDOW_HEIGHT UI_VIEW_HEIGHT
 
 // pixels per meter
-// one tile (8px) is one meter
-#define PX_PER_M TILE_SIZE
+// two tiles (16px) is one meter
+#define PX_PER_M 16
 // convert between pixels and meters
 #define PX_TO_M(x) ((x) / PX_PER_M)
 // convert between meters and pixels

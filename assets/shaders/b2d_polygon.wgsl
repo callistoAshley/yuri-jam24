@@ -31,14 +31,14 @@ fn vs_main(in: VertexInput) -> VertexOutput {
         -(in.position.x * s + in.position.y * c)
     );
 
-  // in box2d, 1m = 8 pixels
+  // in box2d, 1m = 16 pixels
   // HOWEVER the game world is rendered to the screen at push_constants.scale
   // the camera coordinates are also at this lower scale, so we need to scale up that too
   //
-  // so all in all, we need to: offset the vertex position by the object's position, offset by the camera position, and scale it up by 8 * push_constants.scale
+  // so all in all, we need to: offset the vertex position by the object's position, offset by the camera position, and scale it up by 16 * push_constants.scale
   // HOWEVER we also need to output normalized device coordinates, so we need to divide by the screen size too (which is SCREEN_SIZE * push_constants.scale)
     let screen_size = SCREEN_SIZE * push_constants.scale;
-    let scaled_to_camera_position = (rotated_position + push_constants.position) * 8.0;
+    let scaled_to_camera_position = (rotated_position + push_constants.position) * 16.0;
     let internal_px_position = scaled_to_camera_position - push_constants.camera_position;
     let screen_position = internal_px_position * push_constants.scale;
     let normalized_position = screen_position / screen_size;

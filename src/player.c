@@ -108,8 +108,8 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player_update(player, resources, true);
 }
 
-#define WALK_SPEED_MPS 4
-#define WALK_SPEED_CAP 8
+#define WALK_SPEED_MPS 2
+#define WALK_SPEED_CAP 4
 #define WALK_SPEED_PXPS M_TO_PX(WALK_SPEED_MPS)
 
 void player_fixed_update(Player *player, Resources *resources)
@@ -271,7 +271,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
 
 void player_jump(Player *player)
 {
-    b2Body_ApplyLinearImpulseToCenter(player->body_id, (b2Vec2){0.0, 22.5},
+    b2Body_ApplyLinearImpulseToCenter(player->body_id, (b2Vec2){0.0, 4.0},
                                       true);
     player->jump_timeout = 0.1;
     player->jumping = true;
