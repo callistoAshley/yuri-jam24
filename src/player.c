@@ -100,6 +100,10 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->position.x = position.x;
     player->position.y = position.y;
 
+    player->jump_timeout = 0;
+    player->fall_time = 0.0;
+    player->jumping = false;
+
     player_fixed_update(player, resources);
     player_update(player, resources, true);
 }
