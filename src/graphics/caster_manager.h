@@ -3,7 +3,6 @@
 #include <wgpu.h>
 #include "graphics/transform_manager.h"
 #include "graphics/wgpu_resources.h"
-#include "core_types.h"
 #include "parsers/shdw.h"
 #include "sensible_nums.h"
 #include "utility/vec.h"

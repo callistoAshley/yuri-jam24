@@ -3,12 +3,10 @@
 #include "box2d/collision.h"
 #include "cglm/struct/vec2.h"
 #include "core_types.h"
-#include "fmod_studio.h"
 #include "graphics/caster_manager.h"
 #include "physics/physics.h"
 #include "scenes/scene.h"
 #include "utility/common_defines.h"
-#include "utility/log.h"
 
 // TODO account for coyote time
 void foot_begin_contact_fn(b2SensorBeginTouchEvent *event, void *userdata)
