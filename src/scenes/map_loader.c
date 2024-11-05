@@ -465,7 +465,11 @@ static void prop_foreach_func(tmx_property *prop, void *ud)
 {
     if (prop->type != PT_STRING)
         return;
-    hashmap_insert(ud, prop->name, prop->value.string);
+    char key[256];
+    strncpy(key, prop->name, sizeof(key) - 1);
+    char value[256];
+    strncpy(value, prop->value.string, sizeof(value) - 1);
+    hashmap_insert(ud, key, value);
 }
 
 void handle_character_layer(tmx_layer *layer, Resources *resources,

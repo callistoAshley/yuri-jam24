@@ -12,6 +12,7 @@
 #include "imgui_wgpu.h"
 #include "physics/debug_draw.h"
 #include "utility/common_defines.h"
+#include "utility/log.h"
 #include "utility/macros.h"
 #include "webgpu.h"
 
