@@ -204,12 +204,11 @@ int main(int argc, char **argv)
             resources.time.current = resources.time.fixed.time;
             physics_update(&resources.physics, resources.time.fixed.time);
             if (resources.scene_interface.fixed_update)
-                resources.scene_interface.fixed_update(resources.scene,
-                                                       &resources);
+                resources.scene_interface.fixed_update(&resources);
         }
 
         resources.time.current = resources.time.virt.time;
-        resources.scene_interface.update(resources.scene, &resources);
+        resources.scene_interface.update(&resources);
 
         igRender();
         graphics_render(&resources.graphics, &resources.physics,
@@ -244,7 +243,7 @@ int main(int argc, char **argv)
         }
     }
 
-    resources.scene_interface.free(resources.scene, &resources);
+    resources.scene_interface.free(&resources);
 
     vec_free_with(&events, event_free_fn);
 

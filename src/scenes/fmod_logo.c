@@ -48,9 +48,9 @@ void fmod_logo_scene_init(Resources *resources, void *extra_args)
                                   &scene->logo_sprite);
 }
 
-void fmod_logo_scene_update(Scene *scene_data, Resources *resources)
+void fmod_logo_scene_update(Resources *resources)
 {
-    FmodLogoScene *scene = (FmodLogoScene *)scene_data;
+    FmodLogoScene *scene = (FmodLogoScene *)resources->scene;
     f32 delta = duration_as_secs(resources->time.current.delta);
 
     if (scene->logo_sprite.opacity < 1.0f && scene->time < 1.0f)
@@ -70,12 +70,12 @@ void fmod_logo_scene_update(Scene *scene_data, Resources *resources)
     scene->time += duration_as_secs(resources->time.current.delta);
 }
 
-void fmod_logo_scene_free(Scene *scene_data, Resources *resources)
+void fmod_logo_scene_free(Resources *resources)
 {
-    FmodLogoScene *scene = (FmodLogoScene *)scene_data;
+    FmodLogoScene *scene = (FmodLogoScene *)resources->scene;
     ui_sprite_free(&scene->logo_sprite, &resources->graphics);
     layer_remove(&resources->graphics.ui_layers.background, scene->logo_layer);
-    free(scene_data);
+    free(scene);
 }
 
 const SceneInterface FMOD_LOGO_SCENE = {.init = fmod_logo_scene_init,

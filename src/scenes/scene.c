@@ -1,4 +1,5 @@
 #include "scene.h"
+#include "resources.h"
 
 void scene_change(SceneInterface new_scene, Resources *resources,
                   void *extra_args)
