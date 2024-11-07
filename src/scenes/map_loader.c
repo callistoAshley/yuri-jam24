@@ -1,11 +1,9 @@
 #include "map_loader.h"
 #include "cglm/types-struct.h"
-#include "characters/autorun.h"
 #include "characters/character.h"
 #include "graphics/graphics.h"
 #include "scenes/scene.h"
 #include "utility/log.h"
-#include "characters/basic.h"
 
 #define COLLISION_CLASS "collision"
 #define LIGHTS_CLASS "lights"
