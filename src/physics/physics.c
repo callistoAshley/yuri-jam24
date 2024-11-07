@@ -1,6 +1,5 @@
 #include "physics.h"
 #include "box2d/box2d.h"
-#include "utility/common_defines.h"
 
 void physics_init(Physics *physics)
 {

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "scenes/scene.h"
+#include "resources.h"
 #include "utility/macros.h"
 
 typedef enum

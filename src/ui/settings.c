@@ -5,7 +5,7 @@
 #include "fmod_studio_common.h"
 #include "fonts/font.h"
 #include "graphics/tex_manager.h"
-#include "scenes/scene.h"
+#include "resources.h"
 #include "utility/common_defines.h"
 #include "utility/graphics.h"
 #include "utility/macros.h"

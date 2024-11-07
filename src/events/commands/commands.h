@@ -3,7 +3,7 @@
 #include "events/value.h"
 #include "command.h"
 #include "events/vm.h"
-#include "scenes/scene.h"
+#include "resources.h"
 
 // commands do not need to fill in the out pointer unless they are returning
 // values.

@@ -1,7 +1,7 @@
 #include "map.h"
 #include "input/input.h"
 #include "player.h"
-#include "scenes/scene.h"
+#include "resources.h"
 #include "ui/settings.h"
 #include "ui/textbox.h"
 #include "utility/common_defines.h"

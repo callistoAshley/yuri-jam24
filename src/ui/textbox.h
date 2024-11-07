@@ -4,7 +4,7 @@
 #include "fmod_studio_common.h"
 #include "graphics/layer.h"
 #include "graphics/ui_sprite.h"
-#include "scenes/scene.h"
+#include "resources.h"
 
 typedef struct
 {

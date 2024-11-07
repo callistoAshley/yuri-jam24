@@ -4,8 +4,8 @@
 #include "events/value.h"
 #include "events/vm.h"
 #include "scenes/map.h"
-#include "scenes/scene.h"
 #include "utility/macros.h"
+#include "resources.h"
 
 #define ARG_ERROR(name, expected)                                              \
     if (arg_count != expected)                                                 \

@@ -2,7 +2,7 @@
 
 #include "core_types.h"
 #include "graphics/sprite.h"
-#include "scenes/scene.h"
+#include "resources.h"
 
 #define PLAYER_W 10
 #define PLAYER_H 18

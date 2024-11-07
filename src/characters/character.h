@@ -1,7 +1,7 @@
 #pragma once
-#include "scenes/scene.h"
 #include "tmx.h"
 #include "utility/hashmap.h"
+#include "resources.h"
 
 struct MapScene;
 

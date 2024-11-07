@@ -2,7 +2,7 @@
 #include "cglm/types-struct.h"
 #include "characters/character.h"
 #include "graphics/graphics.h"
-#include "scenes/scene.h"
+#include "resources.h"
 #include "utility/log.h"
 
 #define COLLISION_CLASS "collision"

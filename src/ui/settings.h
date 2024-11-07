@@ -3,7 +3,7 @@
 #include "SDL3/SDL_surface.h"
 #include "graphics/layer.h"
 #include "graphics/ui_sprite.h"
-#include "scenes/scene.h"
+#include "resources.h"
 
 typedef enum
 {

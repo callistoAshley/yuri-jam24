@@ -3,7 +3,7 @@
 #include "graphics/tex_manager.h"
 #include "input/input.h"
 #include "scenes/map.h"
-#include "scenes/scene.h"
+#include "resources.h"
 #include "ui/settings.h"
 #include "utility/common_defines.h"
 #include <string.h>
@@ -107,9 +107,9 @@ void title_scene_init(Resources *resources, void *extra_args)
     title_scene->transition_timer = 0;
 }
 
-void title_scene_update(Scene *scene_data, Resources *resources)
+void title_scene_update(Resources *resources)
 {
-    TitleScene *title_scene = (TitleScene *)scene_data;
+    TitleScene *title_scene = (TitleScene *)resources->scene;
     (void)resources;
 
     settings_menu_update(&title_scene->settings_menu, resources);
@@ -244,9 +244,9 @@ void title_scene_update(Scene *scene_data, Resources *resources)
     }
 }
 
-void title_scene_free(Scene *scene_data, Resources *resources)
+void title_scene_free(Resources *resources)
 {
-    TitleScene *title_scene = (TitleScene *)scene_data;
+    TitleScene *title_scene = (TitleScene *)resources->scene;
     FMOD_Studio_EventInstance_Stop(resources->audio.current_bgm,
                                    FMOD_STUDIO_STOP_IMMEDIATE);
     FMOD_Studio_EventInstance_Release(resources->audio.current_bgm);

@@ -1,7 +1,6 @@
 #pragma once
 
-#include "box2d/box2d.h"
-#include "sensible_nums.h"
+#include <box2d/box2d.h>
 #include "time/time.h"
 
 typedef struct

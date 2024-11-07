@@ -2,7 +2,7 @@
 
 #include "events/event.h"
 #include "events/value.h"
-#include "scenes/scene.h"
+#include "resources.h"
 
 #define STACK_MAX 32
 #define SLOT_MAX 32

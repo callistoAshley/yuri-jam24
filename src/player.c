@@ -5,8 +5,8 @@
 #include "core_types.h"
 #include "graphics/caster_manager.h"
 #include "physics/physics.h"
-#include "scenes/scene.h"
 #include "utility/common_defines.h"
+#include "resources.h"
 
 // TODO account for coyote time
 void foot_begin_contact_fn(b2SensorBeginTouchEvent *event, void *userdata)

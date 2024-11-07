@@ -1,8 +1,7 @@
 #pragma once
 #define CIMGUI_DEFINE_ENUMS_AND_STRUCTS
 #include <cimgui.h>
-#include "scenes/scene.h" // FIXME: this include is just for the Resources struct,
-                          // change it once it's moved
+#include "resources.h"
 
 typedef struct
 {

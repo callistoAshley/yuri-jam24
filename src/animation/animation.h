@@ -4,7 +4,7 @@
 #include "graphics/caster_manager.h"
 #include "graphics/graphics.h"
 #include "graphics/sprite.h"
-#include "scenes/scene.h"
+#include "resources.h"
 
 typedef struct
 {
