@@ -9,26 +9,27 @@
 
 typedef struct
 {
+    SceneType type;
+
     TextureEntry *logo_texture;
     UiSprite logo_sprite;
     LayerEntry logo_layer;
     f32 time;
 } FmodLogoScene;
 
-void fmod_logo_scene_init(Scene **scene_data, Resources *resources,
-                          void *extra_args)
+void fmod_logo_scene_init(Resources *resources, void *extra_args)
 {
     (void)extra_args;
 
-    FmodLogoScene *scene =
-        (FmodLogoScene *)(*scene_data = malloc(sizeof(FmodLogoScene)));
-    scene->time = 0;
+    FmodLogoScene *scene = malloc(sizeof(FmodLogoScene));
+    resources->scene = (Scene *)scene;
+    scene->type = Scene_FmodLogo, scene->time = 0;
 
     scene->logo_texture = texture_manager_load(
-        &resources->graphics->texture_manager, "assets/textures/fmod_logo.png",
-        &resources->graphics->wgpu);
+        &resources->graphics.texture_manager, "assets/textures/fmod_logo.png",
+        &resources->graphics.wgpu);
     WGPUTexture wgpu_tex = texture_manager_get_texture(
-        &resources->graphics->texture_manager, scene->logo_texture);
+        &resources->graphics.texture_manager, scene->logo_texture);
     u32 width = wgpuTextureGetWidth(wgpu_tex),
         height = wgpuTextureGetHeight(wgpu_tex);
 
@@ -36,18 +37,15 @@ void fmod_logo_scene_init(Scene **scene_data, Resources *resources,
                                RECT_UNIT_TEX_COORDS);
 
     TransformEntry transform = transform_manager_add(
-        &resources->graphics->transform_manager,
+        &resources->graphics.transform_manager,
         transform_from_xyz((UI_VIEW_WIDTH / 2.0) - (width / 2.0),
                            (UI_VIEW_HEIGHT / 2.0) - (height / 2.0), 0));
 
     ui_sprite_init(
         &scene->logo_sprite, scene->logo_texture, transform,
-        quad_manager_add(&resources->graphics->quad_manager, logo_quad), 0.0f);
-    scene->logo_layer = layer_add(&resources->graphics->ui_layers.background,
+        quad_manager_add(&resources->graphics.quad_manager, logo_quad), 0.0f);
+    scene->logo_layer = layer_add(&resources->graphics.ui_layers.background,
                                   &scene->logo_sprite);
-
-    if (resources->settings->debug)
-        scene_change(TITLE_SCENE, resources, NULL);
 }
 
 void fmod_logo_scene_update(Scene *scene_data, Resources *resources)
@@ -75,8 +73,8 @@ void fmod_logo_scene_update(Scene *scene_data, Resources *resources)
 void fmod_logo_scene_free(Scene *scene_data, Resources *resources)
 {
     FmodLogoScene *scene = (FmodLogoScene *)scene_data;
-    ui_sprite_free(&scene->logo_sprite, resources->graphics);
-    layer_remove(&resources->graphics->ui_layers.background, scene->logo_layer);
+    ui_sprite_free(&scene->logo_sprite, &resources->graphics);
+    layer_remove(&resources->graphics.ui_layers.background, scene->logo_layer);
     free(scene_data);
 }
 

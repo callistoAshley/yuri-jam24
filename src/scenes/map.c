@@ -44,13 +44,13 @@ static char *tiled_image_path_to_actual(char *path)
     return new_path;
 }
 
-void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
+void map_scene_init(Resources *resources, void *extra_args)
 {
     MapInitArgs *args = (MapInitArgs *)extra_args;
 
     MapScene *map_scene = malloc(sizeof(MapScene));
+    resources->scene = (Scene *)map_scene;
     map_scene->type = Scene_Map;
-    *scene_data = (Scene *)map_scene;
 
     if (args->copy_map_path)
         map_scene->current_map = strdup(args->map_path);
@@ -97,15 +97,15 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     char *actual_path =
         tiled_image_path_to_actual(map->ts_head->tileset->image->source);
     TextureEntry *tileset_texture =
-        texture_manager_load(&resources->graphics->texture_manager, actual_path,
-                             &resources->graphics->wgpu);
+        texture_manager_load(&resources->graphics.texture_manager, actual_path,
+                             &resources->graphics.wgpu);
     free(actual_path);
 
     Transform transform = transform_from_xyz(0, 0, 0);
     TransformEntry transform_entry = transform_manager_add(
-        &resources->graphics->transform_manager, transform);
+        &resources->graphics.transform_manager, transform);
 
-    tilemap_init(&map_scene->tilemap, resources->graphics, tileset_texture,
+    tilemap_init(&map_scene->tilemap, &resources->graphics, tileset_texture,
                  transform_entry, load.width, load.height, load.layers,
                  load.tiles);
 
@@ -140,9 +140,9 @@ void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args)
     tmx_map_free(map);
 }
 
-void map_scene_fixed_update(Scene *scene_data, Resources *resources)
+void map_scene_fixed_update(Resources *resources)
 {
-    MapScene *map_scene = (MapScene *)scene_data;
+    MapScene *map_scene = (MapScene *)resources->scene;
 
     for (u32 i = 0; i < map_scene->characters.len; i++)
     {
@@ -168,14 +168,14 @@ void map_scene_fixed_update(Scene *scene_data, Resources *resources)
     player_fixed_update(&map_scene->player, resources);
 }
 
-void map_scene_update(Scene *scene_data, Resources *resources)
+void map_scene_update(Resources *resources)
 {
-    MapScene *map_scene = (MapScene *)scene_data;
+    MapScene *map_scene = (MapScene *)resources->scene;
 
-    if (input_is_pressed(resources->input, Button_Back))
+    if (input_is_pressed(&resources->input, Button_Back))
         map_scene->settings.open = true;
 
-    if (input_is_pressed(resources->input, Button_Refresh))
+    if (input_is_pressed(&resources->input, Button_Refresh))
     {
         MapInitArgs args = {.map_path = map_scene->current_map,
                             .copy_map_path = false};
@@ -191,39 +191,39 @@ void map_scene_update(Scene *scene_data, Resources *resources)
     f32 delta = duration_as_secs(resources->time.current.delta);
     if (map_scene->freecam)
     {
-        bool left_down = input_is_down(resources->input, Button_Left);
-        bool right_down = input_is_down(resources->input, Button_Right);
-        bool up_down = input_is_down(resources->input, Button_Up);
-        bool down_down = input_is_down(resources->input, Button_Down);
+        bool left_down = input_is_down(&resources->input, Button_Left);
+        bool right_down = input_is_down(&resources->input, Button_Right);
+        bool up_down = input_is_down(&resources->input, Button_Up);
+        bool down_down = input_is_down(&resources->input, Button_Down);
 
         const float freecam_move_speed = M_TO_PX(16) * delta;
         if (right_down)
-            resources->raw_camera->x += freecam_move_speed;
+            resources->raw_camera.x += freecam_move_speed;
         if (left_down)
-            resources->raw_camera->x -= freecam_move_speed;
+            resources->raw_camera.x -= freecam_move_speed;
         if (up_down)
-            resources->raw_camera->y -= freecam_move_speed;
+            resources->raw_camera.y -= freecam_move_speed;
         if (down_down)
-            resources->raw_camera->y += freecam_move_speed;
+            resources->raw_camera.y += freecam_move_speed;
     }
     else
     {
-        resources->raw_camera->x =
+        resources->raw_camera.x =
             map_scene->player.transform.position.x - GAME_VIEW_WIDTH / 2.0;
-        resources->raw_camera->y =
+        resources->raw_camera.y =
             map_scene->player.transform.position.y - GAME_VIEW_HEIGHT / 2.0;
 
         // clamp the camera within the bounds of the map
         float right_edge = (map_scene->tilemap.map_w * 8) - GAME_VIEW_WIDTH;
         float bottom_edge = (map_scene->tilemap.map_h * 8) - GAME_VIEW_HEIGHT;
-        if (resources->raw_camera->x < 0)
-            resources->raw_camera->x = 0;
-        else if (resources->raw_camera->x > right_edge)
-            resources->raw_camera->x = right_edge;
-        if (resources->raw_camera->y < 0)
-            resources->raw_camera->y = 0;
-        else if (resources->raw_camera->y > bottom_edge)
-            resources->raw_camera->y = bottom_edge;
+        if (resources->raw_camera.x < 0)
+            resources->raw_camera.x = 0;
+        else if (resources->raw_camera.x > right_edge)
+            resources->raw_camera.x = right_edge;
+        if (resources->raw_camera.y < 0)
+            resources->raw_camera.y = 0;
+        else if (resources->raw_camera.y > bottom_edge)
+            resources->raw_camera.y = bottom_edge;
     }
 
     for (u32 i = 0; i < map_scene->characters.len; i++)
@@ -242,10 +242,10 @@ void map_scene_update(Scene *scene_data, Resources *resources)
     player_update(&map_scene->player, resources, disable_input);
 }
 
-void map_scene_free(Scene *scene_data, Resources *resources)
+void map_scene_free(Resources *resources)
 {
-    MapScene *map_scene = (MapScene *)scene_data;
-    tilemap_free(&map_scene->tilemap, resources->graphics);
+    MapScene *map_scene = (MapScene *)resources->scene;
+    tilemap_free(&map_scene->tilemap, &resources->graphics);
     player_free(&map_scene->player, resources);
 
     if (map_scene->should_free_current_map)
@@ -265,8 +265,8 @@ void map_scene_free(Scene *scene_data, Resources *resources)
         {
         case Map_Sprite:
         {
-            sprite_free(renderable->data.sprite.ptr, resources->graphics);
-            Layer *layer = layer_for(&resources->graphics->sprite_layers,
+            sprite_free(renderable->data.sprite.ptr, &resources->graphics);
+            Layer *layer = layer_for(&resources->graphics.sprite_layers,
                                      renderable->data.sprite.layer);
             layer_remove(layer, renderable->entry);
             break;
@@ -274,7 +274,7 @@ void map_scene_free(Scene *scene_data, Resources *resources)
         case Map_TileLayer:
         {
             free(renderable->data.tile.ptr);
-            Layer *layer = layer_for(&resources->graphics->tilemap_layers,
+            Layer *layer = layer_for(&resources->graphics.tilemap_layers,
                                      renderable->data.tile.layer);
             layer_remove(layer, renderable->entry);
             break;
@@ -282,13 +282,12 @@ void map_scene_free(Scene *scene_data, Resources *resources)
         case Map_Caster:
         {
             free(renderable->data.caster);
-            layer_remove(&resources->graphics->shadowcasters,
-                         renderable->entry);
+            layer_remove(&resources->graphics.shadowcasters, renderable->entry);
             break;
         }
         case Map_Light:
             free(renderable->data.light);
-            layer_remove(&resources->graphics->lights, renderable->entry);
+            layer_remove(&resources->graphics.lights, renderable->entry);
             break;
         }
     }
@@ -307,7 +306,7 @@ void map_scene_free(Scene *scene_data, Resources *resources)
 
     // hack to clear shadow casters, under the assumption that they'll all get
     // loaded again
-    caster_manager_clear(&resources->graphics->caster_manager);
+    caster_manager_clear(&resources->graphics.caster_manager);
 
     free(map_scene);
 }

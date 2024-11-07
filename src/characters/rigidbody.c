@@ -26,7 +26,7 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
     body_def.position.x = PX_TO_M(initial_pos.x);
     body_def.position.y = PX_TO_M(-initial_pos.y);
     body_def.rotation = b2MakeRot(args->rotation);
-    state->body_id = b2CreateBody(resources->physics->world, &body_def);
+    state->body_id = b2CreateBody(resources->physics.world, &body_def);
 
     b2ShapeDef shape_def = b2DefaultShapeDef();
 
@@ -69,11 +69,11 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
         strncpy(sprite_name, hashmap_get(args->metadata, "sprite"),
                 sizeof(sprite_name) - 1);
         TextureEntry *texture_entry =
-            texture_manager_load(&resources->graphics->texture_manager,
-                                 sprite_name, &resources->graphics->wgpu);
+            texture_manager_load(&resources->graphics.texture_manager,
+                                 sprite_name, &resources->graphics.wgpu);
 
         WGPUTexture texture = texture_manager_get_texture(
-            &resources->graphics->texture_manager, texture_entry);
+            &resources->graphics.texture_manager, texture_entry);
         u32 w = wgpuTextureGetWidth(texture);
         u32 h = wgpuTextureGetHeight(texture);
 
@@ -81,7 +81,7 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
             (vec3s){.x = args->rect.min.x, .y = args->rect.min.y},
             (vec3s){.x = size.x / w, .y = size.y / h});
         TransformEntry transform = transform_manager_add(
-            &resources->graphics->transform_manager, state->transform);
+            &resources->graphics.transform_manager, state->transform);
 
         Rect quad_rect = rect_from_center_radius(
             GLMS_VEC2_ZERO, (vec2s){.x = w / 2.0, .y = h / 2.0});
@@ -89,9 +89,9 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
 
         sprite_init(
             &state->sprite, texture_entry, transform,
-            quad_manager_add(&resources->graphics->quad_manager, state->quad));
+            quad_manager_add(&resources->graphics.quad_manager, state->quad));
         state->layer_entry = layer_add(
-            &resources->graphics->sprite_layers.middle, &state->sprite);
+            &resources->graphics.sprite_layers.middle, &state->sprite);
     }
 
     if (hashmap_get(args->metadata, "shadow"))
@@ -112,7 +112,7 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
                        .y = state->transform.scale.y};
 
         CasterEntry *caster_entry = caster_manager_load(
-            &resources->graphics->caster_manager, caster_name);
+            &resources->graphics.caster_manager, caster_name);
         state->caster = (ShadowCaster){
             .caster = caster_entry,
             .offset = glms_vec2_div(half_size, scale),
@@ -121,7 +121,7 @@ void *rigidbody_char_init(Resources *resources, struct MapScene *map_scene,
             .transform = state->sprite.transform,
         };
         state->caster_entry =
-            layer_add(&resources->graphics->shadowcasters, &state->caster);
+            layer_add(&resources->graphics.shadowcasters, &state->caster);
     }
 
     return state;
@@ -164,7 +164,7 @@ void rigidbody_char_update(void **self, Resources *resources,
     // need to negate the angle because of box2d's coordinate system
     state->transform.rotation = glms_euler_xyz_quat((vec3s){.z = -angle});
 
-    transform_manager_update(&resources->graphics->transform_manager,
+    transform_manager_update(&resources->graphics.transform_manager,
                              state->sprite.transform, state->transform);
 }
 
@@ -177,14 +177,14 @@ void rigidbody_char_free(void *self, Resources *resources, MapScene *map_scene)
 
     if (state->sprite.texture)
     {
-        sprite_free(&state->sprite, resources->graphics);
-        layer_remove(&resources->graphics->sprite_layers.middle,
+        sprite_free(&state->sprite, &resources->graphics);
+        layer_remove(&resources->graphics.sprite_layers.middle,
                      state->layer_entry);
     }
 
     if (state->caster.caster)
     {
-        layer_remove(&resources->graphics->shadowcasters, state->caster_entry);
+        layer_remove(&resources->graphics.shadowcasters, state->caster_entry);
     }
 
     free(state);

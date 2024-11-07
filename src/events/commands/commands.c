@@ -87,7 +87,7 @@ static bool cmd_text(VM *vm, Value *out, u32 arg_count, Resources *resources)
     ARG_ERROR("text", 1);
 
     struct TextCtx *ctx = (struct TextCtx *)vm->command_ctx;
-    MapScene *scene = (MapScene *)*resources->current_scene;
+    MapScene *scene = (MapScene *)resources->scene;
 
     if (ctx->has_started)
     {
@@ -158,7 +158,7 @@ static bool cmd_move_l(VM *vm, Value *out, u32 arg_count, Resources *resources)
 
     BasicCharState *state = vm->vm_ctx;
     state->transform.position.x -= 8.0;
-    transform_manager_update(&resources->graphics->transform_manager,
+    transform_manager_update(&resources->graphics.transform_manager,
                              state->sprite.transform, state->transform);
 
     return false;
@@ -172,7 +172,7 @@ static bool cmd_move_r(VM *vm, Value *out, u32 arg_count, Resources *resources)
 
     BasicCharState *state = vm->vm_ctx;
     state->transform.position.x += 8.0;
-    transform_manager_update(&resources->graphics->transform_manager,
+    transform_manager_update(&resources->graphics.transform_manager,
                              state->sprite.transform, state->transform);
 
     return false;
@@ -197,7 +197,7 @@ static bool cmd_move(VM *vm, Value *out, u32 arg_count, Resources *resources)
     default:
         FATAL("Wrong type to cmd_move (expected number, got %d)\n", amount.type)
     }
-    transform_manager_update(&resources->graphics->transform_manager,
+    transform_manager_update(&resources->graphics.transform_manager,
                              state->sprite.transform, state->transform);
 
     return false;
@@ -208,7 +208,7 @@ static bool cmd_change_map(VM *vm, Value *out, u32 arg_count,
 {
     (void)out;
 
-    MapScene *scene = (MapScene *)*resources->current_scene;
+    MapScene *scene = (MapScene *)resources->scene;
     scene->change_map_args.copy_map_path = true;
     scene->change_map = true;
     if (arg_count == 3)

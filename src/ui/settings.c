@@ -21,26 +21,25 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
         QuadEntry quad_entry =
-            quad_manager_add(&resources->graphics->quad_manager, quad);
+            quad_manager_add(&resources->graphics.quad_manager, quad);
 
         Transform transform = transform_from_scale(VEC3_SPLAT(UI_SCALE));
         TransformEntry transform_entry = transform_manager_add(
-            &resources->graphics->transform_manager, transform);
+            &resources->graphics.transform_manager, transform);
 
-        TextureEntry *background_texture =
-            texture_manager_load(&resources->graphics->texture_manager,
-                                 TEXTURE_PATH("settings_background.png"),
-                                 &resources->graphics->wgpu);
+        TextureEntry *background_texture = texture_manager_load(
+            &resources->graphics.texture_manager,
+            TEXTURE_PATH("settings_background.png"), &resources->graphics.wgpu);
 
         ui_sprite_init(&menu->background, background_texture, transform_entry,
                        quad_entry, 0.0f);
-        menu->bg_entry = layer_add(&resources->graphics->ui_layers.middle,
-                                   &menu->background);
+        menu->bg_entry =
+            layer_add(&resources->graphics.ui_layers.middle, &menu->background);
     }
 
-    FMOD_Studio_System_GetEvent(resources->audio->system, "event:/menu/hover",
+    FMOD_Studio_System_GetEvent(resources->audio.system, "event:/menu/hover",
                                 &menu->hover_desc);
-    FMOD_Studio_System_GetEvent(resources->audio->system, "event:/menu/click",
+    FMOD_Studio_System_GetEvent(resources->audio.system, "event:/menu/click",
                                 &menu->click_desc);
 
     const char *categories[] = {
@@ -57,14 +56,14 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
     {
         const char *category = categories[i];
         WGPUTexture texture =
-            font_render_text(&resources->fonts->compaq.medium, category, color,
-                             &resources->graphics->wgpu);
+            font_render_text(&resources->fonts.compaq.medium, category, color,
+                             &resources->graphics.wgpu);
 
         char *path = malloc(strlen(category) + strlen("settings_option") + 1);
         strcpy(path, "settings_option");
         strcat(path, category);
         TextureEntry *texture_entry = texture_manager_register(
-            &resources->graphics->texture_manager, texture, path);
+            &resources->graphics.texture_manager, texture, path);
         free(path);
 
         u32 width = wgpuTextureGetWidth(texture);
@@ -75,7 +74,7 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
 
         Transform transform = transform_from_xyz(15, start_y, 0);
         TransformEntry transform_entry = transform_manager_add(
-            &resources->graphics->transform_manager, transform);
+            &resources->graphics.transform_manager, transform);
         start_y += height + 5;
 
         Quad quad = {
@@ -83,39 +82,39 @@ void settings_menu_init(SettingsMenu *menu, Resources *resources)
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
         QuadEntry quad_entry =
-            quad_manager_add(&resources->graphics->quad_manager, quad);
+            quad_manager_add(&resources->graphics.quad_manager, quad);
 
         ui_sprite_init(&menu->categories[i], texture_entry, transform_entry,
                        quad_entry, 0.0f);
         menu->cat_entries[i] = layer_add(
-            &resources->graphics->ui_layers.foreground, &menu->categories[i]);
+            &resources->graphics.ui_layers.foreground, &menu->categories[i]);
     }
 
     {
         WGPUTexture texture = blank_texture(600, 200,
                                             WGPUTextureUsage_CopyDst |
                                                 WGPUTextureUsage_TextureBinding,
-                                            &resources->graphics->wgpu);
+                                            &resources->graphics.wgpu);
         TextureEntry *texture_entry =
-            texture_manager_register(&resources->graphics->texture_manager,
+            texture_manager_register(&resources->graphics.texture_manager,
                                      texture, "settings_menu_category");
 
         Transform transform =
             transform_from_xyz(15 + max_width + 15, 120 * UI_SCALE, 0);
         TransformEntry transform_entry = transform_manager_add(
-            &resources->graphics->transform_manager, transform);
+            &resources->graphics.transform_manager, transform);
 
         Quad quad = {
             .rect = rect_from_size((vec2s){.x = 600, .y = 200}),
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
         QuadEntry quad_entry =
-            quad_manager_add(&resources->graphics->quad_manager, quad);
+            quad_manager_add(&resources->graphics.quad_manager, quad);
 
         ui_sprite_init(&menu->category, texture_entry, transform_entry,
                        quad_entry, 0.0f);
         menu->category_entry = layer_add(
-            &resources->graphics->ui_layers.foreground, &menu->category);
+            &resources->graphics.ui_layers.foreground, &menu->category);
     }
     menu->category_surf = SDL_CreateSurface(600, 200, SDL_PIXELFORMAT_RGBA32);
 
@@ -215,9 +214,9 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     if (!menu->open)
         return;
 
-    Settings *settings = resources->settings;
+    Settings *settings = &resources->settings;
 
-    f32 delta = duration_as_secs(resources->time.real->time.delta);
+    f32 delta = duration_as_secs(resources->time.real.time.delta);
     bool is_opening = menu->background.opacity < 1.0f && !menu->is_closing;
     if (is_opening)
     {
@@ -231,7 +230,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
         menu->waiting_on_keybind = -1;
 
-        resources->time.virt->paused = true;
+        resources->time.virt.paused = true;
 
         return;
     }
@@ -256,7 +255,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
             menu->selected_category = Cat_None;
             menu->hovered_category = Cat_None;
 
-            resources->time.virt->paused = false;
+            resources->time.virt.paused = false;
 
             return;
         }
@@ -268,9 +267,9 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     bool hovered_new_option = false;
 
     f32 mouse_x =
-        resources->input->mouse_x * resources->input->mouse_scale_factor;
+        resources->input.mouse_x * resources->input.mouse_scale_factor;
     f32 mouse_y =
-        resources->input->mouse_y * resources->input->mouse_scale_factor;
+        resources->input.mouse_y * resources->input.mouse_scale_factor;
     f32 start_y = 120 * UI_SCALE;
 
     for (SettingsCategory i = 0; i < 4; i++)
@@ -278,7 +277,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         UiSprite *category = &menu->categories[i];
 
         WGPUTexture texture = texture_manager_get_texture(
-            &resources->graphics->texture_manager, category->texture);
+            &resources->graphics.texture_manager, category->texture);
         u32 width = wgpuTextureGetWidth(texture);
         u32 height = wgpuTextureGetHeight(texture);
 
@@ -322,13 +321,13 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         fire_and_forget(menu->hover_desc);
 
     bool is_waiting_on_key = menu->waiting_on_keybind != -1;
-    if (input_is_pressed(resources->input, Button_Back) && !is_opening &&
+    if (input_is_pressed(&resources->input, Button_Back) && !is_opening &&
         !is_waiting_on_key)
     {
         menu->is_closing = true;
     }
 
-    bool mouse_clicked = input_is_pressed(resources->input, Button_MouseLeft);
+    bool mouse_clicked = input_is_pressed(&resources->input, Button_MouseLeft);
 
     bool did_select_option =
         menu->hovered_category != Cat_None &&
@@ -350,7 +349,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         }
     }
 
-    Font *category_font = &resources->fonts->compaq.medium;
+    Font *category_font = &resources->fonts.compaq.medium;
 
     i32 character_width, character_height;
     font_texture_size(category_font, " ", &character_width, &character_height);
@@ -358,7 +357,7 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     i32 relative_mouse_x = mouse_x - (15 + max_width + 15);
     i32 relative_mouse_y = mouse_y - (120 * UI_SCALE);
 
-    bool mouse_down = input_is_down(resources->input, Button_MouseLeft);
+    bool mouse_down = input_is_down(&resources->input, Button_MouseLeft);
 
     // TODO: add repeat logic to input
     if (mouse_clicked)
@@ -455,13 +454,13 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
 
         if (did_change_bgm_volume)
         {
-            FMOD_Studio_Bus_SetVolume(resources->audio->bgm_bus,
+            FMOD_Studio_Bus_SetVolume(resources->audio.bgm_bus,
                                       settings->audio.bgm_volume / 100.0);
         }
 
         if (did_change_sfx_volume)
         {
-            FMOD_Studio_Bus_SetVolume(resources->audio->sfx_bus,
+            FMOD_Studio_Bus_SetVolume(resources->audio.sfx_bus,
                                       settings->audio.sfx_volume / 100.0);
         }
 
@@ -481,9 +480,9 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         i32 button_y = 2;
         WGPUPresentMode current_mode = settings->video.present_mode;
         u32 vsync_count =
-            resources->graphics->wgpu.surface_caps.presentModeCount;
+            resources->graphics.wgpu.surface_caps.presentModeCount;
         const WGPUPresentMode *modes =
-            resources->graphics->wgpu.surface_caps.presentModes;
+            resources->graphics.wgpu.surface_caps.presentModes;
         u32 current_index;
         for (current_index = 0; current_index < vsync_count; current_index++)
         {
@@ -520,9 +519,9 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         bool did_change_mode = new_mode != current_mode;
         if (did_change_mode)
         {
-            resources->graphics->wgpu.surface_config.presentMode = new_mode;
-            wgpuSurfaceConfigure(resources->graphics->wgpu.surface,
-                                 &resources->graphics->wgpu.surface_config);
+            resources->graphics.wgpu.surface_config.presentMode = new_mode;
+            wgpuSurfaceConfigure(resources->graphics.wgpu.surface,
+                                 &resources->graphics.wgpu.surface_config);
             fire_and_forget(menu->hover_desc);
         }
 
@@ -664,9 +663,9 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                                     .y = relative_mouse_y};                    \
                                                                                \
         if (menu->waiting_on_keybind == index &&                               \
-            resources->input->key_has_pressed)                                 \
+            resources->input.key_has_pressed)                                  \
         {                                                                      \
-            setting = resources->input->last_pressed_key;                      \
+            setting = resources->input.last_pressed_key;                       \
             menu->waiting_on_keybind = -1;                                     \
         }                                                                      \
                                                                                \
@@ -699,24 +698,24 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
     }
 
     WGPUTexture texture = texture_manager_get_texture(
-        &resources->graphics->texture_manager, menu->category.texture);
+        &resources->graphics.texture_manager, menu->category.texture);
     write_surface_to_texture(menu->category_surf, texture,
-                             &resources->graphics->wgpu);
+                             &resources->graphics.wgpu);
 }
 
 void settings_menu_free(SettingsMenu *menu, Resources *resources)
 {
-    ui_sprite_free(&menu->background, resources->graphics);
-    layer_remove(&resources->graphics->ui_layers.middle, menu->bg_entry);
+    ui_sprite_free(&menu->background, &resources->graphics);
+    layer_remove(&resources->graphics.ui_layers.middle, menu->bg_entry);
 
-    ui_sprite_free(&menu->category, resources->graphics);
-    layer_remove(&resources->graphics->ui_layers.foreground,
+    ui_sprite_free(&menu->category, &resources->graphics);
+    layer_remove(&resources->graphics.ui_layers.foreground,
                  menu->category_entry);
 
     for (int i = 0; i < 4; i++)
     {
-        ui_sprite_free(&menu->categories[i], resources->graphics);
-        layer_remove(&resources->graphics->ui_layers.foreground,
+        ui_sprite_free(&menu->categories[i], &resources->graphics);
+        layer_remove(&resources->graphics.ui_layers.foreground,
                      menu->cat_entries[i]);
     }
 

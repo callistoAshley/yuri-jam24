@@ -60,7 +60,7 @@ void handle_collision_layer(tmx_layer *layer, Resources *resources,
                          -(current->y + current->height / 2) / PX_PER_M};
 
             b2BodyId groundId =
-                b2CreateBody(resources->physics->world, &groundBodyDef);
+                b2CreateBody(resources->physics.world, &groundBodyDef);
             b2Polygon groundBox = b2MakeBox(current->width / PX_PER_M / 2,
                                             current->height / PX_PER_M / 2);
             b2ShapeDef groundShapeDef = b2DefaultShapeDef();
@@ -76,7 +76,7 @@ void handle_collision_layer(tmx_layer *layer, Resources *resources,
                 (b2Vec2){(current->x + current->width / 2) / PX_PER_M,
                          -(current->y + current->height / 2) / PX_PER_M};
             b2BodyId groundId =
-                b2CreateBody(resources->physics->world, &groundBodyDef);
+                b2CreateBody(resources->physics.world, &groundBodyDef);
 
             b2Vec2 *points =
                 malloc(sizeof(b2Vec2) * current->content.shape->points_len);
@@ -103,7 +103,7 @@ void handle_collision_layer(tmx_layer *layer, Resources *resources,
                          -(current->y + current->width / 2) / PX_PER_M};
 
             b2BodyId groundId =
-                b2CreateBody(resources->physics->world, &groundBodyDef);
+                b2CreateBody(resources->physics.world, &groundBodyDef);
             b2Circle groundCircle = {
                 .center = {0, 0},
                 .radius = current->width / PX_PER_M / 2,
@@ -184,7 +184,7 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
             if (renderable.data.light->casts_shadows)
             {
                 renderable.data.light->shadowmap_entry = shadowmap_add(
-                    &resources->graphics->shadowmap, position, radius);
+                    &resources->graphics.shadowmap, position, radius);
             }
 
             break;
@@ -207,8 +207,8 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
                 vec2s position = glms_vec2_rotate(really_far, angle);
                 position.y = -position.y;
 
-                renderable.data.light->shadowmap_entry = shadowmap_add(
-                    &resources->graphics->shadowmap, position, -1);
+                renderable.data.light->shadowmap_entry =
+                    shadowmap_add(&resources->graphics.shadowmap, position, -1);
             }
 
             break;
@@ -219,7 +219,7 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
         }
 
         renderable.entry =
-            layer_add(&resources->graphics->lights, renderable.data.light);
+            layer_add(&resources->graphics.lights, renderable.data.light);
         vec_push(load->renderables, &renderable);
 
         current = current->next;
@@ -312,12 +312,12 @@ void handle_shadow_layer(tmx_layer *layer, Resources *resources,
         .point_count = points.len,
     };
     CasterEntry *caster_entry =
-        caster_manager_register(&resources->graphics->caster_manager, &cell, 1);
+        caster_manager_register(&resources->graphics.caster_manager, &cell, 1);
 
     // now we can add the shadow caster to the scene
     Transform transform = transform_from_xyz(layer->offsetx, layer->offsety, 0);
     TransformEntry transform_entry = transform_manager_add(
-        &resources->graphics->transform_manager, transform);
+        &resources->graphics.transform_manager, transform);
 
     MapRenderable renderable;
     renderable.type = Map_Caster;
@@ -329,7 +329,7 @@ void handle_shadow_layer(tmx_layer *layer, Resources *resources,
     renderable.data.caster->cell = 0;
 
     renderable.entry =
-        layer_add(&resources->graphics->shadowcasters, renderable.data.caster);
+        layer_add(&resources->graphics.shadowcasters, renderable.data.caster);
 
     vec_push(load->renderables, &renderable);
 }
@@ -341,8 +341,8 @@ void handle_image_layer(tmx_layer *layer, Resources *resources,
 
     char *actual_path = tiled_image_path_to_actual(image->source);
     TextureEntry *texture_entry =
-        texture_manager_load(&resources->graphics->texture_manager, actual_path,
-                             &resources->graphics->wgpu);
+        texture_manager_load(&resources->graphics.texture_manager, actual_path,
+                             &resources->graphics.wgpu);
     free(actual_path);
 
 #define REPEAT_LAYER_DIM_LEN 100000
@@ -392,12 +392,12 @@ void handle_image_layer(tmx_layer *layer, Resources *resources,
 
     Transform transform = transform_from_xyz(x, y, 0);
     TransformEntry transform_entry = transform_manager_add(
-        &resources->graphics->transform_manager, transform);
+        &resources->graphics.transform_manager, transform);
 
     Quad quad = {.rect = rect, .tex_coords = tex_coords};
 
     QuadEntry quad_entry =
-        quad_manager_add(&resources->graphics->quad_manager, quad);
+        quad_manager_add(&resources->graphics.quad_manager, quad);
 
     MapRenderable renderable;
     renderable.type = Map_Sprite;
@@ -407,12 +407,12 @@ void handle_image_layer(tmx_layer *layer, Resources *resources,
     renderable.data.sprite.ptr->parallax_factor =
         (vec2s){.x = layer->parallaxx, .y = layer->parallaxy};
 
-    Layer *target = &resources->graphics->sprite_layers.middle;
+    Layer *target = &resources->graphics.sprite_layers.middle;
     MapLayer target_enum = Layer_Middle;
     tmx_property *prop = tmx_get_property(layer->properties, "layer");
     if (prop)
     {
-        layer_for(prop->value.integer, &resources->graphics->sprite_layers,
+        layer_for(prop->value.integer, &resources->graphics.sprite_layers,
                   &target, &target_enum);
     }
 
@@ -444,12 +444,12 @@ void handle_tile_layer(tmx_layer *layer, Resources *resources,
     renderable.data.tile.ptr->parallax_factor =
         (vec2s){.x = layer->parallaxx, .y = layer->parallaxy};
 
-    Layer *target = &resources->graphics->tilemap_layers.middle;
+    Layer *target = &resources->graphics.tilemap_layers.middle;
     MapLayer target_enum = Layer_Middle;
     tmx_property *prop = tmx_get_property(layer->properties, "layer");
     if (prop)
     {
-        layer_for(prop->value.integer, &resources->graphics->tilemap_layers,
+        layer_for(prop->value.integer, &resources->graphics.tilemap_layers,
                   &target, &target_enum);
     }
 

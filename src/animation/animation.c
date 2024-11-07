@@ -31,7 +31,7 @@ void animation_update(Animation *animation, Resources *resources)
 
     animation->needs_apply = false;
 
-    f32 delta = time_delta_seconds(resources->time.real->time);
+    f32 delta = time_delta_seconds(resources->time.real.time);
     animation->wait_time -= delta;
 
     if (animation->wait_time <= 0.0)
@@ -53,7 +53,7 @@ void animation_update(Animation *animation, Resources *resources)
         {
             FMOD_STUDIO_EVENTDESCRIPTION *desc;
             FMOD_RESULT res = FMOD_Studio_System_GetEvent(
-                resources->audio->system, frame.sound, &desc);
+                resources->audio.system, frame.sound, &desc);
             FMOD_ERRCHK(res, "Failed to fetch animation sound");
 
             FMOD_STUDIO_EVENTINSTANCE *inst;

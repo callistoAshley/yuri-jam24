@@ -1,7 +1,7 @@
 #include "autorun.h"
 #include "characters/character.h"
+#include "events/vm.h"
 #include "scenes/map.h"
-#include "utility/log.h"
 
 // these events do *nothing* except run an event when initialized
 void *autorun_char_init(Resources *resources, struct MapScene *map_scene,

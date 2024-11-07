@@ -26,16 +26,16 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
         state->transform =
             transform_from_xyz(args->rect.min.x, args->rect.min.y, 0);
         TransformEntry transform = transform_manager_add(
-            &resources->graphics->transform_manager, state->transform);
+            &resources->graphics.transform_manager, state->transform);
 
         char sprite_name[256] = {0};
         strncpy(sprite_name, hashmap_get(args->metadata, "sprite"),
                 sizeof(sprite_name) - 1);
         TextureEntry *texture =
-            texture_manager_load(&resources->graphics->texture_manager,
-                                 sprite_name, &resources->graphics->wgpu);
+            texture_manager_load(&resources->graphics.texture_manager,
+                                 sprite_name, &resources->graphics.wgpu);
         WGPUTexture wgpu_tex = texture_manager_get_texture(
-            &resources->graphics->texture_manager, texture);
+            &resources->graphics.texture_manager, texture);
         u32 width = wgpuTextureGetWidth(wgpu_tex),
             height = wgpuTextureGetHeight(wgpu_tex);
 
@@ -51,9 +51,9 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
 
         sprite_init(
             &state->sprite, texture, transform,
-            quad_manager_add(&resources->graphics->quad_manager, state->quad));
+            quad_manager_add(&resources->graphics.quad_manager, state->quad));
         state->layer_entry = layer_add(
-            &resources->graphics->sprite_layers.middle, &state->sprite);
+            &resources->graphics.sprite_layers.middle, &state->sprite);
     }
 
     if (hashmap_get(args->metadata, "shadow"))
@@ -71,7 +71,7 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
         }
 
         CasterEntry *caster_entry = caster_manager_load(
-            &resources->graphics->caster_manager, caster_name);
+            &resources->graphics.caster_manager, caster_name);
         state->caster = (ShadowCaster){
             .caster = caster_entry,
             .cell = 0,
@@ -79,7 +79,7 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
             .transform = state->sprite.transform,
         };
         state->caster_entry =
-            layer_add(&resources->graphics->shadowcasters, &state->caster);
+            layer_add(&resources->graphics.shadowcasters, &state->caster);
     }
 
     if (hashmap_get(args->metadata, "event"))
@@ -90,7 +90,7 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
 
     if (state->animation.def)
     {
-        animation_apply(&state->animation, resources->graphics, &state->quad,
+        animation_apply(&state->animation, &resources->graphics, &state->quad,
                         &state->sprite);
     }
 
@@ -104,7 +104,7 @@ void basic_char_update(void **self, Resources *resources, MapScene *map_scene)
     if (state->animation.def)
     {
         animation_update(&state->animation, resources);
-        animation_apply(&state->animation, resources->graphics, &state->quad,
+        animation_apply(&state->animation, &resources->graphics, &state->quad,
                         &state->sprite);
     }
 
@@ -114,7 +114,8 @@ void basic_char_update(void **self, Resources *resources, MapScene *map_scene)
                            (vec2s){.x = PLAYER_W, .y = PLAYER_H});
 
     bool player_inside = rect_contains_other(player_rect, state->rect);
-    bool interact_pressed = input_is_pressed(resources->input, Button_Interact);
+    bool interact_pressed =
+        input_is_pressed(&resources->input, Button_Interact);
     bool has_event = (*state->event_name) != '\0';
 
     if (player_inside && interact_pressed && !state->vm && has_event)
@@ -158,14 +159,14 @@ void basic_char_free(void *self, Resources *resources, MapScene *map_scene)
     BasicCharState *state = self;
     if (state->sprite.texture)
     {
-        sprite_free(&state->sprite, resources->graphics);
-        layer_remove(&resources->graphics->sprite_layers.middle,
+        sprite_free(&state->sprite, &resources->graphics);
+        layer_remove(&resources->graphics.sprite_layers.middle,
                      state->layer_entry);
     }
 
     if (state->caster.caster)
     {
-        layer_remove(&resources->graphics->shadowcasters, state->caster_entry);
+        layer_remove(&resources->graphics.shadowcasters, state->caster_entry);
     }
 
     if (state->vm)

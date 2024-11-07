@@ -1,8 +1,6 @@
 #pragma once
-#include <stdio.h>
-#include <stdlib.h>
+
 #include <stdbool.h>
-#include <math.h>
 #include "fmod_studio_common.h"
 #include "graphics/layer.h"
 #include "graphics/ui_sprite.h"

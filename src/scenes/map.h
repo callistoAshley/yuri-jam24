@@ -1,6 +1,5 @@
 #pragma once
 
-#include "events/vm.h"
 #include "graphics/tilemap.h"
 #include "scene.h"
 #include "player.h"
@@ -43,9 +42,5 @@ typedef struct MapScene
     MapInitArgs change_map_args;
     bool change_map;
 } MapScene;
-
-void map_scene_init(Scene **scene_data, Resources *resources, void *extra_args);
-void map_scene_update(Scene *scene_data, Resources *resources);
-void map_scene_free(Scene *scene_data, Resources *resources);
 
 extern const SceneInterface MAP_SCENE;

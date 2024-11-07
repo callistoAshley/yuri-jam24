@@ -1,12 +1,4 @@
-#include "SDL3/SDL_timer.h"
-#include "SDL3/SDL_video.h"
-#include "events/compiler.h"
-#include "settings.h"
-#include "time/fixed.h"
-#include "time/real.h"
-#include "time/virt.h"
-#include "utility/files.h"
-#include "utility/time.h"
+
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -21,15 +13,14 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-#include "audio/audio.h"
-#include "graphics/graphics.h"
-#include "input/input.h"
 #include "utility/macros.h"
 #include "utility/common_defines.h"
-#include "physics/physics.h"
-#include "scenes/fmod_logo.h"
-#include "scenes/scene.h"
 #include "debug/debug_window.h"
+#include "events/compiler.h"
+#include "scenes/fmod_logo.h"
+#include "scenes/title.h"
+#include "settings.h"
+#include "utility/files.h"
 
 #define WINDOW_NAME "i am the window"
 
@@ -51,16 +42,10 @@ int main(int argc, char **argv)
         debug |= !strcmp(argv[i], "--debug");
     }
 
-    SDL_Window *window;
+    Resources resources;
     bool first_frame = true;
 
-    // Graphics stuff
-    Graphics graphics;
-
-    Physics physics;
-    physics_init(&physics);
-
-    Camera raw_camera = {
+    resources.raw_camera = (Camera){
         .x = 0,
         .y = 0,
         .z = 0,
@@ -73,8 +58,12 @@ int main(int argc, char **argv)
 
     SDL_ERRCHK(IMG_Init(IMG_INIT_PNG) == 0, "IMG initialization failure");
 
-    Fonts fonts;
-    fonts_init(&fonts);
+    resources.window = SDL_CreateWindow(WINDOW_NAME, BASE_WINDOW_WIDTH,
+                                        BASE_WINDOW_HEIGHT, SDL_WINDOW_HIDDEN);
+    SDL_PTR_ERRCHK(resources.window, "window creation failure");
+
+    SDL_DisplayID display = SDL_GetDisplayForWindow(resources.window);
+    const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
 
     const char *pref_path =
         SDL_GetPrefPath("callistoAshley", "transbian-god-conquerer");
@@ -85,31 +74,17 @@ int main(int argc, char **argv)
 
     printf("settings path: %s\n", settings_path);
 
-    window = SDL_CreateWindow(WINDOW_NAME, BASE_WINDOW_WIDTH,
-                              BASE_WINDOW_HEIGHT, SDL_WINDOW_HIDDEN);
-    SDL_PTR_ERRCHK(window, "window creation failure");
+    settings_load_from(&resources.settings, mode->refresh_rate, settings_path);
+    resources.settings.debug = debug;
 
-    SDL_DisplayID display = SDL_GetDisplayForWindow(window);
-    const SDL_DisplayMode *mode = SDL_GetCurrentDisplayMode(display);
-
-    Settings settings;
-    settings_load_from(&settings, mode->refresh_rate, settings_path);
-    settings.debug = true;
-
-    // audio things
-    Audio audio;
-    audio_init(&audio, debug, &settings);
-
-    Input input;
-    input_init(&input, window);
-
-    if (settings.video.fullscreen)
-        SDL_SyncWindow(window);
-
-    graphics_init(&graphics, window, &settings);
+    audio_init(&resources.audio, debug, &resources.settings);
+    input_init(&resources.input, resources.window);
+    graphics_init(&resources.graphics, resources.window, &resources.settings);
+    physics_init(&resources.physics);
+    fonts_init(&resources.fonts);
 
     // graphics_init may have edited settings, so we need to save them again
-    settings_save_to(&settings, settings_path);
+    settings_save_to(&resources.settings, settings_path);
 
     char *files[] = {
         "assets/events.txt",
@@ -135,6 +110,9 @@ int main(int argc, char **argv)
         free(out);
     }
 
+    resources.events = (Event *)events.data;
+    resources.event_count = events.len;
+
     WGPUMultisampleState multisample_state = {
         .count = 1,
         .mask = 0xFFFFFFFF,
@@ -146,68 +124,53 @@ int main(int argc, char **argv)
     ImGuiIO *io = igGetIO();
     io->ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
     ImGui_ImplWGPU_InitInfo imgui_init_info = {
-        .Device = graphics.wgpu.device,
+        .Device = resources.graphics.wgpu.device,
         .NumFramesInFlight = 3,
         .PipelineMultisampleState = multisample_state,
-        .RenderTargetFormat = graphics.wgpu.surface_config.format,
+        .RenderTargetFormat = resources.graphics.wgpu.surface_config.format,
     };
-    ImGui_ImplSDL3_InitForOther(window);
+    ImGui_ImplSDL3_InitForOther(resources.window);
     ImGui_ImplWGPU_Init(&imgui_init_info);
 
-    Scene *scene_data;
-    SceneInterface scene = FMOD_LOGO_SCENE;
+    resources.time.real = time_real_new();
+    resources.time.virt = time_virt_new();
+    resources.time.fixed = time_fixed_new();
 
-    TimeReal real = time_real_new();
-    TimeVirt virt = time_virt_new();
-    TimeFixed fixed = time_fixed_new();
+    if (resources.settings.debug)
+        resources.scene_interface = TITLE_SCENE;
+    else
+        resources.scene_interface = FMOD_LOGO_SCENE;
 
-    Resources resources = {
-        .graphics = &graphics,
-        .physics = &physics,
-        .audio = &audio,
-        .input = &input,
-        .fonts = &fonts,
-        .settings = &settings,
-        .raw_camera = &raw_camera,
-        .current_scene = &scene_data,
-        .current_scene_interface = &scene,
-        .window = window,
-
-        .time.real = &real,
-        .time.virt = &virt,
-        .time.fixed = &fixed,
-
-        .events = (Event *)events.data,
-        .event_count = events.len,
-    };
-
-    scene.init(&scene_data, &resources, NULL);
+    resources.scene_interface.init(&resources, NULL);
 
     DebugWindowState dbg_wnd = {
         .resources = &resources,
     };
 
-    while (!input_is_down(&input, Button_Quit) && !input.requested_quit)
+    while (!input_is_down(&resources.input, Button_Quit) &&
+           !resources.input.requested_quit)
     {
         SDL_Event event;
 
-        input_start_frame(&input);
+        input_start_frame(&resources.input);
 
         // update real, fixed, and virtual time
-        time_real_update(&real);
-        time_virt_advance_with(&virt, real.time.delta);
-        time_fixed_accumulate(&fixed, virt.time.delta);
+        time_real_update(&resources.time.real);
+        time_virt_advance_with(&resources.time.virt,
+                               resources.time.real.time.delta);
+        time_fixed_accumulate(&resources.time.fixed,
+                              resources.time.virt.time.delta);
 
         Instant before_logic = instant_now();
 
         while (SDL_PollEvent(&event))
         {
             ImGui_ImplSDL3_ProcessEvent(&event);
-            input_process(&input, &event, &settings);
+            input_process(&resources.input, &event, &resources.settings);
 
             if (event.type == SDL_EVENT_WINDOW_RESIZED)
             {
-                graphics_resize(&graphics, event.window.data1,
+                graphics_resize(&resources.graphics, event.window.data1,
                                 event.window.data2);
             }
         }
@@ -225,37 +188,41 @@ int main(int argc, char **argv)
         if (debug)
             debug_wnd_show(&dbg_wnd);
 
-        if (input_is_pressed(&input, Button_Fullscreen))
+        if (input_is_pressed(&resources.input, Button_Fullscreen))
         {
-            settings.video.fullscreen = !settings.video.fullscreen;
-            SDL_SetWindowFullscreen(window, settings.video.fullscreen);
+            resources.settings.video.fullscreen =
+                !resources.settings.video.fullscreen;
+            SDL_SetWindowFullscreen(resources.window,
+                                    resources.settings.video.fullscreen);
         }
 
-        FMOD_Studio_System_Update(audio.system);
+        FMOD_Studio_System_Update(resources.audio.system);
 
         // preform accumulated fixed updates
-        while (time_fixed_expend(&fixed))
+        while (time_fixed_expend(&resources.time.fixed))
         {
-            resources.time.current = fixed.time;
-            physics_update(&physics, fixed.time);
-            if (scene.fixed_update)
-                scene.fixed_update(scene_data, &resources);
+            resources.time.current = resources.time.fixed.time;
+            physics_update(&resources.physics, resources.time.fixed.time);
+            if (resources.scene_interface.fixed_update)
+                resources.scene_interface.fixed_update(resources.scene,
+                                                       &resources);
         }
 
-        resources.time.current = virt.time;
-        scene.update(scene_data, &resources);
+        resources.time.current = resources.time.virt.time;
+        resources.scene_interface.update(resources.scene, &resources);
 
         igRender();
-        graphics_render(&graphics, &physics, raw_camera);
+        graphics_render(&resources.graphics, &resources.physics,
+                        resources.raw_camera);
 
         if (first_frame)
         {
-            if (settings.video.fullscreen)
+            if (resources.settings.video.fullscreen)
             {
-                SDL_SetWindowFullscreen(window, true);
+                SDL_SetWindowFullscreen(resources.window, true);
             }
-            SDL_ShowWindow(window);
-            SDL_SyncWindow(window);
+            SDL_ShowWindow(resources.window);
+            SDL_SyncWindow(resources.window);
             first_frame = false;
         }
 
@@ -265,9 +232,9 @@ int main(int argc, char **argv)
 
         // if the frame cap is enabled,
         // block until the next frame
-        if (settings.video.frame_cap)
+        if (resources.settings.video.frame_cap)
         {
-            f64 frame_time = 1.0 / settings.video.max_framerate;
+            f64 frame_time = 1.0 / resources.settings.video.max_framerate;
 
             f64 sleep_time = frame_time - logic_delta;
             if (sleep_time > 0.0)
@@ -277,22 +244,22 @@ int main(int argc, char **argv)
         }
     }
 
-    scene.free(scene_data, &resources);
+    resources.scene_interface.free(resources.scene, &resources);
 
     vec_free_with(&events, event_free_fn);
 
-    settings_save_to(&settings, settings_path);
+    settings_save_to(&resources.settings, settings_path);
 
     ImGui_ImplSDL3_Shutdown();
     ImGui_ImplWGPU_Shutdown();
     igDestroyContext(imgui);
 
-    fonts_free(&fonts);
-    physics_free(&physics);
-    graphics_free(&graphics);
-    audio_free(&audio);
+    fonts_free(&resources.fonts);
+    physics_free(&resources.physics);
+    graphics_free(&resources.graphics);
+    audio_free(&resources.audio);
 
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(resources.window);
 
     SDL_Quit();
     IMG_Quit();

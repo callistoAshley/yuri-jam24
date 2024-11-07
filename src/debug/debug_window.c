@@ -9,7 +9,6 @@ static int new_map_input_callback(ImGuiInputTextCallbackData *data)
 
     snprintf(pattern, sizeof(pattern), "%s*.tmx", data->Buf);
     files = SDL_GlobDirectory("assets/maps/", pattern, 0, &glob_count);
-    ;
 
     if (glob_count > 1)
     {
@@ -47,11 +46,11 @@ void debug_wnd_show(DebugWindowState *state)
 {
     if (igBegin("Debug", NULL, 0))
     {
-        igCheckbox("Physics Draw", &state->resources->physics->debug_draw);
+        igCheckbox("Physics Draw", &state->resources->physics.debug_draw);
         // check if current scene is map
-        if (state->resources->current_scene_interface->init == map_scene_init)
+        if (state->resources->scene->type == Scene_Map)
         {
-            MapScene *map = (MapScene *)(*state->resources->current_scene);
+            MapScene *map = (MapScene *)(state->resources->scene);
             igCheckbox("Freecam", &map->freecam);
         }
         igSeparator();
@@ -66,21 +65,21 @@ void debug_wnd_show(DebugWindowState *state)
             scene_change(MAP_SCENE, state->resources, &args);
         }
 
-        f32 speed = state->resources->time.virt->relative_speed;
+        f32 speed = state->resources->time.virt.relative_speed;
         igSliderFloat("Relative Speed", &speed, 0.0, 10.0, "%f", 0);
-        state->resources->time.virt->relative_speed = speed;
+        state->resources->time.virt.relative_speed = speed;
 
-        igCheckbox("Pause", &state->resources->time.virt->paused);
+        igCheckbox("Pause", &state->resources->time.virt.paused);
 
         if (speed != 1.0)
         {
             if (igSmallButton("Reset"))
             {
-                state->resources->time.virt->relative_speed = 1.0;
+                state->resources->time.virt.relative_speed = 1.0;
             }
         }
 
-        f32 delta = time_delta_seconds(state->resources->time.real->time);
+        f32 delta = time_delta_seconds(state->resources->time.real.time);
         igLabelText("FPS", "%f", 1.0 / delta);
     }
     igEnd();

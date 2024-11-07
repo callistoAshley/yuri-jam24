@@ -4,8 +4,8 @@
 #include "webgpu.h"
 
 #define INPUT_BUTTONS_DOWN(resources)                                          \
-    (input_is_pressed(resources->input, Button_Interact) ||                    \
-     input_is_pressed(resources->input, Button_Cancel))
+    (input_is_pressed(&resources->input, Button_Interact) ||                   \
+     input_is_pressed(&resources->input, Button_Cancel))
 
 void textbox_init(Textbox *textbox, Resources *resources)
 {
@@ -21,10 +21,10 @@ void textbox_init(Textbox *textbox, Resources *resources)
 
     {
         TextureEntry *texture = texture_manager_load(
-            &resources->graphics->texture_manager, TEXTURE_PATH("textbox.png"),
-            &resources->graphics->wgpu);
+            &resources->graphics.texture_manager, TEXTURE_PATH("textbox.png"),
+            &resources->graphics.wgpu);
         WGPUTexture wgpu_texture = texture_manager_get_texture(
-            &resources->graphics->texture_manager, texture);
+            &resources->graphics.texture_manager, texture);
 
         Quad quad = {
             .rect = rect_from_size(
@@ -33,16 +33,16 @@ void textbox_init(Textbox *textbox, Resources *resources)
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
         QuadEntry quad_entry =
-            quad_manager_add(&resources->graphics->quad_manager, quad);
+            quad_manager_add(&resources->graphics.quad_manager, quad);
 
         Transform transform = transform_from_scale(VEC3_SPLAT(UI_SCALE));
         TransformEntry transform_entry = transform_manager_add(
-            &resources->graphics->transform_manager, transform);
+            &resources->graphics.transform_manager, transform);
 
         ui_sprite_init(&textbox->sprite, texture, transform_entry, quad_entry,
                        0.0f);
         textbox->sprite_entry =
-            layer_add(&resources->graphics->ui_layers.middle, &textbox->sprite);
+            layer_add(&resources->graphics.ui_layers.middle, &textbox->sprite);
     }
 }
 
@@ -50,13 +50,13 @@ void textbox_free(Textbox *textbox, Resources *resources)
 {
     if (*textbox->text)
     {
-        ui_sprite_free(&textbox->text_sprite, resources->graphics);
-        layer_remove(&resources->graphics->ui_layers.foreground,
+        ui_sprite_free(&textbox->text_sprite, &resources->graphics);
+        layer_remove(&resources->graphics.ui_layers.foreground,
                      textbox->text_sprite_entry);
     }
 
-    ui_sprite_free(&textbox->sprite, resources->graphics);
-    layer_remove(&resources->graphics->ui_layers.middle, textbox->sprite_entry);
+    ui_sprite_free(&textbox->sprite, &resources->graphics);
+    layer_remove(&resources->graphics.ui_layers.middle, textbox->sprite_entry);
 }
 
 static void update_text(Textbox *textbox, Resources *resources)
@@ -67,10 +67,10 @@ static void update_text(Textbox *textbox, Resources *resources)
     strncpy(text, textbox->text, fmin(textbox->text_idx, 256));
 
     font_render_text_to(
-        &resources->fonts->monogram.medium,
-        texture_manager_get_texture(&resources->graphics->texture_manager,
+        &resources->fonts.monogram.medium,
+        texture_manager_get_texture(&resources->graphics.texture_manager,
                                     textbox->text_sprite.texture),
-        text, color, &resources->graphics->wgpu);
+        text, color, &resources->graphics.wgpu);
 }
 
 static void process_escape_code(Textbox *textbox, Resources *resources)
@@ -95,8 +95,8 @@ static void remove_text(Textbox *textbox, Resources *resources)
 {
     textbox->sprite.opacity = 0.0f;
     textbox->needs_remove_text = false;
-    ui_sprite_free(&textbox->text_sprite, resources->graphics);
-    layer_remove(&resources->graphics->ui_layers.foreground,
+    ui_sprite_free(&textbox->text_sprite, &resources->graphics);
+    layer_remove(&resources->graphics.ui_layers.foreground,
                  textbox->text_sprite_entry);
     memset(textbox->text, 0, sizeof(textbox->text));
 }
@@ -109,7 +109,7 @@ void textbox_fixed_update(Textbox *textbox, Resources *resources)
 
 void textbox_update(Textbox *textbox, Resources *resources)
 {
-    f32 delta = duration_as_secs(resources->time.real->time.delta);
+    f32 delta = duration_as_secs(resources->time.real.time.delta);
 
     if (textbox->needs_remove_text && textbox->fixed_update_occured)
         remove_text(textbox, resources);
@@ -168,27 +168,27 @@ void textbox_display_text(Textbox *textbox, Resources *resources, char *text)
     // render the text with an invisible colour to get its width and height
     SDL_Color color = {0, 0, 0, 0};
     WGPUTexture texture =
-        font_render_text(&resources->fonts->monogram.medium, textbox->text,
-                         color, &resources->graphics->wgpu);
+        font_render_text(&resources->fonts.monogram.medium, textbox->text,
+                         color, &resources->graphics.wgpu);
 
     u32 width = wgpuTextureGetWidth(texture),
         height = wgpuTextureGetHeight(texture);
     Transform transform = transform_from_pos((vec3s){.x = 24, .y = 8});
     TransformEntry transform_entry = transform_manager_add(
-        &resources->graphics->transform_manager, transform);
+        &resources->graphics.transform_manager, transform);
 
     Quad quad = {
         .rect = rect_from_size((vec2s){.x = width, .y = height}),
         .tex_coords = RECT_UNIT_TEX_COORDS,
     };
     QuadEntry quad_entry =
-        quad_manager_add(&resources->graphics->quad_manager, quad);
+        quad_manager_add(&resources->graphics.quad_manager, quad);
 
     ui_sprite_init(
         &textbox->text_sprite,
-        texture_manager_register(&resources->graphics->texture_manager, texture,
+        texture_manager_register(&resources->graphics.texture_manager, texture,
                                  "textbox_text_sprite"),
         transform_entry, quad_entry, 1.0f);
     textbox->text_sprite_entry = layer_add(
-        &resources->graphics->ui_layers.foreground, &textbox->text_sprite);
+        &resources->graphics.ui_layers.foreground, &textbox->text_sprite);
 }

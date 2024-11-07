@@ -26,7 +26,7 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
 {
     player->transform = transform_from_xyz(0, 0, 0);
     TransformEntry transform_entry = transform_manager_add(
-        &resources->graphics->transform_manager, player->transform);
+        &resources->graphics.transform_manager, player->transform);
 
     // player is 10x18px
     Rect rect = rect_from_min_size(GLMS_VEC2_ZERO,
@@ -35,19 +35,19 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
         rect_from_min_size(GLMS_VEC2_ZERO, (vec2s){.x = 0.5, .y = 1.0});
     player->quad = (Quad){rect, tex_coords};
     QuadEntry quad_entry =
-        quad_manager_add(&resources->graphics->quad_manager, player->quad);
+        quad_manager_add(&resources->graphics.quad_manager, player->quad);
 
     TextureEntry *texture = texture_manager_load(
-        &resources->graphics->texture_manager, "assets/textures/player.png",
-        &resources->graphics->wgpu);
+        &resources->graphics.texture_manager, "assets/textures/player.png",
+        &resources->graphics.wgpu);
 
     sprite_init(&player->sprite, texture, transform_entry, quad_entry);
 
     player->layer_entry =
-        layer_add(&resources->graphics->sprite_layers.middle, &player->sprite);
+        layer_add(&resources->graphics.sprite_layers.middle, &player->sprite);
 
     CasterEntry *caster =
-        caster_manager_load(&resources->graphics->caster_manager,
+        caster_manager_load(&resources->graphics.caster_manager,
                             "assets/shadowcasters/player.shdw");
 
     player->shadow_caster.caster = caster;
@@ -57,13 +57,13 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
     player->shadow_caster.offset = (vec2s){.x = 0.0, .y = 0.0};
 
     player->shadow_caster_entry =
-        layer_add(&resources->graphics->shadowcasters, &player->shadow_caster);
+        layer_add(&resources->graphics.shadowcasters, &player->shadow_caster);
 
     b2BodyDef body_def = b2DefaultBodyDef();
     body_def.type = b2_dynamicBody;
     body_def.position = initial_pos;
     body_def.fixedRotation = true;
-    player->body_id = b2CreateBody(resources->physics->world, &body_def);
+    player->body_id = b2CreateBody(resources->physics.world, &body_def);
 
     b2Polygon player_box = b2MakeBox(PX_TO_M(PLAYER_HW), PX_TO_M(PLAYER_HH));
     b2ShapeDef shape_def = b2DefaultShapeDef();
@@ -180,12 +180,12 @@ void player_fixed_update(Player *player, Resources *resources)
 
 void player_update(Player *player, Resources *resources, bool disable_input)
 {
-    bool left_down = input_is_down(resources->input, Button_Left);
-    bool right_down = input_is_down(resources->input, Button_Right);
+    bool left_down = input_is_down(&resources->input, Button_Left);
+    bool right_down = input_is_down(&resources->input, Button_Right);
 
-    bool left_pressed = input_is_pressed(resources->input, Button_Left);
-    bool right_pressed = input_is_pressed(resources->input, Button_Right);
-    bool jump_pressed = input_is_pressed(resources->input, Button_Jump);
+    bool left_pressed = input_is_pressed(&resources->input, Button_Left);
+    bool right_pressed = input_is_pressed(&resources->input, Button_Right);
+    bool jump_pressed = input_is_pressed(&resources->input, Button_Jump);
 
     // if a button isn't being held, turn off the input
     if (!left_down)
@@ -248,7 +248,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     player->transform.position.y =
         M_TO_PX(-interpolated_position.y) - PLAYER_HH;
 
-    transform_manager_update(&resources->graphics->transform_manager,
+    transform_manager_update(&resources->graphics.transform_manager,
                              player->sprite.transform, player->transform);
 
     if (player->facing == Facing_Left)
@@ -264,7 +264,7 @@ void player_update(Player *player, Resources *resources, bool disable_input)
         player->shadow_caster.cell = 0;
     }
 
-    quad_manager_update(&resources->graphics->quad_manager, player->sprite.quad,
+    quad_manager_update(&resources->graphics.quad_manager, player->sprite.quad,
                         player->quad);
 }
 
@@ -286,10 +286,10 @@ void player_free(Player *player, Resources *resources)
 
     // we only need to remove the sprite from the layer-
     // sprite_free will handle the rest
-    layer_remove(&resources->graphics->sprite_layers.middle,
+    layer_remove(&resources->graphics.sprite_layers.middle,
                  player->layer_entry);
-    sprite_free(&player->sprite, resources->graphics);
+    sprite_free(&player->sprite, &resources->graphics);
 
-    layer_remove(&resources->graphics->shadowcasters,
+    layer_remove(&resources->graphics.shadowcasters,
                  player->shadow_caster_entry);
 }
