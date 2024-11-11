@@ -1,7 +1,4 @@
 #include "settings.h"
-#include "SDL3/SDL_pixels.h"
-#include "SDL3/SDL_surface.h"
-#include "SDL3/SDL_video.h"
 #include "fmod_studio_common.h"
 #include "fonts/font.h"
 #include "graphics/tex_manager.h"
@@ -690,6 +687,10 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
                      settings->keybinds.interact);
         KEY_SELECTOR("| Back", 3, 280, start_y, 420 + separator_width, start_y,
                      settings->keybinds.back);
+
+        start_y += character_height + 5;
+        KEY_SELECTOR("Items", 4, 0, start_y, 140, start_y,
+                     settings->keybinds.inventory);
 
         break;
     }

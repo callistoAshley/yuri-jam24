@@ -22,7 +22,7 @@ typedef struct
     {
         SDL_Keycode left, right, up, down;
         SDL_Keycode jump, cancel, interact;
-        SDL_Keycode back, quit;
+        SDL_Keycode back, quit, inventory;
     } keybinds;
 
     bool debug;

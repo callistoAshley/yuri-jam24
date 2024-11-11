@@ -17,12 +17,13 @@ typedef enum
     Button_Back = 1 << 6,
     Button_Quit = 1 << 7,
     Button_Interact = 1 << 8,
+    Button_Inventory = 1 << 9,
 
-    Button_Fullscreen = 1 << 9,
-    Button_Refresh = 1 << 10,
+    Button_Fullscreen = 1 << 10,
+    Button_Refresh = 1 << 11,
 
-    Button_MouseLeft = 1 << 11,
-    Button_MouseRight = 1 << 12,
+    Button_MouseLeft = 1 << 12,
+    Button_MouseRight = 1 << 13,
 } Button;
 
 typedef struct

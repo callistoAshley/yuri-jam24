@@ -27,6 +27,7 @@ void settings_load_from(Settings *settings, u32 default_framerate,
 
     settings->keybinds.back = SDLK_ESCAPE;
     settings->keybinds.quit = SDLK_Q;
+    settings->keybinds.inventory = SDLK_TAB;
 
     settings->debug = false;
 

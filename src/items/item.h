@@ -1,7 +1,8 @@
 #pragma once
 
-#include "resources.h"
 #include "utility/macros.h"
+
+typedef struct Resources Resources;
 
 typedef enum
 {

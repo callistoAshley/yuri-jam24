@@ -1,4 +1,3 @@
-
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -42,7 +41,7 @@ int main(int argc, char **argv)
         debug |= !strcmp(argv[i], "--debug");
     }
 
-    Resources resources;
+    Resources resources = {0};
     bool first_frame = true;
 
     resources.raw_camera = (Camera){

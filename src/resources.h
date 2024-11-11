@@ -3,6 +3,7 @@
 #include "events/event.h"
 #include "fonts/fonts.h"
 #include "graphics/graphics.h"
+#include "items/item.h"
 #include "physics/physics.h"
 #include "audio/audio.h"
 #include "input/input.h"
@@ -13,6 +14,8 @@
 #include "time/time.h"
 #include "time/virt.h"
 #include "scenes/scene.h"
+
+#define INVENTORY_SIZE 16
 
 typedef struct Resources
 {
@@ -49,6 +52,8 @@ typedef struct Resources
 
     Event *events;
     u32 event_count;
+
+    NULLABLE const Item *inventory[INVENTORY_SIZE];
 
     SDL_Window *window;
 } Resources;
