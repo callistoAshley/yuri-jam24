@@ -45,8 +45,7 @@ event "sunbeam" {
 }
 
 event "debug_teleport" {
-  text("whoooooosh");
-  change_map("assets/maps/debug_map.tmx");
+  set_item(0, 1);
 }
 
 event "test" {

@@ -13,6 +13,7 @@ typedef enum
     CMD_Move,
     CMD_ChangeMap,
     CMD_Exit,
+    CMD_SetItem,
     CMD_Unimplemented,
 
     Command_Max_Val,

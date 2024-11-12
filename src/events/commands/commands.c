@@ -243,6 +243,21 @@ static bool cmd_exit(VM *vm, Value *out, u32 arg_count, Resources *resources)
     return false;
 }
 
+static bool cmd_set_item(VM *vm, Value *out, u32 arg_count,
+                         Resources *resources)
+{
+    (void)out;
+
+    ARG_ERROR("exit", 2);
+
+    ItemType item = vm_pop(vm).data._int;
+    i32 index = vm_pop(vm).data._int;
+
+    resources->inventory[index] = item;
+
+    return false;
+}
+
 static bool unimplemented(VM *vm, Value *out, u32 arg_count,
                           Resources *resources)
 {
@@ -266,6 +281,8 @@ const CommandData COMMANDS[] = {
 
     [CMD_ChangeMap] = {"change_map", cmd_change_map},
     [CMD_Exit] = {"exit", cmd_exit},
+
+    [CMD_SetItem] = {"set_item", cmd_set_item},
 
     [CMD_Unimplemented] = {"unimplemented", unimplemented},
 };

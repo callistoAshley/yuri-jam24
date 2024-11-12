@@ -48,6 +48,8 @@ int main(int argc, char **argv)
     for (u32 i = 0; i < INVENTORY_SIZE; i++)
         resources.inventory[i] = Item_None;
     resources.inventory[0] = Item_Test;
+    resources.inventory[2] = Item_TestOther;
+    resources.inventory[3] = Item_Test;
 
     resources.raw_camera = (Camera){
         .x = 0,

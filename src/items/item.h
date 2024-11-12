@@ -8,6 +8,7 @@ typedef enum
 {
     Item_None = -1,
     Item_Test = 0,
+    Item_TestOther,
     Item_Max,
 } ItemType;
 
