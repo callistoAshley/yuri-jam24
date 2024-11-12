@@ -68,50 +68,27 @@ void input_process(Input *input, SDL_Event *event, Settings *settings)
         u32 key = event->key.key;
         input->last_pressed_key = key;
         input->key_has_pressed = true;
-        if (key == settings->keybinds.up)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Up)
-        }
-        if (key == settings->keybinds.down)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Down)
-        }
-        if (key == settings->keybinds.left)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Left)
-        }
-        if (key == settings->keybinds.right)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Right)
-        }
-        if (key == settings->keybinds.jump)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Jump)
-        }
-        if (key == settings->keybinds.cancel)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Cancel)
-        }
-        if (key == settings->keybinds.interact)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Interact)
-        }
-        if (key == settings->keybinds.back)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Back)
-        }
-        if (key == settings->keybinds.quit)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Quit)
-        }
-        if (key == SDLK_F11)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Fullscreen)
-        }
-        if (key == SDLK_F5)
-        {
-            TOGGLE_BUTTON_IF_DOWN(Button_Refresh)
-        }
+#define HANDLE_BUTTON(keybind, button)                                         \
+    if (key == keybind)                                                        \
+    {                                                                          \
+        TOGGLE_BUTTON_IF_DOWN(button)                                          \
+    }
+
+        HANDLE_BUTTON(settings->keybinds.up, Button_Up);
+        HANDLE_BUTTON(settings->keybinds.down, Button_Down);
+        HANDLE_BUTTON(settings->keybinds.left, Button_Left);
+        HANDLE_BUTTON(settings->keybinds.right, Button_Right);
+
+        HANDLE_BUTTON(settings->keybinds.jump, Button_Jump);
+        HANDLE_BUTTON(settings->keybinds.cancel, Button_Cancel);
+        HANDLE_BUTTON(settings->keybinds.interact, Button_Interact);
+
+        HANDLE_BUTTON(settings->keybinds.back, Button_Back);
+        HANDLE_BUTTON(settings->keybinds.quit, Button_Quit);
+        HANDLE_BUTTON(settings->keybinds.inventory, Button_Inventory);
+
+        HANDLE_BUTTON(SDLK_F11, Button_Fullscreen);
+        HANDLE_BUTTON(SDLK_F5, Button_Refresh);
     }
     break;
     default:
@@ -121,7 +98,7 @@ void input_process(Input *input, SDL_Event *event, Settings *settings)
 
 bool input_is_down(Input *input, Button button) { return input->curr & button; }
 
-bool input_is_pressed(Input *input, Button button)
+bool input_did_press(Input *input, Button button)
 {
     return (input->curr & button) && !(input->prev & button);
 }

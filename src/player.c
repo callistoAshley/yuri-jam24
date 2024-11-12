@@ -183,9 +183,9 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     bool left_down = input_is_down(&resources->input, Button_Left);
     bool right_down = input_is_down(&resources->input, Button_Right);
 
-    bool left_pressed = input_is_pressed(&resources->input, Button_Left);
-    bool right_pressed = input_is_pressed(&resources->input, Button_Right);
-    bool jump_pressed = input_is_pressed(&resources->input, Button_Jump);
+    bool left_pressed = input_did_press(&resources->input, Button_Left);
+    bool right_pressed = input_did_press(&resources->input, Button_Right);
+    bool jump_pressed = input_did_press(&resources->input, Button_Jump);
 
     // if a button isn't being held, turn off the input
     if (!left_down)

@@ -114,6 +114,7 @@ void map_scene_init(Resources *resources, void *extra_args)
     player_init(&map_scene->player, player_position, resources);
 
     settings_menu_init(&map_scene->settings, resources);
+    inventory_init(&map_scene->inventory, resources);
     textbox_init(&map_scene->textbox, resources);
 
     for (usize i = 0; i < load_characters.len; i++)
@@ -172,10 +173,21 @@ void map_scene_update(Resources *resources)
 {
     MapScene *map_scene = (MapScene *)resources->scene;
 
-    if (input_is_pressed(&resources->input, Button_Back))
+    bool menu_is_open = map_scene->settings.open || map_scene->textbox.open ||
+                        map_scene->inventory.open;
+    if (input_did_press(&resources->input, Button_Back) && !menu_is_open)
+    {
         map_scene->settings.open = true;
+        menu_is_open = true;
+    }
+    if (input_did_press(&resources->input, Button_Inventory) && !menu_is_open)
+    {
+        map_scene->inventory.open = true;
+        map_scene->inventory.opening = true;
+        menu_is_open = true;
+    }
 
-    if (input_is_pressed(&resources->input, Button_Refresh))
+    if (input_did_press(&resources->input, Button_Refresh))
     {
         MapInitArgs args = {.map_path = map_scene->current_map,
                             .copy_map_path = false};
@@ -187,6 +199,7 @@ void map_scene_update(Resources *resources)
     }
 
     settings_menu_update(&map_scene->settings, resources);
+    inventory_update(&map_scene->inventory, resources);
 
     f32 delta = duration_as_secs(resources->time.current.delta);
     if (map_scene->freecam)
@@ -237,8 +250,7 @@ void map_scene_update(Resources *resources)
 
     textbox_update(&map_scene->textbox, resources);
 
-    bool disable_input = map_scene->freecam || map_scene->settings.open ||
-                         map_scene->textbox.sprite.opacity > 0.0;
+    bool disable_input = map_scene->freecam || menu_is_open;
     player_update(&map_scene->player, resources, disable_input);
 }
 
@@ -301,7 +313,7 @@ void map_scene_free(Resources *resources)
     vec_free(&map_scene->characters);
 
     settings_menu_free(&map_scene->settings, resources);
-
+    inventory_free(&map_scene->inventory, resources);
     textbox_free(&map_scene->textbox, resources);
 
     // hack to clear shadow casters, under the assumption that they'll all get

@@ -4,8 +4,8 @@
 #include "webgpu.h"
 
 #define INPUT_BUTTONS_DOWN(resources)                                          \
-    (input_is_pressed(&resources->input, Button_Interact) ||                   \
-     input_is_pressed(&resources->input, Button_Cancel))
+    (input_did_press(&resources->input, Button_Interact) ||                    \
+     input_did_press(&resources->input, Button_Cancel))
 
 void textbox_init(Textbox *textbox, Resources *resources)
 {

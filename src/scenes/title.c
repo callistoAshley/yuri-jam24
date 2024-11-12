@@ -74,7 +74,7 @@ void title_scene_init(Resources *resources, void *extra_args)
             .tex_coords = RECT_UNIT_TEX_COORDS,
         };
 
-        f32 x = (GAME_VIEW_WIDTH * UI_SCALE - width) / 2.0;
+        f32 x = (UI_VIEW_WIDTH - width) / 2.0;
         Transform transform = transform_from_xyz(x, start_y, 0);
         TransformEntry transform_entry = transform_manager_add(
             &resources->graphics.transform_manager, transform);
@@ -211,7 +211,7 @@ void title_scene_update(Resources *resources)
 
     bool has_selected_option =
         title_scene->hovered_option != -1 &&
-        input_is_pressed(&resources->input, Button_MouseLeft);
+        input_did_press(&resources->input, Button_MouseLeft);
 
     if (has_selected_option)
     {

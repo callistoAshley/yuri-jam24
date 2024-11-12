@@ -1,3 +1,4 @@
+#include "resources.h"
 #include <fmod_errors.h>
 #include <fmod_studio.h>
 
@@ -41,8 +42,12 @@ int main(int argc, char **argv)
         debug |= !strcmp(argv[i], "--debug");
     }
 
-    Resources resources = {0};
+    Resources resources;
     bool first_frame = true;
+
+    for (u32 i = 0; i < INVENTORY_SIZE; i++)
+        resources.inventory[i] = Item_None;
+    resources.inventory[0] = Item_Test;
 
     resources.raw_camera = (Camera){
         .x = 0,
@@ -187,7 +192,7 @@ int main(int argc, char **argv)
         if (debug)
             debug_wnd_show(&dbg_wnd);
 
-        if (input_is_pressed(&resources.input, Button_Fullscreen))
+        if (input_did_press(&resources.input, Button_Fullscreen))
         {
             resources.settings.video.fullscreen =
                 !resources.settings.video.fullscreen;

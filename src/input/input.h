@@ -45,5 +45,5 @@ void input_start_frame(Input *input);
 void input_process(Input *input, SDL_Event *event, Settings *settings);
 
 bool input_is_down(Input *input, Button button);
-bool input_is_pressed(Input *input, Button button);
+bool input_did_press(Input *input, Button button);
 bool input_is_released(Input *input, Button button);

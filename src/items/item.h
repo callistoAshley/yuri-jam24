@@ -6,6 +6,7 @@ typedef struct Resources Resources;
 
 typedef enum
 {
+    Item_None = -1,
     Item_Test = 0,
     Item_Max,
 } ItemType;

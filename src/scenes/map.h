@@ -3,6 +3,7 @@
 #include "graphics/tilemap.h"
 #include "scene.h"
 #include "player.h"
+#include "ui/inventory.h"
 #include "ui/settings.h"
 #include "ui/textbox.h"
 
@@ -37,6 +38,7 @@ typedef struct MapScene
     bool should_free_current_map;
 
     SettingsMenu settings;
+    Inventory inventory;
     Textbox textbox;
 
     MapInitArgs change_map_args;

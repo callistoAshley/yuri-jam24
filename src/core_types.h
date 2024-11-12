@@ -15,11 +15,11 @@ typedef struct
 } Transform;
 
 // i *would* make this a #define but -Wpedantic doesn't like it
-static const Transform TRANSFORM_UNIT = {
-    .position = GLMS_VEC3_ZERO_INIT,
-    .scale = GLMS_VEC3_ONE_INIT,
-    .rotation = GLMS_QUAT_IDENTITY_INIT,
-};
+#define TRANSFORM_UNIT                                                         \
+    {                                                                          \
+        .position = GLMS_VEC3_ZERO_INIT, .scale = GLMS_VEC3_ONE_INIT,          \
+        .rotation = GLMS_QUAT_IDENTITY_INIT                                    \
+    }
 
 Transform transform_from_xyz(float x, float y, float z);
 Transform transform_from_pos(vec3s position);

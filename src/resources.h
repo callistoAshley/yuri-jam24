@@ -53,7 +53,7 @@ typedef struct Resources
     Event *events;
     u32 event_count;
 
-    NULLABLE const Item *inventory[INVENTORY_SIZE];
+    ItemType inventory[INVENTORY_SIZE];
 
     SDL_Window *window;
 } Resources;

@@ -318,13 +318,13 @@ void settings_menu_update(SettingsMenu *menu, Resources *resources)
         fire_and_forget(menu->hover_desc);
 
     bool is_waiting_on_key = menu->waiting_on_keybind != -1;
-    if (input_is_pressed(&resources->input, Button_Back) && !is_opening &&
+    if (input_did_press(&resources->input, Button_Back) && !is_opening &&
         !is_waiting_on_key)
     {
         menu->is_closing = true;
     }
 
-    bool mouse_clicked = input_is_pressed(&resources->input, Button_MouseLeft);
+    bool mouse_clicked = input_did_press(&resources->input, Button_MouseLeft);
 
     bool did_select_option =
         menu->hovered_category != Cat_None &&

@@ -114,8 +114,7 @@ void basic_char_update(void **self, Resources *resources, MapScene *map_scene)
                            (vec2s){.x = PLAYER_W, .y = PLAYER_H});
 
     bool player_inside = rect_contains_other(player_rect, state->rect);
-    bool interact_pressed =
-        input_is_pressed(&resources->input, Button_Interact);
+    bool interact_pressed = input_did_press(&resources->input, Button_Interact);
     bool has_event = (*state->event_name) != '\0';
 
     if (player_inside && interact_pressed && !state->vm && has_event)
