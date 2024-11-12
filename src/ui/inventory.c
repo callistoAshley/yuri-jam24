@@ -2,10 +2,13 @@
 #include "core_types.h"
 #include "fmod_studio.h"
 #include "fmod_studio_common.h"
+#include "graphics/quad_manager.h"
 #include "graphics/tex_manager.h"
+#include "graphics/transform_manager.h"
 #include "items/item.h"
 #include "resources.h"
 #include "utility/common_defines.h"
+#include "webgpu.h"
 
 void inventory_init(Inventory *inventory, Resources *resources)
 {
@@ -72,6 +75,82 @@ void inventory_init(Inventory *inventory, Resources *resources)
             inventory->icon_entries[i] =
                 layer_add(&resources->graphics.ui_layers.foreground,
                           &inventory->icons[i]);
+        }
+    }
+
+    ItemType viewed_item_type =
+        inventory->inventory_view[inventory->viewed_slot];
+    if (viewed_item_type != Item_None)
+    {
+        Item item = ITEMS[viewed_item_type];
+
+        SDL_Color color = {255, 255, 255, 255};
+        {
+            WGPUTexture texture =
+                font_render_text(&resources->fonts.compaq.medium, item.name,
+                                 color, &resources->graphics.wgpu);
+
+            u32 width = wgpuTextureGetWidth(texture);
+            u32 height = wgpuTextureGetHeight(texture);
+
+            TextureEntry *texture_entry =
+                texture_manager_register(&resources->graphics.texture_manager,
+                                         texture, "inventory_name_texture");
+
+            Quad quad = {
+                rect_from_size((vec2s){.x = width, .y = height}),
+                RECT_UNIT_TEX_COORDS,
+            };
+            QuadEntry quad_entry =
+                quad_manager_add(&resources->graphics.quad_manager, quad);
+
+            f32 center_x = UI_VIEW_WIDTH / 2.0;
+            vec3s position = {
+                .x = center_x - width / 2.0,
+                .y = UI_VIEW_HEIGHT - 64.0 - height - 32.0 * UI_SCALE,
+            };
+            Transform transform = transform_from_pos(position);
+            TransformEntry transform_entry = transform_manager_add(
+                &resources->graphics.transform_manager, transform);
+
+            ui_sprite_init(&inventory->name_sprite, texture_entry,
+                           transform_entry, quad_entry, 1.0);
+            inventory->name_entry =
+                layer_add(&resources->graphics.ui_layers.foreground,
+                          &inventory->name_sprite);
+        }
+
+        {
+            WGPUTexture texture = font_render_text(
+                &resources->fonts.compaq.medium, item.description, color,
+                &resources->graphics.wgpu);
+
+            u32 width = wgpuTextureGetWidth(texture);
+            u32 height = wgpuTextureGetHeight(texture);
+
+            TextureEntry *texture_entry = texture_manager_register(
+                &resources->graphics.texture_manager, texture,
+                "inventory_description_texture");
+
+            Quad quad = {
+                rect_from_size((vec2s){.x = width, .y = height}),
+                RECT_UNIT_TEX_COORDS,
+            };
+            QuadEntry quad_entry =
+                quad_manager_add(&resources->graphics.quad_manager, quad);
+
+            f32 center_x = UI_VIEW_WIDTH / 2.0;
+            vec3s position = {.x = center_x - width / 2.0,
+                              .y = UI_VIEW_HEIGHT - 64.0};
+            Transform transform = transform_from_pos(position);
+            TransformEntry transform_entry = transform_manager_add(
+                &resources->graphics.transform_manager, transform);
+
+            ui_sprite_init(&inventory->desc_sprite, texture_entry,
+                           transform_entry, quad_entry, 1.0);
+            inventory->desc_entry =
+                layer_add(&resources->graphics.ui_layers.foreground,
+                          &inventory->desc_sprite);
         }
     }
 }
