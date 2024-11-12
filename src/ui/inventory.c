@@ -17,6 +17,12 @@ static void inventory_init_name(Inventory *inventory, Resources *resources)
     Item item = ITEMS[viewed_item_type];
 
     SDL_Color color = {255, 255, 255, 255};
+    if (item.on_use)
+    {
+        color.r = 200;
+        color.b = 200;
+    }
+
     WGPUTexture texture =
         font_render_text(&resources->fonts.compaq.medium, item.name, color,
                          &resources->graphics.wgpu);
@@ -311,6 +317,17 @@ void inventory_update(Inventory *inventory, Resources *resources)
 
     bool left_down = input_is_down(&resources->input, Button_Left);
     bool right_down = input_is_down(&resources->input, Button_Right);
+
+    bool interact_clicked = input_did_press(&resources->input, Button_Interact);
+
+    if (viewed_item_type != Item_None)
+    {
+        Item item = ITEMS[viewed_item_type];
+        if (item.on_use && interact_clicked)
+        {
+            item.on_use(resources);
+        }
+    }
 
     if (left_clicked || right_clicked)
         inventory->repeat_timer = 0.5;
