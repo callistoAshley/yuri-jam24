@@ -14,6 +14,7 @@ typedef enum
     CMD_ChangeMap,
     CMD_Exit,
     CMD_SetItem,
+    CMD_Call,
     CMD_Unimplemented,
 
     Command_Max_Val,

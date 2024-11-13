@@ -248,7 +248,7 @@ static bool cmd_set_item(VM *vm, Value *out, u32 arg_count,
 {
     (void)out;
 
-    ARG_ERROR("exit", 2);
+    ARG_ERROR("set_item", 2);
 
     ItemType item = vm_pop(vm).data._int;
     i32 index = vm_pop(vm).data._int;
@@ -256,6 +256,49 @@ static bool cmd_set_item(VM *vm, Value *out, u32 arg_count,
     resources->inventory[index] = item;
 
     return false;
+}
+
+static bool cmd_call(VM *vm, Value *out, u32 arg_count, Resources *resources)
+{
+    (void)out;
+
+    ARG_ERROR("call", 1);
+
+    // because we're treating the command_ctx as a pointer to a VM, and we need
+    // to take a pointer to the command context (so it becomes a VM**)
+    VM **ctx = (VM **)vm->command_ctx;
+
+    if (!*ctx)
+    {
+        const char *event_name = vm_pop(vm).data.string;
+        Event event = {0};
+
+        for (u32 i = 0; i < resources->event_count; i++)
+        {
+            if (!strcmp(event_name, resources->events[i].name))
+            {
+                event = resources->events[i];
+                break;
+            }
+        }
+
+        PTR_ERRCHK(event.name, "Event does not exist\n");
+
+        *ctx = malloc(sizeof(VM));
+
+        vm_init(*ctx, event);
+        (*ctx)->vm_ctx = vm->vm_ctx;
+    }
+
+    if (vm_execute(*ctx, resources))
+    {
+        free(*ctx);
+        CLEAR_CTX(vm);
+
+        return false;
+    }
+
+    return true;
 }
 
 static bool unimplemented(VM *vm, Value *out, u32 arg_count,
@@ -283,6 +326,8 @@ const CommandData COMMANDS[] = {
     [CMD_Exit] = {"exit", cmd_exit},
 
     [CMD_SetItem] = {"set_item", cmd_set_item},
+
+    [CMD_Call] = {"call", cmd_call},
 
     [CMD_Unimplemented] = {"unimplemented", unimplemented},
 };

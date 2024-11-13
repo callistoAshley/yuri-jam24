@@ -45,7 +45,7 @@ event "sunbeam" {
 }
 
 event "debug_teleport" {
-  set_item(0, 1);
+  call("autorun");
 }
 
 event "test" {
