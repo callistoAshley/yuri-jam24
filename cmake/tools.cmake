@@ -1,8 +1,13 @@
+include(FetchContent)
 
-set(SHADOWCAST_NAME shadowcast)
-set(SHADOWCAST_SOURCES
-    tools/shadowcast.c
-    src/utility/vec.c
+FetchContent_Declare(
+    Corrosion
+    GIT_REPOSITORY https://github.com/corrosion-rs/corrosion.git
+    GIT_TAG v0.5 # Optionally specify a commit hash, version tag or branch here
 )
-add_executable(${SHADOWCAST_NAME} ${SHADOWCAST_SOURCES})
-target_link_libraries(${SHADOWCAST_NAME} SDL3_image::SDL3_image SDL3::SDL3)
+FetchContent_MakeAvailable(Corrosion)
+
+corrosion_import_crate(
+  MANIFEST_PATH ${CMAKE_SOURCE_DIR}/Cargo.toml
+  CRATES shdwview shadowcast
+)
