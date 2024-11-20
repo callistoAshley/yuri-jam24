@@ -13,3 +13,4 @@ vgcore.*
 imgui.ini
 transbian-god-conquerer.tiled-session
 tiled_extensions/node_modules/
+target/

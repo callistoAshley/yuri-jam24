@@ -1,0 +1,6 @@
+[workspace]
+members = ["tools/shadowcast"]
+resolver = "2"
+
+
+exclude = ["vendor/accesskit-c/", "vendor/wgpu-native/"]
