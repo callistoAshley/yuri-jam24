@@ -1,5 +1,5 @@
 [workspace]
-members = [ "tools/shadowcast","tools/shdwview"]
+members = [ "tools/shadowcast", "tools/shdw","tools/shdwview"]
 resolver = "2"
 
 

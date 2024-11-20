@@ -53,5 +53,26 @@
         }
       }
     },
+    {
+      "type": "lldb",
+      "request": "launch",
+      "name": "Debug shadowcast",
+      "args": [
+        "assets/textures/player.png",
+        "assets/shadowcasters/player.shdw",
+        "10",
+        "18"
+      ],
+      "cwd": "${workspaceFolder}",
+      "cargo": {
+        "args": [
+          "build",
+          "--bin=shadowcast"
+        ],
+        "filter": {
+          "kind": "bin"
+        }
+      }
+    },
   ]
 }

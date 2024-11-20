@@ -23,5 +23,5 @@ function(add_shadowcaster target)
   message("Adding shadowcaster for ${target}")
 endfunction()
 
-add_shadowcaster(player 10 18)
+# add_shadowcaster(player 10 18)
 add_shadowcaster(box)

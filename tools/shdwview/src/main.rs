@@ -2,6 +2,7 @@ use clap::Parser;
 
 use egui::Color32;
 use egui_plot::{PlotPoint, PlotPoints};
+use shdw::Shdw;
 
 struct App {
     texture_handle: egui::TextureHandle,
@@ -16,77 +17,6 @@ struct Args {
     image: String,
     /// The path to the shdw file
     shdw: String,
-}
-
-struct Shdw {
-    cell_width: usize,
-    cell_height: usize,
-
-    cells: Vec<Cell>,
-}
-
-#[derive(Default)]
-struct Cell {
-    lines: Vec<Line>,
-}
-
-#[repr(C)]
-#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
-struct Line {
-    start: Point,
-    end: Point,
-}
-
-#[repr(C)]
-#[derive(bytemuck::Pod, bytemuck::Zeroable, Clone, Copy)]
-struct Point {
-    x: f32,
-    y: f32,
-}
-
-impl Shdw {
-    fn read_raw<T>(reader: &mut impl std::io::Read) -> std::io::Result<T>
-    where
-        T: Sized + bytemuck::Pod + bytemuck::Zeroable,
-    {
-        // I *would* like to use a size_of<T> buffer but rust isn't able to make that work yet without using vec![]
-        let mut buffer = [0; 256];
-        let subslice = &mut buffer[..size_of::<T>()];
-        reader.read_exact(subslice)?;
-
-        Ok(*bytemuck::from_bytes(subslice))
-    }
-
-    pub fn read(mut reader: impl std::io::Read) -> std::io::Result<Self> {
-        let mut magic = [0; 4];
-        reader.read_exact(&mut magic)?;
-
-        if &magic != b"SHDW" {
-            return Err(std::io::Error::other("wrong magic number"));
-        }
-
-        let cell_count = Self::read_raw::<u32>(&mut reader)? as usize;
-        let cell_width = Self::read_raw::<u32>(&mut reader)? as usize;
-        let cell_height = Self::read_raw::<u32>(&mut reader)? as usize;
-
-        let mut cells = Vec::with_capacity(cell_count);
-        for _ in 0..cell_count {
-            let line_count = Self::read_raw::<u32>(&mut reader)? as usize;
-            let mut lines = Vec::with_capacity(line_count);
-
-            for _ in 0..line_count {
-                let line = Self::read_raw::<Line>(&mut reader)?;
-                lines.push(line);
-            }
-            cells.push(Cell { lines });
-        }
-
-        Ok(Self {
-            cell_width,
-            cell_height,
-            cells,
-        })
-    }
 }
 
 type Error = Box<dyn std::error::Error + Send + Sync>;
@@ -123,7 +53,7 @@ impl App {
 impl eframe::App for App {
     fn update(&mut self, ctx: &eframe::egui::Context, _: &mut eframe::Frame) {
         let [texture_width, _] = self.texture_handle.size();
-        let cell_count_x = texture_width / self.shdw.cell_width;
+        let cell_count_x = texture_width / self.shdw.cell_width as usize;
 
         egui::CentralPanel::default().show(ctx, |ui| {
             egui_plot::Plot::new("cell_plot")
@@ -140,10 +70,10 @@ impl eframe::App for App {
                     plot.image(image);
 
                     for (i, cell) in self.shdw.cells.iter().enumerate() {
-                        let cell_x = i % cell_count_x * self.shdw.cell_width;
+                        let cell_x = i % cell_count_x * self.shdw.cell_width as usize;
                         let cell_x = cell_x as f64;
 
-                        let cell_y = i / cell_count_x * self.shdw.cell_height;
+                        let cell_y = i / cell_count_x * self.shdw.cell_height as usize;
                         let cell_y = cell_y as f64;
 
                         let cell_w = self.shdw.cell_width as f64;

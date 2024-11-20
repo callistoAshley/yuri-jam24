@@ -3020,11 +3020,18 @@ dependencies = [
 name = "shadowcast"
 version = "0.1.0"
 dependencies = [
- "bytemuck",
  "clap",
  "contour_tracing",
  "image",
+ "shdw",
  "svg",
+]
+
+[[package]]
+name = "shdw"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
 ]
 
 [[package]]
@@ -3038,6 +3045,7 @@ dependencies = [
  "egui_plot",
  "image",
  "itertools 0.13.0",
+ "shdw",
 ]
 
 [[package]]
