@@ -113,8 +113,9 @@ impl eframe::App for App {
                             })
                             .collect::<PlotPoints>();
 
-                        let arrows =
-                            egui_plot::Arrows::new(origins, tips).color(Color32::DEBUG_COLOR);
+                        let arrows = egui_plot::Arrows::new(origins, tips)
+                            .tip_length(10.0)
+                            .color(Color32::DEBUG_COLOR);
                         plot.arrows(arrows);
                     }
                 });
