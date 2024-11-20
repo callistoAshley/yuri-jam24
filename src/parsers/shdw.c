@@ -37,13 +37,12 @@ SHDWFile *shdw_parse(const char *path, char out_err_msg[256])
     for (u32 i = 0; i < shdw->cell_count; i++)
     {
         Cell *cell = shdw->cells + i;
-        memcpy(&cell->point_count, buffer + offset, 4);
+        memcpy(&cell->line_count, buffer + offset, 4);
         offset += 4;
 
-        cell->points = calloc(cell->point_count, sizeof(vec2s));
-        memcpy(cell->points, buffer + offset,
-               cell->point_count * sizeof(vec2s));
-        offset += cell->point_count * sizeof(vec2s);
+        cell->lines = calloc(cell->line_count, sizeof(Line));
+        memcpy(cell->lines, buffer + offset, cell->line_count * sizeof(Line));
+        offset += cell->line_count * sizeof(Line);
     }
 
     free(buffer);
@@ -54,7 +53,7 @@ void shdw_free(SHDWFile *shdw)
 {
     for (u32 i = 0; i < shdw->cell_count; i++)
     {
-        free(shdw->cells[i].points);
+        free(shdw->cells[i].lines);
     }
     free(shdw->cells);
     free(shdw);

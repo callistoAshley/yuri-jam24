@@ -5,8 +5,14 @@
 
 typedef struct
 {
-    u32 point_count;
-    vec2s *points;
+    vec2s start;
+    vec2s end;
+} Line;
+
+typedef struct
+{
+    u32 line_count;
+    Line *lines;
 } Cell;
 
 typedef struct

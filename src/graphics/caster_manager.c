@@ -61,24 +61,24 @@ CasterEntry *caster_manager_register(CasterManager *manager, Cell *cells,
     {
         Cell *cell = &cells[i];
         entry->cells[i].start = manager->casters.len;
-        for (u32 j = 0; j < cell->point_count; j += 2)
+        for (u32 j = 0; j < cell->line_count; j++)
         {
             // 0
             vec3s point;
-            point.x = cell->points[j].x;
-            point.y = cell->points[j].y;
+            point.x = cell->lines[j].start.x;
+            point.y = cell->lines[j].start.y;
             point.z = 0;
             vec_push(&manager->casters, &point);
 
             // 1
-            point.x = cell->points[j + 1].x;
-            point.y = cell->points[j + 1].y;
+            point.x = cell->lines[j].end.x;
+            point.y = cell->lines[j].end.y;
             point.z = 0;
             vec_push(&manager->casters, &point);
 
             // 2
-            point.x = cell->points[j].x;
-            point.y = cell->points[j].y;
+            point.x = cell->lines[j].start.x;
+            point.y = cell->lines[j].start.y;
             point.z = 1;
             vec_push(&manager->casters, &point);
 
@@ -86,14 +86,14 @@ CasterEntry *caster_manager_register(CasterManager *manager, Cell *cells,
             vec_push(&manager->casters, &point);
 
             // 1
-            point.x = cell->points[j + 1].x;
-            point.y = cell->points[j + 1].y;
+            point.x = cell->lines[j].end.x;
+            point.y = cell->lines[j].end.y;
             point.z = 0;
             vec_push(&manager->casters, &point);
 
             // 3
-            point.x = cell->points[j + 1].x;
-            point.y = cell->points[j + 1].y;
+            point.x = cell->lines[j].end.x;
+            point.y = cell->lines[j].end.y;
             point.z = 1;
             vec_push(&manager->casters, &point);
         }

@@ -229,8 +229,8 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
 void handle_shadow_layer(tmx_layer *layer, Resources *resources,
                          MapLoadArgs *load)
 {
-    vec points;
-    vec_init(&points, sizeof(vec2s));
+    vec lines;
+    vec_init(&lines, sizeof(Line));
 
     tmx_object *current = layer->content.objgr->head;
     while (current)
@@ -239,26 +239,27 @@ void handle_shadow_layer(tmx_layer *layer, Resources *resources,
         {
         case OT_SQUARE:
         {
-            // we have to push each point twice, because the shadow system works
-            // off line segments
             vec2s first = (vec2s){.x = current->x, .y = current->y};
-            vec_push(&points, &first);
+            Line line;
 
-            vec2s point =
+            line.start = (vec2s){.x = current->x, .y = current->y};
+            line.end =
                 (vec2s){.x = current->x + current->width, .y = current->y};
-            vec_push(&points, &point);
-            vec_push(&points, &point);
+            vec_push(&lines, &line);
 
-            point = (vec2s){.x = current->x + current->width,
-                            .y = current->y + current->height};
-            vec_push(&points, &point);
-            vec_push(&points, &point);
+            line.start = line.end;
+            line.end = (vec2s){.x = current->x + current->width,
+                               .y = current->y + current->height};
+            vec_push(&lines, &line);
 
-            point = (vec2s){.x = current->x, .y = current->y + current->height};
-            vec_push(&points, &point);
-            vec_push(&points, &point);
+            line.start = line.end;
+            line.end =
+                (vec2s){.x = current->x, .y = current->y + current->height};
+            vec_push(&lines, &line);
 
-            vec_push(&points, &first);
+            line.start = line.end;
+            line.end = first;
+            vec_push(&lines, &line);
 
             break;
         }
@@ -272,28 +273,33 @@ void handle_shadow_layer(tmx_layer *layer, Resources *resources,
             // iterate to the second last point
             for (i32 i = 0; i < obj_point_len - 1; i++)
             {
+                Line line;
+
                 vec2s point =
                     (vec2s){.x = obj_points[i][0], .y = obj_points[i][1]};
                 point = glms_vec2_add(point, obj_position);
-                vec_push(&points, &point);
+                line.start = point;
 
-                // push i+1
                 point = (vec2s){.x = obj_points[i + 1][0],
                                 .y = obj_points[i + 1][1]};
                 point = glms_vec2_add(point, obj_position);
-                vec_push(&points, &point);
+                line.end = point;
+
+                vec_push(&lines, &line);
             }
 
-            // push the last point
+            Line line;
+            // build a line from the first and last point
             vec2s point = (vec2s){.x = obj_points[obj_point_len - 1][0],
                                   .y = obj_points[obj_point_len - 1][1]};
             point = glms_vec2_add(point, obj_position);
-            vec_push(&points, &point);
+            line.start = point;
 
-            // ... then push the first point again
             point = (vec2s){.x = obj_points[0][0], .y = obj_points[0][1]};
             point = glms_vec2_add(point, obj_position);
-            vec_push(&points, &point);
+            line.end = point;
+
+            vec_push(&lines, &line);
 
             break;
         }
@@ -308,8 +314,8 @@ void handle_shadow_layer(tmx_layer *layer, Resources *resources,
 
     // now that we're done, we can register the shadow caster
     Cell cell = {
-        .points = (vec2s *)points.data,
-        .point_count = points.len,
+        .lines = (Line *)lines.data,
+        .line_count = lines.len,
     };
     CasterEntry *caster_entry =
         caster_manager_register(&resources->graphics.caster_manager, &cell, 1);
