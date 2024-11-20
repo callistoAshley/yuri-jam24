@@ -3011,7 +3011,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "shadowcast"
+name = "shdwview"
 version = "0.1.0"
 dependencies = [
  "bytemuck",

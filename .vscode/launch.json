@@ -37,7 +37,7 @@
     {
       "type": "lldb",
       "request": "launch",
-      "name": "Debug shadowcaster",
+      "name": "Debug shdwview",
       "args": [
         "assets/textures/player.png",
         "assets/shadowcasters/player.shdw"
@@ -46,7 +46,7 @@
       "cargo": {
         "args": [
           "build",
-          "--bin=shadowcast"
+          "--bin=shdwview"
         ],
         "filter": {
           "kind": "bin"
