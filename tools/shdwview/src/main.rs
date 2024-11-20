@@ -1,6 +1,6 @@
 use clap::Parser;
 
-use egui::{Color32, Widget};
+use egui::Color32;
 use egui_plot::{PlotPoint, PlotPoints};
 
 struct App {
@@ -45,7 +45,7 @@ struct Point {
 }
 
 impl Shdw {
-    fn read_raw<T>(reader: &mut impl std::io::Read) -> Result<T, std::io::Error>
+    fn read_raw<T>(reader: &mut impl std::io::Read) -> std::io::Result<T>
     where
         T: Sized + bytemuck::Pod + bytemuck::Zeroable,
     {
@@ -57,7 +57,7 @@ impl Shdw {
         Ok(*bytemuck::from_bytes(subslice))
     }
 
-    pub fn read(mut reader: impl std::io::Read) -> Result<Self, std::io::Error> {
+    pub fn read(mut reader: impl std::io::Read) -> std::io::Result<Self> {
         let mut magic = [0; 4];
         reader.read_exact(&mut magic)?;
 
@@ -71,7 +71,7 @@ impl Shdw {
 
         let mut cells = Vec::with_capacity(cell_count);
         for _ in 0..cell_count {
-            let line_count = Self::read_raw::<u32>(&mut reader)? as usize / 2; // TODO remove the division by 2
+            let line_count = Self::read_raw::<u32>(&mut reader)? as usize;
             let mut lines = Vec::with_capacity(line_count);
 
             for _ in 0..line_count {
@@ -86,15 +86,6 @@ impl Shdw {
             cell_height,
             cells,
         })
-    }
-
-    pub fn shdw_for(image: &image::RgbaImage) -> Self {
-        Self {
-            cell_width: image.width() as usize,
-            cell_height: image.height() as usize,
-
-            cells: vec![Default::default()],
-        }
     }
 }
 
@@ -111,11 +102,7 @@ impl App {
         }
 
         let mut shdw_file = std::fs::File::open(args.shdw)?;
-        let shdw = Shdw::read(&mut shdw_file).unwrap_or_else(|err| {
-            eprintln!("Failed to load shdw: {err}");
-            eprintln!("Using default instead");
-            Shdw::shdw_for(&image)
-        });
+        let shdw = Shdw::read(&mut shdw_file)?;
 
         let color_image = egui::ColorImage {
             size: [image.width() as _, image.height() as _],
@@ -135,27 +122,8 @@ impl App {
 
 impl eframe::App for App {
     fn update(&mut self, ctx: &eframe::egui::Context, _: &mut eframe::Frame) {
-        let [texture_width, texture_height] = self.texture_handle.size();
-        egui::TopBottomPanel::top("top menubar").show(ctx, |ui| {
-            ui.horizontal(|ui| {
-                ui.label("Cell width");
-                egui::DragValue::new(&mut self.shdw.cell_width)
-                    .range(1..=texture_width)
-                    .ui(ui);
-
-                ui.label("Cell height");
-                egui::DragValue::new(&mut self.shdw.cell_height)
-                    .range(1..=texture_height)
-                    .ui(ui);
-            });
-        });
-
+        let [texture_width, _] = self.texture_handle.size();
         let cell_count_x = texture_width / self.shdw.cell_width;
-        let cell_count_y = texture_height / self.shdw.cell_height;
-
-        self.shdw
-            .cells
-            .resize_with(cell_count_x * cell_count_y, Default::default);
 
         egui::CentralPanel::default().show(ctx, |ui| {
             egui_plot::Plot::new("cell_plot")
@@ -236,6 +204,6 @@ fn main() {
     );
 
     if let Err(e) = result {
-        eprintln!("Error: {e}");
+        eprintln!("{e}");
     }
 }

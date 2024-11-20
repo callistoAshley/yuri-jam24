@@ -852,6 +852,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "contour_tracing"
+version = "1.0.12"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "c9efef72b4f4049ebc4b690ae8ac98cfb7d3cb50407592745ad2c83106625936"
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3011,6 +3017,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "shadowcast"
+version = "0.1.0"
+dependencies = [
+ "bytemuck",
+ "clap",
+ "contour_tracing",
+ "image",
+ "svg",
+]
+
+[[package]]
 name = "shdwview"
 version = "0.1.0"
 dependencies = [
@@ -3163,6 +3180,12 @@ name = "strsim"
 version = "0.11.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "7da8b5736845d9f2fcb837ea5d9e2628564b3b043a70948a3f0b778838c5fb4f"
+
+[[package]]
+name = "svg"
+version = "0.18.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "94afda9cd163c04f6bee8b4bf2501c91548deae308373c436f36aeff3cf3c4a3"
 
 [[package]]
 name = "syn"
