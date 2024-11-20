@@ -2,6 +2,7 @@
 #include "binding_helper.h"
 #include "webgpu.h"
 #include "wgpu.h"
+#include <stdlib.h>
 
 void build_sprite_layout(BindGroupLayouts *layouts, WGPUResources *resources)
 {
@@ -62,7 +63,6 @@ void build_light_layout(BindGroupLayouts *layouts, WGPUResources *resources)
         .texture = texture_layout,
         .visibility = WGPUShaderStage_Fragment,
     };
-    bind_group_layout_builder_append(&builder, entry);
     bind_group_layout_builder_append(&builder, entry);
 
     WGPUSamplerBindingLayout sampler_layout = {
@@ -155,26 +155,6 @@ void build_hdr_tonemap_layout(BindGroupLayouts *layouts,
     bind_group_layout_builder_free(&builder);
 }
 
-// just the transform buffer, nothing else
-void build_shadowmap_layout(BindGroupLayouts *layouts, WGPUResources *resources)
-{
-    BindGroupLayoutBuilder builder;
-    bind_group_layout_builder_init(&builder);
-
-    WGPUBufferBindingLayout buffer_layout = {
-        .type = WGPUBufferBindingType_ReadOnlyStorage,
-    };
-    WGPUBindGroupLayoutEntry entry = {
-        .buffer = buffer_layout,
-        .visibility = WGPUShaderStage_Vertex,
-    };
-    bind_group_layout_builder_append(&builder, entry);
-
-    layouts->shadowmap = bind_group_layout_build(
-        &builder, resources->device, "Shadowmapping Bind Group Layout");
-    bind_group_layout_builder_free(&builder);
-}
-
 void bind_group_layouts_init(BindGroupLayouts *layouts,
                              WGPUResources *resources)
 {
@@ -182,7 +162,6 @@ void bind_group_layouts_init(BindGroupLayouts *layouts,
     build_light_layout(layouts, resources);
     build_tilemap_layout(layouts, resources);
     build_hdr_tonemap_layout(layouts, resources);
-    build_shadowmap_layout(layouts, resources);
 }
 
 void bind_group_layouts_free(BindGroupLayouts *layouts)
@@ -191,5 +170,4 @@ void bind_group_layouts_free(BindGroupLayouts *layouts)
     wgpuBindGroupLayoutRelease(layouts->lighting);
     wgpuBindGroupLayoutRelease(layouts->tilemap);
     wgpuBindGroupLayoutRelease(layouts->hdr_tonemap);
-    wgpuBindGroupLayoutRelease(layouts->shadowmap);
 }

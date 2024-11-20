@@ -56,32 +56,6 @@ void *basic_char_init(Resources *resources, struct MapScene *map_scene,
             &resources->graphics.sprite_layers.middle, &state->sprite);
     }
 
-    if (hashmap_get(args->metadata, "shadow"))
-    {
-        char caster_name[256] = {0};
-        strncpy(caster_name, hashmap_get(args->metadata, "shadow"),
-                sizeof(caster_name) - 1);
-
-        f32 radius = -1;
-
-        char *radius_text = hashmap_get(args->metadata, "shadow_radius");
-        if (radius_text)
-        {
-            radius = atof(radius_text);
-        }
-
-        CasterEntry *caster_entry = caster_manager_load(
-            &resources->graphics.caster_manager, caster_name);
-        state->caster = (ShadowCaster){
-            .caster = caster_entry,
-            .cell = 0,
-            .radius = radius,
-            .transform = state->sprite.transform,
-        };
-        state->caster_entry =
-            layer_add(&resources->graphics.shadowcasters, &state->caster);
-    }
-
     if (hashmap_get(args->metadata, "event"))
     {
         strncpy(state->event_name, hashmap_get(args->metadata, "event"),
@@ -161,11 +135,6 @@ void basic_char_free(void *self, Resources *resources, MapScene *map_scene)
         sprite_free(&state->sprite, &resources->graphics);
         layer_remove(&resources->graphics.sprite_layers.middle,
                      state->layer_entry);
-    }
-
-    if (state->caster.caster)
-    {
-        layer_remove(&resources->graphics.shadowcasters, state->caster_entry);
     }
 
     if (state->vm)

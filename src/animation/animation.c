@@ -80,13 +80,4 @@ void animation_apply(Animation *animation, Graphics *graphics, Quad *quad,
     quad_manager_update(&graphics->quad_manager, sprite->quad, *quad);
 }
 
-void animation_apply_caster(Animation *animation, ShadowCaster *caster)
-{
-    if (!animation->needs_apply)
-        return;
-
-    Frame frame = animation->def->frames[animation->current_frame];
-    caster->cell = frame.cell;
-}
-
 void animation_free(Animation *animation) { (void)animation; }

@@ -3,7 +3,6 @@
 #include "box2d/collision.h"
 #include "cglm/struct/vec2.h"
 #include "core_types.h"
-#include "graphics/caster_manager.h"
 #include "physics/physics.h"
 #include "utility/common_defines.h"
 #include "resources.h"
@@ -45,19 +44,6 @@ void player_init(Player *player, b2Vec2 initial_pos, Resources *resources)
 
     player->layer_entry =
         layer_add(&resources->graphics.sprite_layers.middle, &player->sprite);
-
-    CasterEntry *caster =
-        caster_manager_load(&resources->graphics.caster_manager,
-                            "assets/shadowcasters/player.shdw");
-
-    player->shadow_caster.caster = caster;
-    player->shadow_caster.cell = 0;
-    player->shadow_caster.transform = transform_entry;
-    player->shadow_caster.radius = 45.0;
-    player->shadow_caster.offset = (vec2s){.x = 0.0, .y = 0.0};
-
-    player->shadow_caster_entry =
-        layer_add(&resources->graphics.shadowcasters, &player->shadow_caster);
 
     b2BodyDef body_def = b2DefaultBodyDef();
     body_def.type = b2_dynamicBody;
@@ -255,13 +241,11 @@ void player_update(Player *player, Resources *resources, bool disable_input)
     {
         player->quad.tex_coords.min.x = 0.5;
         player->quad.tex_coords.max.x = 1.0;
-        player->shadow_caster.cell = 1;
     }
     else
     {
         player->quad.tex_coords.min.x = 0.0;
         player->quad.tex_coords.max.x = 0.5;
-        player->shadow_caster.cell = 0;
     }
 
     quad_manager_update(&resources->graphics.quad_manager, player->sprite.quad,
@@ -289,7 +273,4 @@ void player_free(Player *player, Resources *resources)
     layer_remove(&resources->graphics.sprite_layers.middle,
                  player->layer_entry);
     sprite_free(&player->sprite, &resources->graphics);
-
-    layer_remove(&resources->graphics.shadowcasters,
-                 player->shadow_caster_entry);
 }

@@ -17,9 +17,6 @@ typedef struct
     Sprite sprite;
     LayerEntry layer_entry;
 
-    ShadowCaster caster;
-    LayerEntry caster_entry;
-
     Animation animation;
 
     Rect rect;

@@ -1,8 +1,6 @@
 #pragma once
 
-#include "graphics/caster_manager.h"
 #include "graphics/layer.h"
-#include "graphics/shadowmap.h"
 #include "graphics/tex_manager.h"
 #include "physics/physics.h"
 #include "settings.h"
@@ -29,13 +27,10 @@ typedef struct Graphics
     QuadManager quad_manager;
     TransformManager transform_manager;
     TextureManager texture_manager;
-    CasterManager caster_manager;
 
     WGPUSampler sampler;
     WGPUTexture color;
     WGPUTextureView color_view;
-
-    ShadowMap shadowmap;
 
     // after rendering to the color texture, we do deffered shading
     // and render the result to the lit texture. this texture is then upscaled,
@@ -53,7 +48,6 @@ typedef struct Graphics
     StandardLayers ui_layers;
 
     Layer lights;
-    Layer shadowcasters;
 } Graphics;
 
 typedef struct

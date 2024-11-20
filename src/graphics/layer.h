@@ -3,7 +3,6 @@
 #include <wgpu.h>
 #include "sensible_nums.h"
 #include "utility/vec.h"
-#include "core_types.h"
 
 typedef struct Graphics Graphics;
 

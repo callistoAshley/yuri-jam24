@@ -1,6 +1,0 @@
-[workspace]
-members = [ "tools/shadowcast", "tools/shdw","tools/shdwview"]
-resolver = "2"
-
-
-exclude = ["vendor/accesskit-c/", "vendor/wgpu-native/"]

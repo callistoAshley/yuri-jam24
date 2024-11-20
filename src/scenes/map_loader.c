@@ -3,11 +3,11 @@
 #include "characters/character.h"
 #include "graphics/graphics.h"
 #include "resources.h"
+#include "utility/common_defines.h"
 #include "utility/log.h"
 
 #define COLLISION_CLASS "collision"
 #define LIGHTS_CLASS "lights"
-#define SHADOWS_CLASS "shadows"
 #define CHARACTERS_CLASS "characters"
 
 static char *tiled_image_path_to_actual(char *path)
@@ -157,11 +157,6 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
         renderable.data.light->volumetric_intensity =
             volumetric_intensity_prop->value.decimal;
 
-        tmx_property *casts_shadows_prop =
-            tmx_get_property(current->properties, "casts_shadows");
-        renderable.data.light->casts_shadows =
-            casts_shadows_prop->value.boolean;
-
         switch (current->obj_type)
         {
         case OT_POLYGON:
@@ -181,35 +176,11 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
             renderable.data.light->data.point.position = position;
             renderable.data.light->data.point.radius = radius;
 
-            if (renderable.data.light->casts_shadows)
-            {
-                renderable.data.light->shadowmap_entry = shadowmap_add(
-                    &resources->graphics.shadowmap, position, radius);
-            }
-
             break;
         }
         case OT_POLYLINE:
         {
             renderable.data.light->type = Light_Direct;
-
-            double **points = current->content.shape->points;
-
-            vec2s start = (vec2s){.x = points[0][0], .y = points[0][1]};
-            vec2s end = (vec2s){.x = points[1][0], .y = points[1][1]};
-
-            f32 angle = atan2(end.y - start.y, end.x - start.x);
-
-            if (renderable.data.light->casts_shadows)
-            {
-                vec2s really_far =
-                    (vec2s){.x = pow(10.0, 15), .y = pow(10.0, 15)};
-                vec2s position = glms_vec2_rotate(really_far, angle);
-                position.y = -position.y;
-
-                renderable.data.light->shadowmap_entry =
-                    shadowmap_add(&resources->graphics.shadowmap, position, -1);
-            }
 
             break;
         }
@@ -224,120 +195,6 @@ void handle_light_layer(tmx_layer *layer, Resources *resources,
 
         current = current->next;
     }
-}
-
-void handle_shadow_layer(tmx_layer *layer, Resources *resources,
-                         MapLoadArgs *load)
-{
-    vec lines;
-    vec_init(&lines, sizeof(Line));
-
-    tmx_object *current = layer->content.objgr->head;
-    while (current)
-    {
-        switch (current->obj_type)
-        {
-        case OT_SQUARE:
-        {
-            vec2s first = (vec2s){.x = current->x, .y = current->y};
-            Line line;
-
-            line.start = (vec2s){.x = current->x, .y = current->y};
-            line.end =
-                (vec2s){.x = current->x + current->width, .y = current->y};
-            vec_push(&lines, &line);
-
-            line.start = line.end;
-            line.end = (vec2s){.x = current->x + current->width,
-                               .y = current->y + current->height};
-            vec_push(&lines, &line);
-
-            line.start = line.end;
-            line.end =
-                (vec2s){.x = current->x, .y = current->y + current->height};
-            vec_push(&lines, &line);
-
-            line.start = line.end;
-            line.end = first;
-            vec_push(&lines, &line);
-
-            break;
-        }
-        case OT_POLYGON:
-        {
-            double **obj_points = current->content.shape->points;
-            i32 obj_point_len = current->content.shape->points_len;
-            vec2s obj_position = (vec2s){.x = current->x, .y = current->y};
-
-            // we have to have a special case for the last point, so only
-            // iterate to the second last point
-            for (i32 i = 0; i < obj_point_len - 1; i++)
-            {
-                Line line;
-
-                vec2s point =
-                    (vec2s){.x = obj_points[i][0], .y = obj_points[i][1]};
-                point = glms_vec2_add(point, obj_position);
-                line.start = point;
-
-                point = (vec2s){.x = obj_points[i + 1][0],
-                                .y = obj_points[i + 1][1]};
-                point = glms_vec2_add(point, obj_position);
-                line.end = point;
-
-                vec_push(&lines, &line);
-            }
-
-            Line line;
-            // build a line from the first and last point
-            vec2s point = (vec2s){.x = obj_points[obj_point_len - 1][0],
-                                  .y = obj_points[obj_point_len - 1][1]};
-            point = glms_vec2_add(point, obj_position);
-            line.start = point;
-
-            point = (vec2s){.x = obj_points[0][0], .y = obj_points[0][1]};
-            point = glms_vec2_add(point, obj_position);
-            line.end = point;
-
-            vec_push(&lines, &line);
-
-            break;
-        }
-
-        default:
-            log_warn("Unhandled object type: %d", current->obj_type);
-            break;
-        }
-
-        current = current->next;
-    }
-
-    // now that we're done, we can register the shadow caster
-    Cell cell = {
-        .lines = (Line *)lines.data,
-        .line_count = lines.len,
-    };
-    CasterEntry *caster_entry =
-        caster_manager_register(&resources->graphics.caster_manager, &cell, 1);
-
-    // now we can add the shadow caster to the scene
-    Transform transform = transform_from_xyz(layer->offsetx, layer->offsety, 0);
-    TransformEntry transform_entry = transform_manager_add(
-        &resources->graphics.transform_manager, transform);
-
-    MapRenderable renderable;
-    renderable.type = Map_Caster;
-
-    renderable.data.caster = malloc(sizeof(ShadowCaster));
-    renderable.data.caster->transform = transform_entry;
-    renderable.data.caster->caster = caster_entry;
-    renderable.data.caster->radius = -1.0;
-    renderable.data.caster->cell = 0;
-
-    renderable.entry =
-        layer_add(&resources->graphics.shadowcasters, renderable.data.caster);
-
-    vec_push(load->renderables, &renderable);
 }
 
 void handle_image_layer(tmx_layer *layer, Resources *resources,
@@ -540,10 +397,6 @@ void handle_map_layers(tmx_layer *head, Resources *resources, MapLoadArgs *load)
             else if (!strcmp(current->class_type, LIGHTS_CLASS))
             {
                 handle_light_layer(current, resources, load);
-            }
-            else if (!strcmp(current->class_type, SHADOWS_CLASS))
-            {
-                handle_shadow_layer(current, resources, load);
             }
             else if (!strcmp(current->class_type, CHARACTERS_CLASS))
             {

@@ -2,7 +2,6 @@
 <template>
  <object>
   <properties>
-   <property name="casts_shadows" type="bool" value="false"/>
    <property name="color" type="color" value="#ffffffff"/>
    <property name="intensity" type="float" value="1"/>
    <property name="volumetric_intensity" type="float" value="0"/>

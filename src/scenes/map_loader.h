@@ -1,7 +1,6 @@
 #pragma once
 
 #include "characters/character.h"
-#include "graphics/caster_manager.h"
 #include "graphics/layer.h"
 #include "graphics/tilemap.h"
 #include "graphics/light.h"
@@ -37,7 +36,6 @@ typedef struct
     {
         Map_Sprite,
         Map_TileLayer,
-        Map_Caster,
         Map_Light,
     } type;
 
@@ -55,7 +53,6 @@ typedef struct
             TilemapLayer *ptr;
             MapLayer layer;
         } tile;
-        ShadowCaster *caster;
         Light *light;
     } data;
 

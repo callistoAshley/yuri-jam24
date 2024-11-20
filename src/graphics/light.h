@@ -26,9 +26,6 @@ typedef struct
 
     f32 intensity;
     f32 volumetric_intensity;
-
-    bool casts_shadows;
-    ShadowMapEntry shadowmap_entry;
 } Light;
 
 void light_render(Light *light, WGPURenderPassEncoder pass, Camera camera);

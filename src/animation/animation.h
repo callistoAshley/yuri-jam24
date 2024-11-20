@@ -1,7 +1,6 @@
 #pragma once
 
 #include "animation/definition.h"
-#include "graphics/caster_manager.h"
 #include "graphics/graphics.h"
 #include "graphics/sprite.h"
 #include "resources.h"
@@ -24,6 +23,5 @@ void animation_update(Animation *animation, Resources *resources);
 // expensive
 void animation_apply(Animation *animation, Graphics *graphics, Quad *quad,
                      Sprite *sprite);
-void animation_apply_caster(Animation *animation, ShadowCaster *caster);
 
 void animation_free(Animation *animation);

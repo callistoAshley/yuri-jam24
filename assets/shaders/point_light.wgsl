@@ -11,8 +11,6 @@ struct PushConstants {
   intensity: f32,
   radius: f32,
   volumetric_intensity: f32,
-  
-  mask_tex_offset: vec3f,
 }
 
 var<push_constant> push_constants: PushConstants;
@@ -20,8 +18,6 @@ var<push_constant> push_constants: PushConstants;
 @group(0) @binding(0)
 var color: texture_2d<f32>;
 @group(0) @binding(1)
-var shadow: texture_2d<f32>;
-@group(0) @binding(2)
 var tex_sampler: sampler;
 
 const POSITIONS: array<vec2f, 6> = array<vec2f, 6>(
@@ -73,13 +69,6 @@ fn fs_main(in: VertexOutput) -> @location(0) vec4f {
 
     let final_intensity = push_constants.intensity * radial_falloff;
     var light_color = push_constants.color * final_intensity;
-
-    // z = 1.0 indicates that the mask texture is enabled
-    if push_constants.mask_tex_offset.z == 1.0 {
-        let mask_tex_coords = (in.position.xy + push_constants.mask_tex_offset.xy) / mask_size;
-        let mask = textureSample(shadow, tex_sampler, mask_tex_coords);
-        light_color *= 1.0 - mask.r;
-    }
 
     let shaded_color = color.rgb * light_color;
     var volumetric_color = vec3f(0.0);

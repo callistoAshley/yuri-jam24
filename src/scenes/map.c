@@ -291,12 +291,6 @@ void map_scene_free(Resources *resources)
             layer_remove(layer, renderable->entry);
             break;
         }
-        case Map_Caster:
-        {
-            free(renderable->data.caster);
-            layer_remove(&resources->graphics.shadowcasters, renderable->entry);
-            break;
-        }
         case Map_Light:
             free(renderable->data.light);
             layer_remove(&resources->graphics.lights, renderable->entry);
@@ -315,10 +309,6 @@ void map_scene_free(Resources *resources)
     settings_menu_free(&map_scene->settings, resources);
     inventory_free(&map_scene->inventory, resources);
     textbox_free(&map_scene->textbox, resources);
-
-    // hack to clear shadow casters, under the assumption that they'll all get
-    // loaded again
-    caster_manager_clear(&resources->graphics.caster_manager);
 
     free(map_scene);
 }

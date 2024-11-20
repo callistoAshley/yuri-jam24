@@ -2,8 +2,6 @@
 
 #include <wgpu.h>
 #include "cglm/types-struct.h"
-#include "cglm/types.h"
-#include "utility/list.h"
 #include "webgpu.h"
 #include "wgpu_resources.h"
 #include "bind_group_layouts.h"
@@ -28,7 +26,6 @@ typedef struct Shaders
     {
         WGPURenderPipeline point;
         WGPURenderPipeline direct;
-        WGPURenderPipeline shadowmap;
     } lights;
 
     struct
@@ -109,19 +106,6 @@ typedef struct
 
     alignas(16) vec3s mask_tex_offset;
 } DirectLightPushConstants;
-
-typedef struct
-{
-    mat4s camera;
-    alignas(8) vec2s light_position;
-    vec2s offset;
-
-    u32 transform_index;
-
-    alignas(8) vec2s viewport_offset;
-    vec2s camera_position;
-    f32 radius;
-} ShadowmapPushConstants;
 
 void shaders_init(Shaders *shaders, BindGroupLayouts *layouts,
                   WGPUResources *resources);

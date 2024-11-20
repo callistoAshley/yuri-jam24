@@ -12,7 +12,6 @@
 #include "imgui_wgpu.h"
 #include "physics/debug_draw.h"
 #include "utility/common_defines.h"
-#include "utility/log.h"
 #include "utility/macros.h"
 #include "webgpu.h"
 
@@ -93,36 +92,6 @@ void directional_light_draw(void *thing, void *context,
     light_render(light, pass, *(Camera *)context);
 }
 
-struct ShadowCasterContext
-{
-    mat4s camera;
-    vec2s light_position;
-    vec2s camera_position;
-    vec2s viewport_offset;
-};
-void shadowcaster_draw(void *thing, void *context, WGPURenderPassEncoder pass)
-{
-    ShadowCaster *caster = thing;
-    struct ShadowCasterContext *caster_context = context;
-
-    ShadowmapPushConstants constants = {
-        .transform_index = caster->transform,
-        .offset = caster->offset,
-        .camera = caster_context->camera,
-        .light_position = caster_context->light_position,
-
-        .camera_position = caster_context->camera_position,
-        .viewport_offset = caster_context->viewport_offset,
-        .radius = caster->radius,
-    };
-    CasterCell cell = caster->caster->cells[caster->cell];
-
-    wgpuRenderPassEncoderSetPushConstants(
-        pass, WGPUShaderStage_Vertex | WGPUShaderStage_Fragment, 0,
-        sizeof(ShadowmapPushConstants), &constants);
-    wgpuRenderPassEncoderDraw(pass, cell.end - cell.start, 1, cell.start, 0);
-}
-
 void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings)
 {
     wgpu_resources_init(&graphics->wgpu, window, settings);
@@ -132,12 +101,9 @@ void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings)
 
     quad_manager_init(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_init(&graphics->transform_manager, &graphics->wgpu);
-    caster_manager_init(&graphics->caster_manager, &graphics->wgpu);
     // texture manager has no gpu side resources allocated initially so no need
     // to pass wgpu
     texture_manager_init(&graphics->texture_manager);
-
-    shadowmap_init(&graphics->shadowmap, &graphics->wgpu);
 
     layer_init(&graphics->tilemap_layers.background, tilemap_layer_draw);
     layer_init(&graphics->tilemap_layers.middle, tilemap_layer_draw);
@@ -153,7 +119,6 @@ void graphics_init(Graphics *graphics, SDL_Window *window, Settings *settings)
     layer_init(&graphics->ui_layers.foreground, ui_sprite_draw);
 
     layer_init(&graphics->lights, point_light_draw);
-    layer_init(&graphics->shadowcasters, shadowcaster_draw);
 
     // load bearing molly
     // why do we need this? primarily to make sure that at least one texture is
@@ -253,8 +218,6 @@ void build_light_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_init(&builder);
 
     bind_group_builder_append_texture_view(&builder, graphics->color_view);
-    bind_group_builder_append_texture_view(&builder,
-                                           graphics->shadowmap.texture_view);
     bind_group_builder_append_sampler(&builder, graphics->sampler);
 
     *bind_group = bind_group_build(&builder, graphics->wgpu.device,
@@ -301,28 +264,11 @@ void build_hdr_tonemap_bind_group(Graphics *graphics, WGPUBindGroup *bind_group)
     bind_group_builder_free(&builder);
 }
 
-void build_shadowmapping_bind_group(Graphics *graphics,
-                                    WGPUBindGroup *bind_group)
-{
-    BindGroupBuilder builder;
-    bind_group_builder_init(&builder);
-
-    bind_group_builder_append_buffer(&builder,
-                                     graphics->transform_manager.buffer);
-
-    *bind_group = bind_group_build(&builder, graphics->wgpu.device,
-                                   graphics->bind_group_layouts.shadowmap,
-                                   "Shadowmapping Bind Group");
-
-    bind_group_builder_free(&builder);
-}
-
 void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 {
     quad_manager_upload_dirty(&graphics->quad_manager, &graphics->wgpu);
     transform_manager_upload_dirty(&graphics->transform_manager,
                                    &graphics->wgpu);
-    caster_manager_write_dirty(&graphics->caster_manager, &graphics->wgpu);
 
     // FIXME we really should not be creating a new bind group every frame
     WGPUBindGroup sprite_bind_group;
@@ -336,9 +282,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
 
     WGPUBindGroup hdr_tonemap_bind_group;
     build_hdr_tonemap_bind_group(graphics, &hdr_tonemap_bind_group);
-
-    WGPUBindGroup shadowmap_bind_hroup;
-    build_shadowmapping_bind_group(graphics, &shadowmap_bind_hroup);
 
     WGPUSurfaceTexture surface_texture;
     wgpuSurfaceGetCurrentTexture(graphics->wgpu.surface, &surface_texture);
@@ -462,72 +405,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
         wgpuRenderPassEncoderRelease(render_pass);
     }
 
-    // perform shadowmapping
-    u32 caster_buffer_size = wgpuBufferGetSize(graphics->caster_manager.buffer);
-    {
-        WGPURenderPassColorAttachment attachments[] = {{
-            .view = graphics->shadowmap.texture_view,
-            .loadOp = WGPULoadOp_Clear,
-            .storeOp = WGPUStoreOp_Store,
-            .clearValue = {.r = 0.0f, .g = 0.0f, .b = 0.0f, .a = 0.0f},
-            .depthSlice = WGPU_DEPTH_SLICE_UNDEFINED,
-        }};
-        WGPURenderPassDescriptor render_pass_desc = {
-            .label = "shadowmap render pass encoder",
-            .colorAttachmentCount = 1,
-            .colorAttachments = attachments,
-        };
-        WGPURenderPassEncoder render_pass = wgpuCommandEncoderBeginRenderPass(
-            command_encoder, &render_pass_desc);
-        wgpuRenderPassEncoderSetBindGroup(render_pass, 0, shadowmap_bind_hroup,
-                                          0, 0);
-        wgpuRenderPassEncoderSetPipeline(render_pass,
-                                         graphics->shaders.lights.shadowmap);
-        wgpuRenderPassEncoderSetVertexBuffer(render_pass, 0,
-                                             graphics->caster_manager.buffer, 0,
-                                             caster_buffer_size);
-
-        ShadowMapIter iter;
-        shadowmap_iter_init(&graphics->shadowmap, &iter);
-
-        vec2s position;
-        f32 radius;
-        while (shadowmap_iter_next(&iter, &position, &radius))
-        {
-            vec2s tex_position =
-                SHADOWMAP_ENTRY_POS_OFFSET(iter.current_entry - 1);
-            wgpuRenderPassEncoderSetViewport(render_pass, tex_position.x,
-                                             tex_position.y, GAME_VIEW_WIDTH,
-                                             GAME_VIEW_HEIGHT, 0, 1);
-
-            struct ShadowCasterContext context = {
-                .camera = camera,
-                .light_position = position,
-                .camera_position = {.x = raw_camera.x, .y = raw_camera.y},
-                .viewport_offset = tex_position};
-
-            if (radius != -1)
-            {
-                Rect screen_rect = rect_from_size(
-                    (vec2s){.x = GAME_VIEW_WIDTH, .y = GAME_VIEW_HEIGHT});
-
-                Rect light_rect = rect_from_center_radius(
-                    glms_vec2_sub(position, context.camera_position),
-                    VEC2_SPLAT(radius));
-
-                Rect clipped_rect = rect_clip(screen_rect, light_rect);
-                if (rect_width(clipped_rect) == 0 ||
-                    rect_height(clipped_rect) == 0)
-                    continue;
-            }
-
-            layer_draw(&graphics->shadowcasters, &context, render_pass);
-        }
-
-        wgpuRenderPassEncoderEnd(render_pass);
-        wgpuRenderPassEncoderRelease(render_pass);
-    }
-
     // perform lighting
     {
         WGPURenderPassColorAttachment lit_attachments[] = {{
@@ -644,7 +521,6 @@ void graphics_render(Graphics *graphics, Physics *physics, Camera raw_camera)
     wgpuBindGroupRelease(light_bind_group);
     wgpuBindGroupRelease(tilemap_bind_group);
     wgpuBindGroupRelease(hdr_tonemap_bind_group);
-    wgpuBindGroupRelease(shadowmap_bind_hroup);
 
     wgpuCommandBufferRelease(command_buffer);
     wgpuCommandEncoderRelease(command_encoder);
@@ -657,7 +533,6 @@ void graphics_free(Graphics *graphics)
     quad_manager_free(&graphics->quad_manager);
     transform_manager_free(&graphics->transform_manager);
     texture_manager_free(&graphics->texture_manager);
-    caster_manager_free(&graphics->caster_manager);
 
     layer_free(&graphics->tilemap_layers.background);
     layer_free(&graphics->tilemap_layers.middle);
@@ -672,7 +547,6 @@ void graphics_free(Graphics *graphics)
     layer_free(&graphics->ui_layers.foreground);
 
     layer_free(&graphics->lights);
-    layer_free(&graphics->shadowcasters);
 
     shaders_free(&graphics->shaders);
     bind_group_layouts_free(&graphics->bind_group_layouts);
@@ -684,8 +558,6 @@ void graphics_free(Graphics *graphics)
 
     wgpuTextureViewRelease(graphics->lit_view);
     wgpuTextureRelease(graphics->lit);
-
-    shadowmap_free(&graphics->shadowmap);
 
     wgpu_resources_free(&graphics->wgpu);
 }

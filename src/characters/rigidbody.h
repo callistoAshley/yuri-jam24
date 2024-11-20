@@ -1,7 +1,5 @@
 #pragma once
 #include "character.h"
-#include "graphics/caster_manager.h"
-#include "graphics/graphics.h"
 #include "graphics/layer.h"
 #include "graphics/sprite.h"
 
@@ -12,9 +10,6 @@ typedef struct
 
     Sprite sprite;
     LayerEntry layer_entry;
-
-    ShadowCaster caster;
-    LayerEntry caster_entry;
 
     Rect rect;
     b2BodyId body_id;
